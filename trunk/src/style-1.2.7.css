@@ -1,0 +1,238 @@
+.chromoscope { overflow: hidden; }
+.chromo_link { color: #ddddff; text-decoration:underline; cursor: pointer; }
+.chromo_helplink a, .chromo_attribution a { color: #ddddff; }
+.chromo_helplink a:hover { color:#fff; }
+.chromo_title { position: absolute; z-index: 10; left:7px; top: 7px; padding: 0px; margin: 0px; }
+/* These are pixel-positioned as using relative sizes broke across browsers :-( */
+.chromo_title h1, .chromo_title h2 {
+	font-family: 'Trebuchet MS',Tahoma,Helvetica,Verdana,sans-serif;
+	font-weight: normal;
+	color: white;
+}
+.chromo_title h1 { font-size: 18px; line-height: 18px; margin:0px; text-shadow: 0px 0px 5px #fff; letter-spacing: 0.08em; text-transform:uppercase; }
+.chromo_title h1 a { text-decoration: none; color: white; }
+.chromo_title h2 { font-size: 10px; margin: 0px; margin-top:-3px; margin-left:5px; text-shadow: 0px 0px 8px #fff; }
+img.map { opacity: 1; }
+.chromo_layerswitcher {
+	font-family: Arial, sans-serif;
+	font-size: 0.9em;
+	font-weight: bold;
+	position: absolute;
+	text-align: right;
+	right: 0px;
+	top: 7px;
+	z-index: 10;
+	overflow:hidden;
+	color: white;
+}
+.chromo_layerswitcher a {
+	color: white;
+	text-decoration: none;
+}
+.chromo_layerswitcher span { cursor: pointer; display:block; margin:10px; margin-right: 5px; font-weight: bold; text-shadow: 2px 2px 8px #000; }
+.chromo_key_highlight { height: 1em; padding-bottom: 2px!important; background-color: white; opacity: 0.3; }
+.chromo_sliderbar {
+	float: right;
+	margin-top: 10px;
+	background-color:#999;
+	border-radius: 8px;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	box-shadow:2px 2px 8px #333;
+	-moz-box-shadow:2px 2px 8px #333;
+	-webkit-box-shadow:2px 2px 8px #333;
+}
+.chromo_slider {
+	cursor: pointer;
+	border-radius: 3px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	background-color: white;
+	z-index: 105;
+	border-bottom: 1px solid #777;
+}
+.chromo_zoom {
+	color: black;
+	border-radius: 3px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	background-color: white;
+	z-index: 105;
+	-moz-box-shadow:2px 2px 8px #333;
+	-webkit-box-shadow:2px 2px 8px #333;
+}
+.chromo_outerDiv {
+	height: 800px;
+	width: 800px;
+	position: relative;
+	overflow: hidden;
+	cursor: move;
+	clear: both;
+}
+.chromo_innerDiv {
+	position: relative;
+	left: 0px;
+	top: 0px;
+}
+.chromo_info {
+	display: none;
+	font-weight: normal;
+	font-size: 0.8em;
+	position: absolute;
+	right: 0px;
+	bottom: 30px!important;
+	width:200px;
+	z-index: 10;
+	overflow:hidden;
+	padding:0.5em;
+	color: white;
+	-moz-border-radius-topleft: 0.5em;
+	-moz-border-radius-bottomleft: 0.5em;
+	-webkit-border-radius-topleft: 0.5em;
+	-webkit-border-radius-bottomleft: 0.5em;
+	border-radius-topleft: 0.5em;
+	border-radius-bottomleft: 0.5em;
+	background-color:#000000;
+}
+.chromo_attribution {
+	font-family: Arial, sans-serif;
+	font-weight: bold;
+	position: absolute;
+	right: 0px;
+	bottom: 0em!important;
+	margin:0px;
+	z-index: 10;
+	overflow:hidden;
+	padding:0.3em;
+	color: white;
+	font-size: 0.8em;
+	opacity: 0.8;
+}
+.chromo_helplink {
+	font-family: Arial, sans-serif;
+	font-weight: bold;
+	position: absolute;
+	left: 0px;
+	bottom: 0em!important;
+	margin:0px;
+	z-index: 10;
+	padding:0.3em;
+	color: white;
+	font-size: 0.8em;
+	opacity: 1.0;
+}
+.chromo_help, .chromo_message, .chromo_popup, .balloon {
+	font-family: Arial, sans-serif;
+	font-size: 0.95em;
+	position:absolute;
+	left:0px;
+	top:0px;
+	padding:1em;
+	color: black;
+	background-color: white;
+	border: 0.5em solid #555;
+	border-radius: 1em;
+	-moz-border-radius: 1em;
+	-webkit-border-radius: 1em;
+	box-shadow:3px 3px 20px #000;
+	-moz-box-shadow:3px 3px 20px #000;
+	-webkit-box-shadow:3px 3px 20px #000;
+}
+.chromo_popup, .balloon {
+	box-shadow:3px 3px 10px #000;
+	-moz-box-shadow:3px 3px 10px #000;
+	-webkit-box-shadow:3px 3px 10px #000;
+}
+.chromo_close b { float:left; margin-left: 0.29em; position:relative;}
+.chromo_close {
+	position: relative;
+	font-size: 1.6em; 
+	background-color:#d44;
+	width:1.2em;
+	height:1.2em;
+	overflow: hidden;
+	border-radius: 1.1em;
+	-moz-border-radius: 1.1em;
+	-webkit-border-radius: 1.1em;
+	float:right;
+	margin-right:-1.3em;
+	margin-top:-1.3em;
+	text-align:center;
+	color: white;
+	cursor: pointer;
+}
+.balloon .chromo_close {
+	background-color: transparent;
+	width:100%;
+	float:none;
+	color: black;
+	margin: 0px;
+	padding: 0px;
+	border-top: 1px solid #555;
+	margin-top:0.8em;
+	padding-top:0.5em;
+	font-size:0.8em;
+	cursor: pointer;
+	text-align:left;
+	border-radius: 0px;
+	-moz-border-radius: 0px;
+	-webkit-border-radius: 0px;
+}
+.keyboard { }
+.nokeyboard { display: none; }
+.chromo_help {
+	z-index:100;
+	display: none;
+	opacity: 0.95;
+}
+.chromo_message {
+	position:absolute;
+	text-align:center;
+	padding:1em;
+	color: white;
+	z-index:102;
+	display: none;
+	background-color: black;
+	width: 250px;
+	opacity: 0.95;
+}
+.chromo_message a { color: #6666ff; }
+.chromo_lang { border-width: 5px; z-index: 103; }
+.chromo_lang ul {
+	font-family: Verdana,sans-serif;
+	font-size: 0.9em;
+	list-style: none;
+	margin: 0;
+	padding-left: 1em;
+	text-indent: -1em;
+}
+.chromo_lang ul li:before { content: "\00BB \0020"; }
+.kml {
+	margin:0px;
+	color: white;
+}
+.pin {
+	cursor: pointer;
+	z-index:10;
+}
+.balloon {
+	border: 0px;
+	opacity:1.0;
+	padding:1em;
+	cursor: default;
+	font-size:0.8em;
+	background-color: white;
+	z-index:12;
+}
+.balloon h3 {
+	margin: 0px;
+}
+p.social {
+	padding:5px;
+	margin:0px;
+}
+p.social img {
+	width:16px;
+	border:0px;
+	margin-left: 4px;
+}
