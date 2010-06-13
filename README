@@ -10,7 +10,7 @@ There are currently seven included: gamma ray (Fermi), X-ray (ROSAT), H-alpha (W
 
 == Control the sky
 
-To move the map around, simply ‘grab’ it with the cursor and drag around the screen. You can double-click (or use the plus and minus keys on your keyboard or a scroll wheel) to zoom in and out. A simple slider (or a set of keyboard shortcuts) allows you to fade gradually along the spectrum and to see structures and features change as they go. A set of labels can be toggled on and off (with the ‘L’ key) to guide people around the sky and, if an Internet connection is present, users can search for named objects and jump right to them.
+To move the map around, simply 'grab' it with the cursor and drag around the screen. You can double-click (or use the plus and minus keys on your keyboard or a scroll wheel) to zoom in and out. A simple slider (or a set of keyboard shortcuts) allows you to fade gradually along the spectrum and to see structures and features change as they go. A set of labels can be toggled on and off (with the 'L' key) to guide people around the sky and, if an Internet connection is present, users can search for named objects and jump right to them.
 
 == No installation needed
 
@@ -22,4 +22,4 @@ Chromoscope does not need a web connection to operate (other than for the search
 
 == Credits
 
-Chromoscope was created by Stuart Lowe (University of Manchester), Chris North (Cardiff University) and Robert Simpson (Cardiff University).
+Chromoscope was created by Stuart Lowe (formerly of the University of Manchester), Chris North (Cardiff University) and Robert Simpson (Cardiff University).
