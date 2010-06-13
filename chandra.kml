@@ -1,0 +1,911 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.2" hint="target=sky">
+<Document>
+	<name>Chandra Image Tour</name>
+	<Style id="chandraList">
+		<ListStyle>
+			<ItemIcon>
+				<href>http://chandra.harvard.edu/about/ge_tours/skytour/sat_small_trans.png</href>
+			</ItemIcon>
+			<text>
+<![CDATA[		<b><font color="#666666" face="Helvetica" size="+3">$[name]]><![CDATA[]</font></b>]]>
+<![CDATA[		<br/><br/>]]>
+<![CDATA[		<font color="#444444" face="Helvetica">$[description]]><![CDATA[]</font>]]>
+<![CDATA[		<br/><br/>]]>
+		</text><state>open</state>
+		</ListStyle>
+	</Style>
+	<Style id="chandraID">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://chandra.harvard.edu/about/ge_tours/skytour/logo3_small_150.png</href>
+			</Icon>
+		</IconStyle>
+		<BalloonStyle>
+			<text>&lt;b&gt;&lt;font color=&quot;#666666&quot; face=&quot;Helvetica&quot; size=&quot;+3&quot;&gt;$[name]&lt;/font&gt;&lt;/b&gt;
+	      &lt;br/&gt;&lt;br/&gt;
+	      &lt;font color=&quot;#444444&quot; face=&quot;Helvetica&quot;&gt;$[description]&lt;/font&gt;
+	      &lt;br/&gt;&lt;br/&gt;
+	      &lt;a href=&quot;http://chandra.harvard.edu&quot;&gt;Chandra X-ray Observatory&lt;/a&gt;</text>
+		</BalloonStyle>
+		<listStyle>
+	      <height>10</height>
+	    </listStyle>
+	</Style>
+	<Folder>
+		<name>Chandra Image Tour</name>
+		<open>1</open>
+		<description><![CDATA[Along with the Hubble Space Telescope and Spitzer Space Telescope, the Chandra X-ray Observatory has performed remarkably as one of NASA’s “Great Observatories.”  Scientists using Chandra have made many discoveries about the cosmos, expanding our knowledge of everything from white dwarfs to black holes and beyond.  The images in this tour are just a sample of the wealth of science that has been produced by Chandra, shown with optical and other multiwavelength data to place it in context.<p align=center><a width="100" href="http://chandra.harvard.edu/"><img width="300px" height="135px" src="http://chandra.harvard.edu/graphics/resources/illustrations/chandra_trw_med.jpg"></a></p>]]></description>
+		<styleUrl>#chandraList</styleUrl>
+		<Placemark>
+			<name>Centaurus A</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" cellspacing="10"  width="330">
+     
+ <tr><td>
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2002/0157/index.html"><img src="http://chandra.harvard.edu/photo/2002/0157/0157_xray_opt_radio_med.jpg"></a>
+</p>
+</td></tr>
+
+<tr><td>
+<b>Centaurus A:</b> An active galaxy located about 11 million light years from Earth in the constellation Centaurus.
+</td></tr>
+
+<tr><td>
+<b>Caption:</b> Chandra's image of this nearby active galaxy revealed two large arcs of multimillion degree Celsius gas in the outskirts of the galaxy. A composite image of the X-ray (blue), the radio (pink and green), and the optical (orange and yellow) presents a stunning tableau of a galaxy in turmoil. The arcs of hot, X-ray emitting gas appear to be part of a projected ring 25,000 light years in diameter. The size and location of the ring indicate that it may have been produced in a titanic explosion that occurred in the nucleus of the galaxy about ten million years ago.
+</td></tr>
+<tr><td>
+<b>Scale:</b> Image is about 18 x 17 arcmin
+</td></tr>
+
+<tr><td> 
+More at <a href="http://chandra.harvard.edu/photo/2002/0157/index.html">chandra.harvard.edu</a>
+</td></tr>
+
+
+<tr><td>
+(Credits: X-ray (NASA/CXC/M. Karovska et al.); Radio 21-cm image (NRAO/AUI/NSF/J.Van Gorkom/Schminovich et al.), Radio continuum image (NRAO/AUI/NSF/J.Condon et al.); Optical (Digitized Sky Survey U.K. Schmidt Image/STScI))
+</td></tr>
+      
+      </table>]]></description>
+			<LookAt>
+				<longitude>21.33428210337692</longitude>
+				<latitude>-43.03009668871496</latitude>
+				<altitude>0</altitude>
+				<range>32000.00000000015</range>
+				<tilt>0</tilt>
+				<heading>6.12230809468084</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>21.33995685650299,-42.99470904894503,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>M87</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+<tr><td>
+
+<p align=center><a width="100" href="http://chandra.harvard.edu/photo/2006/m87/"><img src="http://chandra.harvard.edu/photo/2006/m87/m87_250.jpg"></a></p></td></tr>
+
+<tr><td><br /><b>M87:</b> An elliptical galaxy known in the Virgo cluster about 50 million light years away.<br /><br /><b>Caption:</b> A long Chandra exposure of M87 has revealed a shock wave in high-energy X-rays as well as evidence for a series of outbursts from the central supermassive black hole. The composite image (X-rays in red; optical data in blue) shows a series of loops and bubbles in the hot, X-ray emitting gas. These are relics of small outbursts from close to the black hole. Other remarkable features are seen in M87 for the first time including narrow filaments of X-ray emission, which may be due to hot gas trapped to magnetic fields. One of these filaments is over 100,000 light years long, and extends below and to the right of the center of M87 in almost a straight line.</td></tr>
+
+<tr><td><br /><b>Scale:</b> Image is 14.4 arcmin per side.</td></tr>
+
+<tr><td><br />More at <a href="http://chandra.harvard.edu/photo/2006/m87/">chandra.harvard.edu</a></td></tr>
+
+<tr><td><br />(Credit: X-ray: NASA/CXC/CfA/W.Forman et al.; Optical: DSS)</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>7.706037</longitude>
+				<latitude>12.39077699999935</latitude>
+				<altitude>0</altitude>
+				<range>32000.00000000015</range>
+				<tilt>0</tilt>
+				<heading>0.0001841145210652726</heading>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>7.706037,12.39077699999935,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Cat&apos;s Eye Nebula</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="400">
+
+  <tr><td>
+
+<a href="http://chandra.harvard.edu/photo/2001/1220/">
+<img src="http://chandra.harvard.edu/photo/2001/1220/1220_xray_opt_side_med.jpg">
+</a>
+</td></tr>
+
+<tr><td><br />
+<b>NGC6543:</b> A planetary nebula, also known as the Cat's Eye.
+<br /><br />
+<b>Caption:</b> The Chandra X-ray Observatory image on the left shows a bright central star surrounded by a cloud of multimillion-degree gas in the planetary nebula known as the Cat's Eye. The central star is expected to collapse into a white dwarf in a few million years. In the right panel, a composite image by Chandra (purple) and by the Hubble Space Telescope (red and green) shows where the hot, X-ray emitting gas appears in relation to the cooler material seen in optical wavelengths. A planetary nebula (so called because it looks like a planet when viewed with a small telescope) is formed when a dying red giant star puffs off its outer layer, leaving behind a hot central core.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Images are 30 arcsec a side.
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2001/1220/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray (NASA/UIUC/Y.Chu et al.), Right: X-ray/Optical Composite (X-ray: NASA/UIUC/Y.Chu et al.,Optical: NASA/HST)
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>89.639025</longitude>
+				<latitude>66.63306399999973</latitude>
+				<altitude>0</altitude>
+				<range>32000.00000000015</range>
+				<tilt>0</tilt>
+				<heading>-0.03676118484376193</heading>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>89.639025,66.63306399999973,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>M16</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center><a href="http://chandra.harvard.edu/photo/2007/m16/">
+<img src="http://chandra.harvard.edu/photo/2007/m16/m16_med.jpg">
+</a></p>
+</td></tr>
+
+<tr><td><br />
+<b>The Eagle Nebula (M16):</b> A nearby star-forming region about 7,000 light years from Earth.
+<br /><br />
+<b>Caption:</b> A composite image of the Eagle Nebula (M16) with NASA's Chandra X-ray Observatory and the Hubble Space Telescope penetrates the dark columns of gas and dust to reveal how much star formation is happening there. The Chandra data (red, green, and blue represent low, medium, and high-energy X-rays respectively) show very few X-ray sources in the so-called "Pillars of Creation" themselves. This indicates that star formation peaked in this region several million years ago.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 2.5 arcmin across.
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2007/m16/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray: NASA/CXC/U.Colorado/Linsky et al.; Optical: NASA/ESA/STScI/ASU/J.Hester & P.Scowen.)
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>94.70000000000003</longitude>
+				<latitude>-13.80666700000025</latitude>
+				<altitude>0</altitude>
+				<range>32000.00000000156</range>
+				<tilt>0</tilt>
+				<heading>0.005042897811857143</heading>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>94.70000000000003,-13.80666700000025,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Sombrero Galaxy</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2007/sombrero/">
+<img src="http://chandra.harvard.edu/photo/2007/sombrero/sombrero_comp_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>Sombrero Galaxy:</b> A spiral galaxy, also known as M104, in the Virgo cluster about 28 million light years away.
+<br /><br />
+<b>Caption:</b> This Great Observatories view of the famous Sombrero galaxy was made using NASA's Chandra, Hubble, and Spitzer space telescopes.  Chandra's X-ray image (in blue) shows hot gas in the galaxy and point sources that are a mixture of objects within the galaxy and quasars in the background. Hubble's optical image (green) reveals the bulge of starlight partially blocked by a rim of dust, which glows brightly in Spitzer's infrared view (red).
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 8.4 arcmin per side.
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2007/sombrero/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray: NASA/UMass/Q.D.Wang et al.; Optical: NASA/STScI/AURA/Hubble Heritage; Infrared: NASA/JPL-Caltech/Univ. AZ/R.Kennicutt/SINGS Team)
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>9.997773000000006</longitude>
+				<latitude>-11.62302000000001</latitude>
+				<altitude>0</altitude>
+				<range>32000.00000000015</range>
+				<tilt>0</tilt>
+				<heading>0.001472959987188889</heading>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>9.997773000000008,-11.62302000000001,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>M82</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2006/m82/">
+<img src="http://chandra.harvard.edu/photo/2006/m82/m82_comp_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>M82:</b> A galaxy 12 million light years from Earth that is undergoing a burst of star formation.
+<br /><br />
+<b>Caption:</b> Images from three of NASA's Great Observatories were combined to create this spectacular, multiwavelength view of the starburst galaxy M82. Optical light from stars (yellow-green/Hubble Space Telescope) shows the disk of a modest-sized, apparently normal galaxy. Another Hubble observation designed to image 10,000 degree Celsius hydrogen gas (orange) reveals a startlingly different picture of matter blasting out of the galaxy. The Spitzer Space Telescope infrared image (red) shows that cool gas and dust are also being ejected. Chandra's X-ray image (blue) reveals gas heated to millions of degrees by the violent outflow, which can be traced back to vigorous star formation in the central regions of the galaxy. The burst of star formation is thought to have been initiated by a close encounter with a large nearby galaxy, M81, about 100 million years ago. 
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 7.9 arcmin across.
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2006/m82/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray: NASA/CXC/JHU/D.Strickland; Optical: NASA/ESA/STScI/AURA/The Hubble Heritage Team; IR: NASA/JPL-Caltech/Univ. of AZ/C. Engelbracht)
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>-31.03033300000001</longitude>
+				<latitude>69.68063900000033</latitude>
+				<altitude>0</altitude>
+				<range>31999.99999999944</range>
+				<tilt>3.166142793063121e-13</tilt>
+				<heading>-0.001884909079695085</heading>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>-31.03033300000001,69.68063900000033,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Cassiopeia A</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2005/casa/">
+<img src="http://chandra.harvard.edu/photo/2005/casa/casa_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>Cassiopeia A:</b> A supernova remnant believed to be the remains of a massive star that exploded over 300 years ago.
+<br /><br />
+<b>Caption:</b> This stunning picture of Cas A is a composite of infrared (red), optical (yellow) and X-ray (green and blue) images. The infrared image from the Spitzer Space Telescope reveals warm dust in the outer shell with temperatures of about 25 degrees Celsius, whereas the optical image from the Hubble Space telescope brings out the delicate filamentary structures of warmer (10,000 Celsius) gas; Chandra shows hot gases at about 10 million degrees Celsius. This hot gas was created when ejected material from the supernova smashed into surrounding gas and dust at speeds of about ten million miles per hour. A comparison of the infrared and X-ray images of Cas A should enable astronomers to determine whether most of the dust in the supernova remnant came from the massive star before it exploded, or from the rapidly expanding supernova ejecta.
+
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 7.3 x 6.4 arcmin.
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2006/casa/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray: NASA/CXC/SAO; Optical: NASA/STScI; Infrared: NASA/JPL-Caltech)  
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>170.8690510000001</longitude>
+				<latitude>58.84794599999875</latitude>
+				<altitude>0</altitude>
+				<range>31999.99999999873</range>
+				<tilt>0</tilt>
+				<heading>-0.0003630045091567849</heading>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>170.8690510000001,58.84794599999875,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Ant Nebula</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2006/pne/">
+<img src="http://chandra.harvard.edu/photo/2006/pne/mz3_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>Mz3:</b> A newly-formed planetary nebula in the Milky Way Galaxy.
+<br /><br />
+<b>Caption:</b> A newly formed planetary nebula, so called because it resembles a planet when viewed through a small telescope, is produced in the late stages of a sun-like star's life. This image shows Chandra's X-ray view (blue) of Menzel 3 (Mz3, also known as the Ant Nebula) in addition to  optical and infrared data from Hubble (green and red).  Mz3 is a planetary nebula about 3,000 light years from Earth. Dynamic elongated clouds envelop bubbles of multimillion degree gas produced by high-velocity winds from dying stars.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 110 x 75 arcsec
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2006/pne/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit:  X-ray: NASA/CXC/RIT/J.Kastner et al.; Optical/IR: NASA/STScI/Univ. Washington/B.Balick)
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>64.30590100000003</longitude>
+				<latitude>-51.97623699999241</latitude>
+				<altitude>0</altitude>
+				<range>10013.98035762933</range>
+				<tilt>0</tilt>
+				<heading>0.0003368311072452473</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>64.31387430202835,-51.9770157468759,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Eta Carinae</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2007/etacar/">
+<img src="http://chandra.harvard.edu/photo/2007/etacar/etacar_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>Eta Carinae:</b> A star between 100 and 150 more massive than the Sun, about 7,500 light years from Earth.
+<br /><br />
+<b>Caption:</b> This composite image of Eta Carinae from NASA's Chandra X-ray Observatory and Hubble Space Telescope shows the remnants of a massive eruption from the star during the 1840s. The X-ray data (yellow) show where material from that explosion has collided with nearby gas and dust. The optical data (blue) reveals material ejected from the star has formed a bipolar structure. Chandra detects a faint X-ray reflection off the inner optical nebula due to the collision of stellar winds between Eta Carinae and a suspected companion star.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 2.2 by 1.7 arcmin
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2007/etacar/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray: NASA/CXC/GSFC/M.Corcoran et al.; Optical: NASA/STScI)
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>-18.74229057935112</longitude>
+				<latitude>-59.67983770100687</latitude>
+				<altitude>0</altitude>
+				<range>32000.00000000015</range>
+				<tilt>0</tilt>
+				<heading>-0.0004541492378711658</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>-18.73735999295755,-59.67453398147413,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Crab Nebula</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2006/crab/">
+<img src="http://chandra.harvard.edu/photo/2006/crab/crab_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>Crab Nebula:</b> A supernova remnant and pulsar located 6000 light years from Earth in the constellation of Taurus.
+<br /><br />
+<b>Caption:</b> The supernova that produced the Crab Nebula was detected by naked-eye observers around the world in 1054 A.D. This composite image uses data from NASA’s Great Observatories, Chandra, Hubble, and Spitzer, to show that a superdense neutron star is energizing the expanding Nebula by spewing out magnetic fields and a blizzard of extremely high-energy particles. The Chandra X-ray image is shown in light blue, the Hubble Space Telescope optical images are in green and dark blue, and the Spitzer Space Telescope’s infrared image is in red. The size of the X-ray image is smaller than the others because ultrahigh-energy X-ray emitting electrons radiate away their energy more quickly than the lower-energy electrons emitting optical and infrared light. The neutron star is the bright white dot in the center of the image.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 7.8 arcmin per side.
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2006/crab/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray: NASA/CXC/ASU/J.Hester et al.; Optical: NASA/ESA/ASU/J.Hester & A.Loll; Infrared: NASA/JPL-Caltech/Univ. Minn./R.Gehrz)
+
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>-96.36678299999998</longitude>
+				<latitude>22.01446700000107</latitude>
+				<altitude>0</altitude>
+				<range>31999.99999999944</range>
+				<tilt>0</tilt>
+				<heading>-0.02259240181830529</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>-96.34749165337033,22.06673285459159,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Supernova 1987a</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2007/sn87a/">
+<img src="http://chandra.harvard.edu/photo/2007/sn87a/sn87a_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>Supernova 1987A:</b> The remnant of an exploded star in the Large Magellanic Cloud galaxy 160,000 light years from Earth.
+<br /><br />
+<b>Caption:</b> This composite image of Supernova 1987A shows the effects of a powerful shock wave moving away from the explosion. Bright spots of X-ray and optical emission arise where the shock collides with structures in the surrounding gas. These structures were carved out by the wind from the destroyed star. Hot-spots in the Hubble image (pink-white) now encircle Supernova 1987A like a necklace of incandescent diamonds. The Chandra data (blue-purple) reveals multimillion-degree gas at the location of the optical hot-spots. These data give valuable insight into the behavior of the doomed star in the years before it exploded.
+</td></tr>
+
+<tr><td><br />
+Scale: Image is 12 arcmin across. 
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2007/sn87a/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray: NASA/CXC/PSU/S.Park & D.Burrows.; Optical: NASA/STScI/CfA/P.Challis)  
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>-96.13311500000002</longitude>
+				<latitude>-69.26909800005373</latitude>
+				<altitude>0</altitude>
+				<range>164.991733773099</range>
+				<tilt>0</tilt>
+				<heading>-0.003200331659120364</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>-96.13377831642991,-69.26914113757201,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Kepler&apos;s Supernova Remnant</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2004/kepler/">
+<img src="http://chandra.harvard.edu/photo/2004/kepler/kepler_comp_250.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>Kepler's Supernova Remnant:</b> A supernova remnant believed to be created when a star exploded over 400 years ago. 
+<br /><br />
+<b>Caption:</b> This composite Chandra X-ray (blue and green), Hubble Space Telescope optical (yellow), and Spitzer Space Telescope infrared (red) image shows a cloud of gas and dust that is 14 light years in diameter and expanding at 4 million miles per hour (2,000 kilometers per second). The optical image reveals 10,000 degrees Celsius gas where the supernova shock wave is slamming into the densest regions of surrounding gas. The infrared image highlights microscopic dust particles swept up and heated by the supernova shock wave. The X-ray data show regions with multimillion degree gas, or extremely high energy particles. The higher-energy X-rays (colored blue) come primarily from the regions directly behind the shock front. Lower-energy X-rays (colored green) mark the location of the hot remains of the exploded star.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 5 arcmin across. 
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2004/kepler/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: NASA/ESA/JHU/R.Sankrit & W.Blair) 
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>82.66727899999999</longitude>
+				<latitude>-21.4587660000056</latitude>
+				<altitude>0</altitude>
+				<range>6727.531946703068</range>
+				<tilt>0</tilt>
+				<heading>0.004874481311521813</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>82.6571035773261,-21.46456246124878,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Cartwheel Galaxy</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2006/cartwheel/">
+<img src="http://chandra.harvard.edu/photo/2006/cartwheel/cartwheel_old_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>Cartwheel Galaxy:</b> A ring galaxy 400 million light years from Earth. 
+<br /><br />
+<b>Caption:</b> This image combines data from four different wavelengths of light: infrared (red), visible (green), ultraviolet (blue), and X-ray (purple). The unusual shape of the Cartwheel Galaxy is likely due to a collision with one of the smaller galaxies on the lower left several hundred million years ago. The smaller galaxy produced compression waves in the gas of the Cartwheel as it plunged through it. These compression waves trigger bursts of star formation. The most recent star burst has lit up the Cartwheel's rim, which has a diameter larger than that of the Milky Way Galaxy, with millions of bright young stars. The bright, white X-ray sources on the rim are due to matter falling into black holes left behind by the explosion of massive stars.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 160 arcsec across. 
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2006/cartwheel/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: Composite: NASA/JPL/Caltech/P.Appleton et al. X-ray: NASA/CXC/A.Wolter & G.Trinchieri et al.)  
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>-170.572779351597</longitude>
+				<latitude>-33.69502262842147</latitude>
+				<altitude>0</altitude>
+				<range>5382.735439219312</range>
+				<tilt>0</tilt>
+				<heading>0.002216744816814413</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>-170.583,-33.6973,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>C153 in Abell 2125</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2004/c153/">
+<img src="http://chandra.harvard.edu/photo/2004/c153/c153_comp2_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>C153:</b> A galaxy 3 billion light years from Earth in the galaxy cluster A2125. 
+<br /><br />
+<b>Caption:</b> This composite image offers a dramatic look at C153, a galaxy being stripped of its gas as it races at 4.5 million miles per hour through a vast cloud of 20-million-degree Celsius gas located in a cluster of galaxies. Long streamers of gas with temperatures ranging from 10 thousand (visible [oxygen or OII], green) to 10 million degrees (X-ray, purple) Celsius have been driven from the galaxy by the pressure of the hot cluster gas. Hubble's visible-light image (yellow) reveals evidence of a large-scale disturbance of the galaxy. Radio observations (red) depict jets of high-energy particles produced by a supermassive black hole. 
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 34 arcsec per side
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2004/c153/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray: NASA/CXC/SAO/UMass/D. Wang et al.; Optical: NASA/STScI/U. Alabama/W. Keel; Radio: NSF/NRAO/F. Owen; Optical [OII]: NSF/NOAO/KPNO/M.Ledlow) 
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>55.29142499999998</longitude>
+				<latitude>66.26646099998304</latitude>
+				<altitude>0</altitude>
+				<range>897.1571243543057</range>
+				<tilt>0</tilt>
+				<heading>-0.009819787985645567</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>55.28900598444079,66.26226526930546,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>N 49</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2006/n49/">
+<img src="http://chandra.harvard.edu/photo/2006/n49/n49_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>N49:</b> A supernova remnant located in the Large Magellanic Cloud 
+<br /><br />
+<b>Caption:</b> In Chandra's X-ray data, N49 shows million-degree gas in its center (blue), while Spitzer reveals much cooler, infrared-emitting gas at the remnant's outer regions (red). Unique filamentary structure observed in optical light by Hubble (white & yellow) sets N49 apart from most other supernova remnants that appear roughly circular in visible light. When the multiwavelength data is combined, it appears to confirm the idea that this supernova remnant is expanding into a denser region to the southeast, which would cause its asymmetrical shape.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 1.7 by 1.8 arcmin. 
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2006/n49/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray: NASA/CXC/Caltech/S.Kulkarni et al.; Optical: NASA/STScI/UIUC/Y.H.Chu & R.Williams et al.; IR: NASA/JPL-Caltech/R.Gehrz et al.)  
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>-98.49582600000002</longitude>
+				<latitude>-66.06313100000735</latitude>
+				<altitude>0</altitude>
+				<range>3787.077745686971</range>
+				<tilt>0</tilt>
+				<heading>0.005349137236379691</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>-98.51440000000001,-66.0646,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Stephan&apos;s Quintet</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2003/stephan/">
+<img src="http://chandra.harvard.edu/photo/2003/stephan/stephan_xray_opt_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>Stephan's Quintet:</b> A compact group of galaxies about 280 million light years from Earth.
+<br /><br />
+<b>Caption:</b> The hurly-burly interactions in the compact group of galaxies known as Stephan's Quintet show the Chandra X-ray Observatory image (blue) superimposed on a Digitized Sky Survey optical image (yellow). Shock-heated gas, visible only with an X-ray telescope, appears as a bright blue cloud oriented vertically in the middle of the image and has a temperature of about 6 million degrees Celsius. The heating is produced by the rapid motion of a spiral galaxy intruder located immediately to the right of the shock wave in the center of the image.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is 2.3 x 2.3 arcmin
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2006/m87/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credits: X-ray: NASA/CXC/INAF-Brera/G.Trinchieri et al.; Optical: Pal.Obs. DSS)
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>159.015254</longitude>
+				<latitude>33.97574200001115</latitude>
+				<altitude>0</altitude>
+				<range>7270.107404091977</range>
+				<tilt>0</tilt>
+				<heading>-0.004422908195032277</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>159.03,33.994,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Crescent Nebula</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2003/ngc6888/">
+<img src="http://chandra.harvard.edu/photo/2003/ngc6888/ngc6888_comp_thm250.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>The Crescent Nebula (NGC 6888):</b> A gaseous shell around a massive star about 5,000 light years from Earth in the constellation Cygnus.
+<br /><br />
+<b>Caption:</b> This composite X-ray (blue)/optical (red and green) image reveals dramatic details of a portion of the Crescent Nebula. About 400,000 years ago, the massive star HD 192163 (which is out of the field of view to the lower right) expanded enormously to become a red giant and ejected its outer layers at about 20,000 miles per hour. Two hundred thousand years later, the intense radiation from the exposed hot, inner layer of the star began pushing gas away at speeds in excess of 3 million miles per hour! The collision of the high speed stellar wind with the slower red giant wind compressed gas into a dense shell (red), and produced two shock waves: an outward-moving shock that is visible at optical wavelengths (green), and an inward-moving shock wave that created a bubble of two million degrees Celsius X-ray emitting gas (blue). Because massive stars explode as supernovas, knowledge of the environment around this star will help astronomers better understand supernovas and their remnants.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Image is approx. 8.2 arcmin per side
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2003/ngc6888/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray: NASA/UIUC/Y. Chu & R. Gruendl et al. Optical: SDSU/MLO/Y. Chu et al.)
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>123.1388752185607</longitude>
+				<latitude>38.4641843474912</latitude>
+				<altitude>0</altitude>
+				<range>8408.029137961666</range>
+				<tilt>0</tilt>
+				<heading>0.8986155210251099</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>123.1643114425433,38.46035432815747,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>NGC 3079</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2003/ngc3079/">
+<img src="http://chandra.harvard.edu/photo/2003/ngc3079/ngc3079_comp_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>NGC 3079:</b> A spiral galaxy about 55 million light years from Earth.
+<br /><br />
+<b>Caption:</b> Chandra's X-ray image (blue) combined with Hubble's optical image (red and green) reveal towering filaments of warm (about ten thousand degrees Celsius) and hot (about ten million degrees Celsius) gas that blend to create the bright horseshoe-shaped feature near the center. This feature is thought to have been formed when a superwind of hot gas collided with cold gas in the galactic disk. The full extent of the superwind shows up as a fainter conical cloud of X-ray emission surrounding the filaments. Superwinds originate in the centers of galaxies either from activity generated by supermassive black holes, or by bursts of supernova activity.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Inset image is 1.25 x 3 arcmin 
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2003/ngc3079/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: NASA/CXC/STScI/U.North Carolina/G.Cecil)
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>-29.50920399999999</longitude>
+				<latitude>55.6807419999953</latitude>
+				<altitude>0</altitude>
+				<range>4306.642856316642</range>
+				<tilt>0</tilt>
+				<heading>-0.001165657259843911</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>-29.52547862247865,55.67775963095225,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>NGC 253</name>
+			<Snippet maxLines="0"></Snippet>
+			<description><![CDATA[<table border="0" padding="0" width="330">
+
+<tr><td>
+
+<p align=center>
+<a href="http://chandra.harvard.edu/photo/2001/0012/">
+<img src="http://chandra.harvard.edu/photo/2001/0012/0012_xray_opt_med.jpg">
+</a>
+</td></tr>
+</p>
+
+<tr><td><br />
+<b>NGC 253:</b> A spiral starburst galaxy located about 8 million light years from Earth in the constellation Sculptor.
+<br /><br />
+<b>Caption:</b> The Chandra image of NGC 253 shows a plume of 5 million degree gas in the central region of the galaxy extending above and below the disk of the galaxy, along with point-like X-ray sources. The brightest of the point sources are much more powerful than similar sources in our galaxy, and are believed to be caused by binary star systems in which a massive black hole is pulling matter away from a companion star. The hot plume is caused by the high rate of formation and explosion of massive stars, which is characteristic of a starburst galaxy.
+</td></tr>
+
+<tr><td><br />
+<b>Scale:</b> Optical: Image is 32.4 arcmin on a side. X-ray: Image is 2.2 arcmin on a side.
+</td></tr>
+
+<tr><td><br />
+More at <a href="http://chandra.harvard.edu/photo/2001/0012/">chandra.harvard.edu</a>
+</td></tr>
+
+<tr><td><br />
+(Credit: X-ray: NASA/CXC/SAO; Optical: ESO)
+</td></tr>
+
+</table>]]></description>
+			<LookAt>
+				<longitude>-168.112333</longitude>
+				<latitude>-25.288278</latitude>
+				<altitude>0</altitude>
+				<range>32000.00000000015</range>
+				<tilt>0</tilt>
+				<heading>0.002248343190760016</heading>
+				<altitudeMode>relativeToGround</altitudeMode>
+			</LookAt>
+			<styleUrl>#chandraID</styleUrl>
+			<Point>
+				<coordinates>-168.2182176223941,-25.30202476937596,0</coordinates>
+			</Point>
+		</Placemark>
+	</Folder>
+</Document>
+</kml>

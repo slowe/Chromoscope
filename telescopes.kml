@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.2" hint="target=sky">
+<Document>
+	<name>Telescope STML Feeds</name>
+	<Style id="scope">
+		<IconStyle>
+		<Icon>
+		<href>pin.png</href>
+		</Icon>
+		</IconStyle>
+		<LabelStyle>
+			<color>00ffffff</color>
+		</LabelStyle>
+	</Style>
+	<Placemark>
+		<name>42ft Telescope</name>
+		<description><![CDATA[
+			<p><img src="http://www.jb.man.ac.uk/live/42ft_48.gif" style="float:left;margin-right: 0.5em;" />
+			The 42ft diameter radio telescope at Jodrell Bank Observatory, Cheshire, UK
+			For more information <a href="http://www.jb.man.ac.uk/live/42ft.html">click here</a>.
+			</p>
+			<ul>
+			<li><a href="http://www.jb.man.ac.uk/live/42ft.html">Target object listed</a> as B1937+21 (19:38:10.346 +21:06:51)</li>
+			<li>Observation time was 2010-01-22T15:42:59Z</li>
+			</ul>
+		]]></description>
+		<LookAt>
+			<longitude>114.543108333333</longitude>
+			<latitude>21.1144166666667</latitude>
+			<altitude>0</altitude>
+			<range>500000</range>
+			<tilt>0</tilt>
+			<heading>0</heading>
+		</LookAt>
+		<styleUrl>#scope</styleUrl>
+		<Point>
+			<coordinates>114.543108333333,21.1144166666667,0</coordinates>
+		</Point>
+	</Placemark>
+
+	<Placemark>
+		<name>7m Telescope</name>
+		<description><![CDATA[
+			<p><img src="http://www.jb.man.ac.uk/live/7m_48.gif" style="float:left;margin-right: 0.5em;" />
+			The 6.4 m diameter radio telescope at Jodrell Bank Observatory, Cheshire, UK
+			For more information <a href="http://www.jb.man.ac.uk/live/">click here</a>.
+			</p>
+			<ul>
+			<li>Target object listed as Parked</li>
+			<li>Observation time was 2009-03-03T17:32:09Z</li>
+			</ul>
+		]]></description>
+		<LookAt>
+			<longitude>-125.849044486716</longitude>
+			<latitude>22.5631008499479</latitude>
+			<altitude>0</altitude>
+			<range>500000</range>
+			<tilt>0</tilt>
+			<heading>0</heading>
+		</LookAt>
+		<styleUrl>#scope</styleUrl>
+		<Point>
+			<coordinates>-125.849044486716,22.5631008499479,0</coordinates>
+		</Point>
+	</Placemark>
+
+	<Placemark>
+		<name>Cambridge 32m</name>
+		<description><![CDATA[
+			<p><img src="http://www.jb.man.ac.uk/live/camb_48.gif" style="float:left;margin-right: 0.5em;" />
+			The 32m radio telescope at Cambridge, UK. Part of the MERLIN array.
+			For more information <a href="http://www.jb.man.ac.uk/live/camb.html">click here</a>.
+			</p>
+			<ul>
+			<li><a href="http://www.jb.man.ac.uk/live/camb.html">Target object listed</a> as NGC1260 (03:19:17.991 +41:10:51)</li>
+			<li>Observation time was 2010-05-12T19:37:22Z</li>
+			</ul>
+		]]></description>
+		<LookAt>
+			<longitude>-130.1750375</longitude>
+			<latitude>41.1810527777778</latitude>
+			<altitude>0</altitude>
+			<range>500000</range>
+			<tilt>0</tilt>
+			<heading>0</heading>
+		</LookAt>
+		<styleUrl>#scope</styleUrl>
+		<Point>
+			<coordinates>-130.1750375,41.1810527777778,0</coordinates>
+		</Point>
+	</Placemark>
+
+	<Placemark>
+		<name>Darnhall</name>
+		<description><![CDATA[
+			<p><img src="http://www.jb.man.ac.uk/live/darn_48.gif" style="float:left;margin-right: 0.5em;" />
+			The radio telescope at Darnhall, UK. Part of the MERLIN array.
+			For more information <a href="http://www.jb.man.ac.uk/live/darn.html">click here</a>.
+			</p>
+			<ul>
+			<li><a href="http://www.jb.man.ac.uk/live/darn.html">Target object listed</a> as NGC1260 (03:19:17.991 +41:10:51)</li>
+			<li>Observation time was 2010-05-12T19:37:26Z</li>
+			</ul>
+		]]></description>
+		<LookAt>
+			<longitude>-130.1750375</longitude>
+			<latitude>41.1810527777778</latitude>
+			<altitude>0</altitude>
+			<range>500000</range>
+			<tilt>0</tilt>
+			<heading>0</heading>
+		</LookAt>
+		<styleUrl>#scope</styleUrl>
+		<Point>
+			<coordinates>-130.1750375,41.1810527777778,0</coordinates>
+		</Point>
+	</Placemark>
+
+	<Placemark>
+		<name>Defford</name>
+		<description><![CDATA[
+			<p><img src="http://www.jb.man.ac.uk/live/deff_48.gif" style="float:left;margin-right: 0.5em;" />
+			The radio telescope at Defford, UK. Part of the MERLIN array.
+			For more information <a href="http://www.jb.man.ac.uk/live/deff.html">click here</a>.
+			</p>
+			<ul>
+			<li><a href="http://www.jb.man.ac.uk/live/deff.html">Target object listed</a> as NGC1260 (03:19:17.991 +41:10:51)</li>
+			<li>Observation time was 2010-05-12T19:37:30Z</li>
+			</ul>
+		]]></description>
+		<LookAt>
+			<longitude>-130.1750375</longitude>
+			<latitude>41.1810527777778</latitude>
+			<altitude>0</altitude>
+			<range>500000</range>
+			<tilt>0</tilt>
+			<heading>0</heading>
+		</LookAt>
+		<styleUrl>#scope</styleUrl>
+		<Point>
+			<coordinates>-130.1750375,41.1810527777778,0</coordinates>
+		</Point>
+	</Placemark>
+
+	<Placemark>
+		<name>Knockin</name>
+		<description><![CDATA[
+			<p><img src="http://www.jb.man.ac.uk/live/knoc_48.gif" style="float:left;margin-right: 0.5em;" />
+			The radio telescope at Knockin, UK. Part of the MERLIN array.
+			For more information <a href="http://www.jb.man.ac.uk/live/knoc.html">click here</a>.
+			</p>
+			<ul>
+			<li><a href="http://www.jb.man.ac.uk/live/knoc.html">Target object listed</a> as NGC1260 (03:19:17.991 +41:10:51)</li>
+			<li>Observation time was 2010-05-12T19:37:32Z</li>
+			</ul>
+		]]></description>
+		<LookAt>
+			<longitude>-130.1750375</longitude>
+			<latitude>41.1810527777778</latitude>
+			<altitude>0</altitude>
+			<range>500000</range>
+			<tilt>0</tilt>
+			<heading>0</heading>
+		</LookAt>
+		<styleUrl>#scope</styleUrl>
+		<Point>
+			<coordinates>-130.1750375,41.1810527777778,0</coordinates>
+		</Point>
+	</Placemark>
+
+	<Placemark>
+		<name>Lovell Telescope</name>
+		<description><![CDATA[
+			<p><img src="http://www.jb.man.ac.uk/common/camera30sec.jpg?0.262729277964951" style="width:100%;margin-bottom: 0.5em;" />
+			The 76m Lovell Telescope was built in 1957 at Jodrell Bank Observatory in Cheshire, UK
+			For more information <a href="http://www.jb.man.ac.uk/live/mkia.html">click here</a>.
+			</p>
+			<ul>
+			<li><a href="http://www.jb.man.ac.uk/live/mkia.html">Target object listed</a> as space (20:48:00 +22:30:00)</li>
+			<li>Observation time was 2010-05-16T12:13:13Z</li>
+			</ul>
+		]]></description>
+		<LookAt>
+			<longitude>132</longitude>
+			<latitude>22.5</latitude>
+			<altitude>0</altitude>
+			<range>500000</range>
+			<tilt>0</tilt>
+			<heading>0</heading>
+		</LookAt>
+		<styleUrl>#scope</styleUrl>
+		<Point>
+			<coordinates>132,22.5,0</coordinates>
+		</Point>
+	</Placemark>
+
+	<Placemark>
+		<name>MKII</name>
+		<description><![CDATA[
+			<p><img src="http://www.jb.man.ac.uk/common/upgrade15m.jpg?0.0414943304860671" style="width:100%;margin-bottom: 0.5em;" />
+			The 25m MKII radio telescope at Jodrell Bank Observatory, Cheshire, UK which is part of the MERLIN array
+			For more information <a href="http://www.jb.man.ac.uk/live/mkii.html">click here</a>.
+			</p>
+			<ul>
+			<li><a href="http://www.jb.man.ac.uk/live/mkii.html">Target object listed</a> as NGC1260 (03:19:17.991 +41:10:51)</li>
+			<li>Observation time was 2010-05-12T19:37:48Z</li>
+			</ul>
+		]]></description>
+		<LookAt>
+			<longitude>-130.1750375</longitude>
+			<latitude>41.1810527777778</latitude>
+			<altitude>0</altitude>
+			<range>500000</range>
+			<tilt>0</tilt>
+			<heading>0</heading>
+		</LookAt>
+		<styleUrl>#scope</styleUrl>
+		<Point>
+			<coordinates>-130.1750375,41.1810527777778,0</coordinates>
+		</Point>
+	</Placemark>
+
+	<Placemark>
+		<name>Pickmere Telescope</name>
+		<description><![CDATA[
+			<p><img src="http://www.jb.man.ac.uk/live/pick_48.gif" style="float:left;margin-right: 0.5em;" />
+			The radio telescope near Tabley, UK. Part of the MERLIN array.
+			For more information <a href="http://www.jb.man.ac.uk/live/pick.html">click here</a>.
+			</p>
+			<ul>
+			<li><a href="http://www.jb.man.ac.uk/live/pick.html">Target object listed</a> as NGC1260 (03:19:17.991 +41:10:51)</li>
+			<li>Observation time was 2010-05-12T19:37:50Z</li>
+			</ul>
+		]]></description>
+		<LookAt>
+			<longitude>-130.1750375</longitude>
+			<latitude>41.1810527777778</latitude>
+			<altitude>0</altitude>
+			<range>500000</range>
+			<tilt>0</tilt>
+			<heading>0</heading>
+		</LookAt>
+		<styleUrl>#scope</styleUrl>
+		<Point>
+			<coordinates>-130.1750375,41.1810527777778,0</coordinates>
+		</Point>
+	</Placemark>
+
+</Document>
+</kml>
