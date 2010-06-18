@@ -10,7 +10,7 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.2.7 (2010-06-10):
+ * Changes in version 1.2.7 (2010-06-18):
  *   - Added 'grab' style cursor when dragging the map
  *   - Stopped 'performance' option changing spatial_preload
  *   - Improvements in performance of slider thanks to suggestions
@@ -20,6 +20,9 @@
  *   - Altered horizontal wrapping to behave nicely when moving in
  *     the negative longitude direction.
  *   - Added function to return visible range in Galactic coordinates
+ *   - Fixed minor bugs in working out positions of elements when
+ *     deeply nested in CSS.
+ *   - Fixed issues with pins/balloons when called from outside
  *
  * Changes in version 1.2.6 (2010-05-27):
  *   - Removed requirement for chromo array
@@ -107,7 +110,7 @@
 jQuery.query = function() {
         var r = {};
         var q = location.search;
-	if(q){
+	if(q && q != '#'){
 		q = q.replace(/^\?/,''); // remove the leading ?
 		q = q.replace(/\&$/,''); // remove the trailing &
 		jQuery.each(q.split('&'), function(){
@@ -381,7 +384,7 @@ function ChromoscopeActivate(obj) {
 
 // Define the keyboard functions
 $(document).keydown(function(e){
-	if(chromo.length < 1 || !chromo_active) return true;
+	if(!chromo_active) return true;
 	if(chromo_active.ignorekeys) return true;
 	if (!e) e=window.event;
 	var code = e.keyCode || e.charCode || e.which || 0;
@@ -404,7 +407,7 @@ $(document).keydown(function(e){
 		chromo_active.changeMagnification(-1);
 	}
 }).keypress(function(e){
-	if(chromo.length < 1 || !chromo_active) return true;
+	if(!chromo_active) return true;
 	if(chromo_active.ignorekeys) return true;
 	if (!e) e=window.event;
 	var code = e.keyCode || e.charCode || e.which || 0;
@@ -523,6 +526,7 @@ Chromoscope.prototype.load = function(callback){
 	if(!this.title) $(body+" .chromo_title").toggle();
 	$(body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
 	$(body+" .chromo_outerDiv").append('<div id="chromo_zoomer" style="width:50px;height:50px;display:none;"><div style="position:absolute;width:10px;height:10px;left:0px;top:0px;border-top:2px solid white;border-left:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;right:0px;top:0px;border-top:2px solid white;border-right:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;right:0px;bottom:0px;border-bottom:2px solid white;border-right:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;left:0px;bottom:0px;border-bottom:2px solid white;border-left:2px solid white;"></div></div>');
+	//$(body+" .chromo_innerDiv").disableTextSelect();	//No text selection
 
 	// Define the mouse events
 	$(body+" .chromo_outerDiv").mousedown(function(event){
@@ -533,8 +537,8 @@ Chromoscope.prototype.load = function(callback){
 		this.dragging = true;
 		this.moved = true;
 		this.clock = new Date();
-		$(body+" .chromo_innerDiv").css({cursor:'grabbing',cursor:'-moz-grabbing'});
-		return true;
+		$(body+" .chromo_innerDiv").css({cursor:'grabbing',cursor:'-moz-grabbing'});	
+		return false;
 	}).mousemove(function(event){
 		if(this.dragging){
 			newtop = this.y + (event.clientY - this.dragStartTop);
@@ -556,6 +560,7 @@ Chromoscope.prototype.load = function(callback){
 			}
 		}
 	}).mouseup(function(event){
+		if(!chromo_active) return;
 		chromo_active.checkTiles();
 		chromo_active.updateCoords();
 		$(body+" .chromo_innerDiv").css({cursor:''});
@@ -563,10 +568,12 @@ Chromoscope.prototype.load = function(callback){
 		// Fix for IE as it seems to set any tiles off-screen to 0 opacity by itself
 		if(jQuery.browser.msie) chromo_active.changeWavelength(0);
 	}).mousewheel(function(event, delta) {
+		if(!chromo_active) return;
 		if(delta > 0) chromo_active.changeMagnification(1,event.pageX,event.pageY);
 		else chromo_active.changeMagnification(-1,event.pageX,event.pageY);
 		return false;
 	}).dblclick(function (event) {
+		if(!chromo_active) return;
 		chromo_active.changeMagnification(1,event.pageX,event.pageY);
 		chromo_active.updateCoords();
 		return false;
@@ -986,7 +993,7 @@ Chromoscope.prototype.draggable = function(event){
 Chromoscope.prototype.dragIt = function(event){
 	if (this.draggingSlider){
 		var yheight = $(this.container+" .chromo_sliderbar").height() - (event.data.h);
-		if(this.container) var yoff = $(this.container+" .chromo_layerswitcher").position().top + event.data.margin_t + (event.data.h)/2 + $(this.container).position().top;
+		if(this.container) var yoff = $(this.container+" .chromo_layerswitcher").position().top + event.data.margin_t + (event.data.h)/2 + $(this.container).offset().top;
 		else var yoff = $(".chromo_layerswitcher").position().top + event.data.margin_t + (event.data.h)/2;
 		var fract = ((event.pageY)-yoff)/(yheight);
 		this.changeWavelength(fract*(this.spectrum.length-1) - this.lambda);
@@ -1118,20 +1125,23 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 	var oldmapSize = this.mapSize;
 	if(z > 0) this.setMagnification(z);
 
-	l = (l < 180) ? -(l) : (360-l);
-	alert(l+','+b)
-	this.x = -((l)*this.mapSize/360)+(this.wide - this.mapSize)/2;
-	this.y = ((b)*this.mapSize/360)+(this.tall - this.mapSize)/2;
-	var newpos = this.limitBounds(this.x,this.y);
-	if(duration == 0){
+	l = l%360;
+	var newl = (l <= 180) ? -(l) : (360-l);
+	var newleft = -((newl)*this.mapSize/360)+(this.wide - this.mapSize)/2;
+	var newtop = ((b)*this.mapSize/360)+(this.tall - this.mapSize)/2;
+	var newpos = this.limitBounds(newleft,newtop);
+
+//	if(duration == 0){
 		$(this.container+" .chromo_innerDiv").css(newpos);
-	}else{
-		$(this.container+" .chromo_innerDiv").animate(newpos,duration,this.checkTiles);
-	}
+//	}else{
+//		//$(this.container+" .chromo_innerDiv").animate(newpos,duration,this.checkTiles);
+//	}
 	if(jQuery.browser.msie) this.changeWavelength(0);
 
-	this.checkTiles(true);
+	this.checkTiles();
 	this.updateCoords();
+
+//alert(newleft+' '+newtop+' '+this.mapSize+' '+newpos.left)
 
 }
 
@@ -1162,15 +1172,16 @@ Chromoscope.prototype.centreDiv = function(el){
 }
 
 // Check which tiles should be visible in the innerDiv
-Chromoscope.prototype.checkTiles = function(changeForce){
+Chromoscope.prototype.checkTiles = function(changeForced){
 
 	var visibleRange = this.getVisibleRange();
 	var changeW = (this.minlambda != this.previousMinLambda || this.maxlambda != this.previousMaxLambda) ? true : false;
 	var changeXY = (visibleRange.xstart != this.previousRange.xstart || visibleRange.ystart != this.previousRange.ystart) ? true : false;
 	var changeZ = (this.zoom == this.previousZoom) ? false : true;
 	
+	//alert(changeXY)
 	// Has the range changed?
-	if(changeXY || changeW || changeZ || changeForce){
+	if(changeXY || changeW || changeZ || changeForced){
 
 		// If the zoom level has changed, we should 
 		// remove all tiles instantly
@@ -1181,7 +1192,7 @@ Chromoscope.prototype.checkTiles = function(changeForce){
 
 		// add each tile to the inner div, checking first to see
 		// if it has already been added
-		var visibleTiles = (changeW && this.previousTiles.length > 0 && this.zoom == this.previousZoom) ? this.previousTiles : this.getVisibleTiles(visibleRange);
+		var visibleTiles = (changeW && this.previousTiles.length > 0 && this.zoom == this.previousZoom && !changeForced) ? this.previousTiles : this.getVisibleTiles(visibleRange);
 
 		// Create an array of indices to layers that we will load
 		layers = new Array();
@@ -1249,8 +1260,8 @@ Chromoscope.prototype.checkTiles = function(changeForce){
 		}
 		// Set all the tiles sizes
 		$(this.container+' .tile').css({width:this.tileSize,height:this.tileSize});
-
-		if(!changeZ){
+		
+		if(!changeZ || changeForced){
 			for (p = 0; p < this.previousTilesMap.length; p++) {
 				match = false;
 				for (v = 0; v < this.visibleTilesMap.length; v++) {
@@ -1291,8 +1302,7 @@ Chromoscope.prototype.checkTiles = function(changeForce){
 	// balloons here. It wouldn't be necessary but because their 
 	// content might take a little while to load, we can't trust
 	// their initial positions.
-	if(changeXY && this.pins.length > 0 && !changeZ) this.wrapPins();
-	return (changeXY || changeZ || changeForce) ? true : false;
+	if((changeXY && this.pins.length > 0 && !changeZ) || changeForced) this.wrapPins();
 }
 
 // Used by checkTiles(), this calculates the visible x,y range.
@@ -1349,7 +1359,6 @@ Chromoscope.prototype.getVisibleTiles = function(range){
 
 // Get the URL for the particular tile at x,y
 Chromoscope.prototype.getTileURL = function(x,y,s) {
-	if(!chromo_active) return true;
 	var pixels = Math.pow(2, this.zoom);
 	var d=(x+pixels)%(pixels);
 	var e=(y+pixels)%(pixels);
@@ -1520,14 +1529,18 @@ Chromoscope.prototype.setMagnification = function(z) {
 Chromoscope.prototype.changeMagnification = function(byZoom,x,y){
 
 	if(this.container){
-		x -= Math.round($(this.container).position().left);
-		y -= Math.round($(this.container).position().top);
+		// The x,y need to be corrected with the container offset.
+		// Offset() is preferable to position() to deal with CSS
+		// nesting issues.
+		x -= Math.round($(this.container).offset().left);
+		y -= Math.round($(this.container).offset().top);
 	}
 	originalzoom = this.zoom;
 	
 	this.setMagnification(this.zoom + byZoom);
 	if(this.zoom == originalzoom) return;
 
+	// Store the position of the map relative to the map holder
 	this.y = $(this.container+" .chromo_innerDiv").position().top;
 	this.x = $(this.container+" .chromo_innerDiv").position().left;
 
@@ -1713,7 +1726,7 @@ Chromoscope.prototype.createClose = function(type){
 	if(type == "old"){
 		var s = this.phrasebook.close.replace('C','<span style="text-decoration:underline;">C</span>')
 		return '<div class="chromo_close" title="'+this.phrasebook.closedesc+'">'+s+'</div>';
-	}else return '<span class="chromo_close" title="'+this.phrasebook.closedesc+'"><b>&times;</b></span>';
+	}else return '<span class="chromo_close"><img src="close.png" style="width:28px;" title="'+this.phrasebook.closedesc+'" /></span>';
 }
 
 // Return the HTML for a close button
@@ -1795,14 +1808,18 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 	$('Placemark',xml).each(function(i){
 		// Get the custom icon
 		var img = "";
+		var balloonstyle = false;
 		var style = $(this).find("styleUrl").text();
 		style = style.substring(1);
 		var id_text = "";
 		$('Style',xml).each(function(i){
 			id_text = $(this).attr('id');
-			if(id_text == style){ img = $(this).find('href').text(); }
+			if(id_text == style){
+				img = $(this).find('href').text();
+				if($(this).find('BalloonStyle').length > 0) balloonstyle = $(this).find('BalloonStyle');
+			}
 		});
-		c.addPin({id:p++,style:style,img:img,title:$(this).find("name").text(),desc:($(this).find("description").text()),ra:parseFloat($(this).find("longitude").text())+180,dec:parseFloat($(this).find("latitude").text())});
+		c.addPin({id:p++,style:style,img:img,title:$(this).find("name").text(),balloonstyle:balloonstyle,desc:($(this).find("description").text()),ra:parseFloat($(this).find("longitude").text())+180,dec:parseFloat($(this).find("latitude").text())});
 	});
 	// Set the opacity of all the pins (mostly for IE)
 	setOpacity($(this.container+" .kml"),1.0);
@@ -1814,9 +1831,9 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 Chromoscope.prototype.makePinHolder = function(loc) {
 	loc = (typeof loc=="string") ? loc : 'kml';
 	body = (this.container) ? this.container : 'body';
-	$(body+" .chromo_innerDiv").append('<span class="map '+loc+'" id="'+body+'-holder-'+loc+'"></span>');
+	$(body+" .chromo_innerDiv").append('<div class="map '+loc+'" id="'+body+'-holder-'+loc+'"></div>');
 	$(body+" ."+loc).css("z-index",this.spectrum.length+this.annotations.length+1);
-	$(body+" ."+loc).css({left:0,top:0,width:this.mapSize,height:this.mapSize,position:'absolute'});
+	$(body+" ."+loc).css({left:0,top:0,width:this.mapSize*2,height:this.mapSize,position:'absolute'});
 }
 
 // Add to the pin array
@@ -1863,6 +1880,7 @@ function Pin(input,el){
 		kml_coord = Galactic2XY(this.glon,this.glat,el.mapSize);
 		this.input= input;
 		this.style = input.style;
+		this.balloonstyle = (input.balloonstyle) ? input.balloonstyle : false;
 		this.img = (input.img) ? input.img : defaultimg;
 		this.pinImg = new Image();
 		this.pinImg.src = this.img;
@@ -1879,17 +1897,30 @@ function Pin(input,el){
 		$(this.loc).append('<div class="pin '+this.pin+'" title="'+this.title+'" id="'+chromo_active.container+'-'+this.pin+'" style="position:absolute;display:block;"><img src="'+this.img+'" /></div>');
 		this.jquery = $(el.container+" ."+this.pin);
 
+		// Deal with KML balloon styles
+		if(this.balloonstyle){
+			// We need to replace the $[name] and $[description]
+			var text = this.balloonstyle.find('text').text();
+			text = text.replace("$[name]",this.title)
+			this.ballooncontents = text.replace("$[description]",this.desc)
+		}else{
+			// There is no user-provided styling so apply a basic style
+			this.ballooncontents = (input.msg) ? input.msg : '<h3>'+this.title+'</h3><p>'+this.desc+'</p>';
+		}
+		// Make the <div> to hold the contents of the balloon
+		this.balloonhtml = '<div class="balloon '+this.balloon+'" style="position:absolute;">'+this.ballooncontents+el.createCloseOld()+'</div>';
+		this.balloonvisible = false;
+
+		// Position the pin and add the event to it
 		this.xoff = this.pin_w*0.5;
 		this.yoff = this.pin_h;
-		this.ballooncontents = (input.msg) ? input.msg : '<h3>'+this.title+'</h3>'+this.desc;
-		this.balloonhtml = '<div class="balloon '+this.balloon+'" style="position:absolute;display:none;">'+this.ballooncontents+el.createCloseOld();
-		this.balloonvisible = false;
 		this.jquery.css({left:(parseInt(this.x - this.xoff)),top:(parseInt(this.y - this.yoff))});
 		this.jquery.bind('click',{p:this,el:el},function(e){
-			e.data.el.showBalloon(e.data.p);
+			e.data.el.toggleBalloon(e.data.p);
  		});
 	}
 }
+
 Chromoscope.prototype.updatePins = function(style){
 	max = this.pins.length;
 	for(var p = 0 ; p < max ; p++){
@@ -1903,55 +1934,57 @@ Chromoscope.prototype.updatePins = function(style){
 	}
 }
 
+Chromoscope.prototype.toggleBalloon = function(pin){
+	if(pin.balloonvisible){
+		$(pin.loc+" ."+pin.balloon).remove();
+		pin.balloonvisible = false;
+	}else this.showBalloon(pin);
+}
+
 Chromoscope.prototype.showBalloon = function(pin,duration){
 	var rad = 8;
 
-	$(pin.loc).append(pin.balloonhtml);
+	if(!pin.balloonvisible) $(pin.loc).append(pin.balloonhtml);
+	else {
+		$(pin.loc+" ."+pin.balloon).remove();
+		pin.balloonvisible = false;
+		$(pin.loc).append(pin.balloonhtml);
+	}
+	//$(pin.balloon).append('<b style="color:black;">'+$(pin.balloonstyle).find('text')+'</b>');
 
 	var id = this.container+" ."+pin.balloon;
-	var w = $(this.container+" ."+pin.balloon).outerWidth();
-	var h = $(this.container+" ."+pin.balloon).outerHeight();
+	var w = $(id).outerWidth();
+	var h = $(id).outerHeight();
 
 	// Position the balloon relative to the pin
 	pin.balloonx = -w/2;
-	pin.balloony = ((pin.y-h-rad) < this.mapSize*0.25) ? (pin.pin_h*1.5/2):(-h-pin.pin_h*1.5/2);
-	$(this.container+" ."+pin.balloon).css({'left':(parseInt(pin.x)+pin.balloonx),'top':(parseInt(pin.y)+pin.balloony)})
-	if(duration && duration > 0) $(this.container+" ."+pin.balloon).fadeIn(duration);
-	else $(this.container+" ."+pin.balloon).show();
+	pin.balloony = ((pin.y-h-rad) < this.mapSize*0.25) ? (pin.pin_h*0.25):(-h-pin.pin_h*1.5/2);
+	$(this.container+" ."+pin.balloon).css({'left':(parseInt(pin.x)+pin.balloonx),'top':(parseInt(pin.y)+pin.balloony)});
+	if(duration && duration > 0) $(id).fadeIn(duration);
+	else $(id).show();
 	pin.balloonvisible = true;
 	
 	// Attach event
-	$(this.container+" ."+pin.balloon+" .chromo_close").bind('click',{id:id,pin:pin},function(e){ $(e.data.id).remove(); e.data.pin.balloonvisible = false; } );
+	$(id+" .chromo_close").bind('click',{id:id,pin:pin},function(e){ $(e.data.id).remove(); e.data.pin.balloonvisible = false; } );
 }
 
-// Hide all balloons that are open
-Chromoscope.prototype.hideBalloons = function(){
-	for(var p = 0 ; p < this.pins.length ; p++){
-		if(this.pins[p].balloonvisible){
-			$(this.container+" ."+this.pins[p].balloon).remove();
-			this.pins[p].balloonvisible = false;
-		}
-	}
-}
 
 // Close all open balloons, move to current pin and then show its balloon
-Chromoscope.prototype.activatePin = function(i,input){
+Chromoscope.prototype.pressPin = function(i,input){
+
+	//if(this.pins.length > 0) this.hideBalloons();
 	if(i >= 0 && i < this.pins.length){
-		var z = -1;
-		var d = 0;
-		if(input){
-			if(typeof input.zoom=="number") z = input.zoom;
-			if(typeof input.duration=="number") d = input.duration;
-		}
-		this.hideBalloons();
-		this.moveMap(this.pins[i].glon,this.pins[i].glat,z);
-		this.showBalloon(this.pins[i],d);
+		var z = (input.zoom) ? input.zoom : this.minZoom();
+		this.moveMap(this.pins[i].glon,this.pins[i].glat,z)
+		this.toggleBalloon(this.pins[i]);
+		this.wrapPins();
 	}
 }
 
 // Go through each pin and reposition it on the map
 Chromoscope.prototype.wrapPins = function(i){
 
+	if(this.pins.length == 0) return true;
 	max = (typeof i=="number") ? i : this.pins.length;
 	i = (typeof i=="number") ? i : 0;
 	var x = $(this.container+" .chromo_innerDiv").position().left;
@@ -1961,21 +1994,24 @@ Chromoscope.prototype.wrapPins = function(i){
 		//var pos = x+this.pins[p].x;
 		if(this.pins[p].x < -x-this.tileSize){
 			this.pins[p].x += this.mapSize;
-			this.pins[p].jquery.css({left:(parseInt(this.pins[p].x)-this.pins[p].xoff)});
 		}
 		while(this.pins[p].x > -x+this.mapSize-this.tileSize){
 			this.pins[p].x -= this.mapSize;
-			this.pins[p].jquery.css({left:(parseInt(this.pins[p].x)-this.pins[p].xoff)});
 		}
+		this.pins[p].jquery.css({left:(parseInt(this.pins[p].x)-this.pins[p].xoff)});
 	}
 }
 
 // If we zoom the map, we don't have to recalculate everything, 
 // just scale the positions by the zoom factor
 Chromoscope.prototype.zoomPins = function(oldmapSize,newmapSize){
-
+	
 	if(!chromo_active) return true;
 	if(newmapSize != oldmapSize){
+
+		body = (this.container) ? this.container : 'body';
+		$(body+" .kml").css({width:newmapSize*2,height:newmapSize});
+
 		scale = newmapSize/oldmapSize;
 		for(var p = 0 ; p < this.pins.length ; p++){
 			this.pins[p].x *= scale;

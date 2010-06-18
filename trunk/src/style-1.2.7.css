@@ -13,6 +13,7 @@
 .chromo_title h1 a { text-decoration: none; color: white; }
 .chromo_title h2 { font-size: 10px; margin: 0px; margin-top:-3px; margin-left:5px; text-shadow: 0px 0px 8px #fff; }
 img.map { opacity: 1; }
+.balloon { width: 330px; }
 .chromo_layerswitcher {
 	font-family: Arial, sans-serif;
 	font-size: 0.9em;
@@ -130,7 +131,7 @@ img.map { opacity: 1; }
 	padding:1em;
 	color: black;
 	background-color: white;
-	border: 0.5em solid #555;
+	border: 0.5em solid #777;
 	border-radius: 1em;
 	-moz-border-radius: 1em;
 	-webkit-border-radius: 1em;
@@ -143,22 +144,11 @@ img.map { opacity: 1; }
 	-moz-box-shadow:3px 3px 10px #000;
 	-webkit-box-shadow:3px 3px 10px #000;
 }
-.chromo_close b { float:left; margin-left: 0.29em; position:relative;}
 .chromo_close {
-	position: relative;
-	font-size: 1.6em; 
-	background-color:#d44;
-	width:1.2em;
-	height:1.2em;
-	overflow: hidden;
-	border-radius: 1.1em;
-	-moz-border-radius: 1.1em;
-	-webkit-border-radius: 1.1em;
+	position:relative;
 	float:right;
-	margin-right:-1.3em;
-	margin-top:-1.3em;
-	text-align:center;
-	color: white;
+	margin-right:-32px;
+	margin-top:-30px;
 	cursor: pointer;
 }
 .balloon .chromo_close {
@@ -178,6 +168,7 @@ img.map { opacity: 1; }
 	-moz-border-radius: 0px;
 	-webkit-border-radius: 0px;
 }
+.balloon table { color: black; }
 .keyboard { }
 .nokeyboard { display: none; }
 .chromo_help {

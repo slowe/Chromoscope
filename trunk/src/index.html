@@ -20,15 +20,15 @@
 		$(document).ready(function(){
 			// The spectral bands should be in order
 			chromo.addWavelength({key:'g',useasdefault:false,name:'gamma',tiles:'http://astrog80.astro.cf.ac.uk/Chromoscope/fermi-tiles/',ext:'jpg',title:'gamma',attribution:'<a href="http://fermi.gsfc.nasa.gov/">Fermi</a>'});
-			chromo.addWavelength({key:'x',useasdefault:false,name:'xray',tiles:'../RASS-tiles/',ext:'jpg',title:'xray',attribution:'<a href="http://www.mpe.mpg.de/xray/wave/rosat/index.php">ROSAT</a>'});
-			chromo.addWavelength({key:'v',useasdefault:true,name:'optical',tiles:'../DSS2-tiles/',ext:'jpg',title:'optical',attribution:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>'});
-			chromo.addWavelength({key:'a',useasdefault:false,name:'halpha',tiles:'../H-alpha-tiles/',ext:'jpg',title:'halpha',attribution:'<a href="http://www.astro.wisc.edu/wham/">WHAM</a>/<a href="http://www.phys.vt.edu/~halpha/">VTSS</a>/<a href="http://amundsen.swarthmore.edu/">SHASSA</a>/<a href="http://www.cfa.harvard.edu/~dfinkbei/">Finkbeiner</a>'});
-			chromo.addWavelength({key:'f',useasdefault:false,name:'farir',tiles:'../IRAS-tiles/',ext:'jpg',title:'farir',attribution:'<a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html">IRAS</a>/NASA'});
-			chromo.addWavelength({key:'m',useasdefault:false,name:'microwave',tiles:'../wmap_Ka-tiles/',ext:'jpg',title:'microwave',attribution:'<a href="http://map.gsfc.nasa.gov/">WMAP</a> (Ka-band)'});
-			chromo.addWavelength({key:'r',useasdefault:false,name:'radio',tiles:'../Radio_vsmoothed-tiles/',ext:'jpg',title:'radio',attribution:'<a href="http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm">Haslam et al.</a>'});
+			chromo.addWavelength({key:'x',useasdefault:false,name:'xray',tiles:'../../RASS-tiles/',ext:'jpg',title:'xray',attribution:'<a href="http://www.mpe.mpg.de/xray/wave/rosat/index.php">ROSAT</a>'});
+			chromo.addWavelength({key:'v',useasdefault:true,name:'optical',tiles:'../../DSS2-tiles/',ext:'jpg',title:'optical',attribution:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>'});
+			chromo.addWavelength({key:'a',useasdefault:false,name:'halpha',tiles:'../../H-alpha-tiles/',ext:'jpg',title:'halpha',attribution:'<a href="http://www.astro.wisc.edu/wham/">WHAM</a>/<a href="http://www.phys.vt.edu/~halpha/">VTSS</a>/<a href="http://amundsen.swarthmore.edu/">SHASSA</a>/<a href="http://www.cfa.harvard.edu/~dfinkbei/">Finkbeiner</a>'});
+			chromo.addWavelength({key:'f',useasdefault:false,name:'farir',tiles:'../../IRAS-tiles/',ext:'jpg',title:'farir',attribution:'<a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html">IRAS</a>/NASA'});
+			chromo.addWavelength({key:'m',useasdefault:false,name:'microwave',tiles:'../../wmap_Ka-tiles/',ext:'jpg',title:'microwave',attribution:'<a href="http://map.gsfc.nasa.gov/">WMAP</a> (Ka-band)'});
+			chromo.addWavelength({key:'r',useasdefault:false,name:'radio',tiles:'../../Radio_vsmoothed-tiles/',ext:'jpg',title:'radio',attribution:'<a href="http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm">Haslam et al.</a>'});
 
 			// Annotation layers will be shown at all wavelengths
-			chromo.addAnnotationLayer({opacity:0.4,key:'l',name:'labels',tiles:'../labelsnew/',ext:'jpg',title:'Labels',attribution:'some Labels from Chris'});
+			chromo.addAnnotationLayer({opacity:0.4,key:'l',name:'labels',tiles:'../../labelsnew/',ext:'jpg',title:'Labels',attribution:'some Labels from Chris'});
 
 			// Load the map
 			chromo.load();
