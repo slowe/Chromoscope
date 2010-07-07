@@ -10,6 +10,12 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
+ * Changes (2010-07-06):
+ *   - Option to limit the longitude/latitude range for specific 
+ *     wavelength layers. Outside this region, a placeholder image
+ *     tile is used. Should help save bandwidth for surveys that 
+ *     don't cover the whole sky.
+ *
  * Changes in version 1.2.7 (2010-06-18):
  *   - Added 'grab' style cursor when dragging the map
  *   - Stopped 'performance' option changing spatial_preload
@@ -293,7 +299,7 @@ function Language(inp){
 	this.nozoomin = (inp.nozoomin) ? inp.nozoomin : 'Can\'t zoom in any more'
 	this.nozoomout = (inp.nozoomout) ? inp.nozoomout : 'Can\'t zoom out any more'
 	this.url = (inp.url) ? inp.url : 'The URL for this view is:';
-	this.intro = (inp.intro) ? inp.intro : 'Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in <a href="http://blog.chromoscope.net/data/">a range of wavelengths</a> from X-rays to the longest radio waves.<br /><br />Change the wavelength using the <em>slider</em> in the top right of the screen and explore space using your mouse. For more information we have <a href="#" onClick="javascript:chromo_active.showVideoTour();return false;">a quick video tour</a> or you can read <a href="http://blog.chromoscope.net/about/">more on our blog</a>. If you get stuck, click &quot;Help&quot; in the bottom left.<br /><br /><a href="http://www.astro.cardiff.ac.uk/research/instr/"><img src="cardiffuni.png" style="border:0px;margin: 0px 5px 5px 0px;float:left;" /></a>Chromoscope is kindly funded by the <a href="http://www.astro.cardiff.ac.uk/research/instr/">Cardiff University Astronomy Instrumentation Group</a>.<br style="clear:both;" />';
+	this.intro = (inp.intro) ? inp.intro : '<p>Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in <a href="http://blog.chromoscope.net/data/">a range of wavelengths</a> from X-rays to the longest radio waves.</p><p>Change the wavelength using the <em>slider</em> in the top right of the screen and explore space using your mouse. For more information we have <a href="#" onClick="javascript:chromo_active.showVideoTour();return false;">a quick video tour</a> or you can read <a href="http://blog.chromoscope.net/about/">more on our blog</a>. If you get stuck, click &quot;Help&quot; in the bottom left.</p><p><a href="http://www.astro.cardiff.ac.uk/research/instr/"><img src="cardiffuni.png" style="border:0px;margin: 0px 5px 5px 0px;float:left;" /></a>Chromoscope is kindly funded by the Cardiff University <a href="http://www.astro.cardiff.ac.uk/research/egalactic/">Astronomy</a> and <a href="http://www.astro.cardiff.ac.uk/research/instr/">Astronomy Instrumentation</a> Groups.</p>';
 	this.gal = (inp.gal) ? inp.gal : 'http://en.wikipedia.org/wiki/Galactic_coordinate_system';
 	this.galcoord = (inp.galcoord) ? inp.galcoord : 'Galactic Coordinates';
 	this.eq = (inp.eq) ? inp.eq : 'http://en.wikipedia.org/wiki/Equatorial_coordinate_system';
@@ -874,6 +880,14 @@ function Wavelength(input){
 		this.key = (input.key) ? input.key : '';
 		this.tiles = (input.tiles) ? input.tiles : '';
 		this.ext = (input.ext) ? input.ext : 'jpg';
+		this.range = {longitude:[-180,180],latitude:[-90,90],x:[0,0],y:[0,0]};
+		this.limitrange = false;
+		this.blank = (input.blank) ? input.blank : 'blank.jpg';
+		if(typeof input.range=="object"){
+			if(typeof input.range.longitude=="object") this.range.longitude = input.range.longitude;
+			if(typeof input.range.latitude=="object") this.range.latitude = input.range.latitude;
+			this.limitrange = true;
+		}
 	}
 }
 
@@ -894,6 +908,14 @@ function AnnotationLayer(input){
 	this.key = (input.key) ? input.key : '';
 	this.tiles = (input.tiles) ? input.tiles : '';
 	this.ext = (input.ext) ? input.ext : 'jpg';
+	this.range = {longitude:[-180,180],latitude:[-90,90],x:[0,0],y:[0,0]};
+	this.limitrange = false;
+	this.blank = (input.blank) ? input.blank : 'blank.jpg';
+	if(typeof input.range=="object"){
+		if(typeof input.range.longitude=="object") this.range.longitude = input.range.longitude;
+		if(typeof input.range.latitude=="object") this.range.latitude = input.range.latitude;
+		this.limitrange = true;
+	}
 }
 
 // Add to the wavelength array
@@ -1224,10 +1246,22 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 
 		var counter = 0;
 
+		// Work out the x,y pixel values for the user-defined range
+		var pixels = Math.pow(2, this.zoom)
+
 		// Loop over all the layers we've pre-selected
 		for(var l = 0 ; l < layers.length ; l++){
 			output = "";
 			idx = layers[l];
+
+			if(this.spectrum[idx].limitrange){
+				// Work out the x,y range from the user-specified longitude,latitude range
+				var coord1 = Galactic2XY(this.spectrum[idx].range.longitude[0],this.spectrum[idx].range.latitude[0],pixels);
+				var coord2 = Galactic2XY(this.spectrum[idx].range.longitude[1],this.spectrum[idx].range.latitude[1],pixels);
+				this.spectrum[idx].range.x = [coord1[0],coord2[0]];
+				this.spectrum[idx].range.y = [coord1[1],coord2[1]];
+				if(this.spectrum[idx].range.longitude[1] == 180) this.spectrum[idx].range.x[1] -= pixels;
+			}
 
 			// Loop over all the tiles that we want to load
 			for (v = 0; v < visibleTiles.length; v++, counter++) {
@@ -1244,12 +1278,23 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 				// Did not exist before so needs to be added
 				if(!match){
 					if ($("#"+tileName).length == 0) {
+						inrange = true;
 						if(idx >= 0){
+							if(this.spectrum[idx].limitrange){
+								// Check if the x,y coordinates for this tile are within the user-defined range
+								if(((visibleTiles[v].x+pixels)%pixels)+1 <= (this.spectrum[idx].range.x[1]) || ((visibleTiles[v].x+pixels)%pixels) >= this.spectrum[idx].range.x[0] || visibleTiles[v].y >= this.spectrum[idx].range.y[0] || visibleTiles[v].y <= this.spectrum[idx].range.y[1]-1) inrange = false;
+							}
+							var img = (inrange) ? this.cdn+this.spectrum[idx].tiles+visibleTiles[v].src+'.'+this.spectrum[idx].ext : this.spectrum[idx].blank;
 							extrastyle = (jQuery.browser.msie) ? 'filter:alpha(opacity='+(this.spectrum[idx].opacity/100)+')' : '';
-							output += '<img src="'+this.cdn+this.spectrum[idx].tiles + visibleTiles[v].src + '.jpg" id="'+tileName+'" class="tile" style="position:absolute;left:'+(visibleTiles[v].x * this.tileSize)+'px; top:'+(visibleTiles[v].y * this.tileSize) +'px; '+extrastyle+'" />\n';
+							output += '<img src="'+img+'" id="'+tileName+'" class="tile" style="position:absolute;left:'+(visibleTiles[v].x * this.tileSize)+'px; top:'+(visibleTiles[v].y * this.tileSize) +'px; '+extrastyle+'" />\n';
 						} else {
+							if(this.annotations[-(idx+1)].limitrange){
+								// Check if the x,y coordinates for this tile are within the user-defined range
+								if(((visibleTiles[v].x+pixels)%pixels)+1 <= (this.annotations[-(idx+1)].range.x[1]) || ((visibleTiles[v].x+pixels)%pixels) >= this.annotations[-(idx+1)].range.x[0] || visibleTiles[v].y >= this.annotations[-(idx+1)].range.y[0] || visibleTiles[v].y <= this.annotations[-(idx+1)].range.y[1]-1) inrange = false;
+							}
+							var img = (inrange) ? this.cdn+this.annotations[-(idx+1)].tiles+visibleTiles[v].src+'.'+this.annotations[-(idx+1)].ext : this.spectrum[idx].blank;
 							extrastyle = (jQuery.browser.msie) ? 'filter:alpha(opacity='+(this.annotations[-(idx+1)].opacity/100)+')' : '';
-							output += '<img src="'+this.cdn+this.annotations[-(idx+1)].tiles + visibleTiles[v].src + '.jpg" id="'+tileName+'" class="tile" style="position:absolute;left:'+(visibleTiles[v].x * this.tileSize)+'px; top:'+(visibleTiles[v].y * this.tileSize) +'px; '+extrastyle+'" />\n';
+							output += '<img src="'+img+'" id="'+tileName+'" class="tile" style="position:absolute;left:'+(visibleTiles[v].x * this.tileSize)+'px; top:'+(visibleTiles[v].y * this.tileSize) +'px; '+extrastyle+'" />\n';
 						}
 					}
 				}
@@ -1355,6 +1400,12 @@ Chromoscope.prototype.getVisibleTiles = function(range){
 		}
 	}
 	return visibleTileArray;
+}
+
+// Get the URL for the particular tile at x,y
+Chromoscope.prototype.getTileURLGsky = function(x,y,s) {
+	var pixels = Math.pow(2, this.zoom);
+	return {x:x%pixels,y:(y)%(pixels),src:x+'_'+y+'_'+this.zoom,s:s};
 }
 
 // Get the URL for the particular tile at x,y
