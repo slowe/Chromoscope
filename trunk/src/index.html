@@ -2,12 +2,12 @@
 <head>
 	<title>Chromoscope - View the Universe in different wavelengths</title>
 	<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.chromoscope.net/favicon.ico" />
-	<link rel="stylesheet" href="style-1.2.7.css" type="text/css" />
-	<!--[if IE 6]><link rel="stylesheet" href="style-ie-1.2.7.css" type="text/css" /><![endif]-->
+	<link rel="stylesheet" href="style.css" type="text/css" />
+	<!--[if IE 6]><link rel="stylesheet" href="style-ie.css" type="text/css" /><![endif]-->
 	<script src="jquery-1.4.2.min.js"></script>
 	<script src="jquery.mousewheel.min.js"></script>
-	<script src="chromoscope-1.2.7.js"></script>
-	<script src="chromoscope-lookup-1.2.7.js"></script>
+	<script src="chromoscope.js"></script>
+	<script src="chromoscope-lookup.js"></script>
 	<script type="text/javascript" src="ui/jquery.ui.core.min.js"></script>
 	<script type="text/javascript" src="ui/jquery.ui.widget.min.js"></script>
 	<script type="text/javascript" src="ui/jquery.ui.mouse.min.js"></script>
@@ -15,13 +15,13 @@
 	<script type="text/javascript">
 	<!--
 		// Set up the Chromoscope
-		chromo = new Chromoscope({lang:'en',showintro:true,showshare:true})
+		chromo = new Chromoscope({lang:'en',showintro:false})
 
 		$(document).ready(function(){
 			// The spectral bands should be in order
 			chromo.addWavelength({key:'g',useasdefault:false,name:'gamma',tiles:'http://astrog80.astro.cf.ac.uk/Chromoscope/fermi-tiles/',ext:'jpg',title:'gamma',attribution:'<a href="http://fermi.gsfc.nasa.gov/">Fermi</a>'});
 			chromo.addWavelength({key:'x',useasdefault:false,name:'xray',tiles:'../../RASS-tiles/',ext:'jpg',title:'xray',attribution:'<a href="http://www.mpe.mpg.de/xray/wave/rosat/index.php">ROSAT</a>'});
-			chromo.addWavelength({key:'v',useasdefault:true,name:'optical',tiles:'../../DSS2-tiles/',ext:'jpg',title:'optical',attribution:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>'});
+			chromo.addWavelength({key:'v',useasdefault:true,name:'optical',tiles:'../../DSS2-tiles/',ext:'jpg',title:'optical',attribution:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>',range:{latitude:[-30,30],longitude:[-90,30]},blank:'blogger.gif'});
 			chromo.addWavelength({key:'a',useasdefault:false,name:'halpha',tiles:'../../H-alpha-tiles/',ext:'jpg',title:'halpha',attribution:'<a href="http://www.astro.wisc.edu/wham/">WHAM</a>/<a href="http://www.phys.vt.edu/~halpha/">VTSS</a>/<a href="http://amundsen.swarthmore.edu/">SHASSA</a>/<a href="http://www.cfa.harvard.edu/~dfinkbei/">Finkbeiner</a>'});
 			chromo.addWavelength({key:'f',useasdefault:false,name:'farir',tiles:'../../IRAS-tiles/',ext:'jpg',title:'farir',attribution:'<a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html">IRAS</a>/NASA'});
 			chromo.addWavelength({key:'m',useasdefault:false,name:'microwave',tiles:'../../wmap_Ka-tiles/',ext:'jpg',title:'microwave',attribution:'<a href="http://map.gsfc.nasa.gov/">WMAP</a> (Ka-band)'});
@@ -44,15 +44,18 @@
 				if(code != 38 && code != 40 && code != 107 && code != 61 && code != 187 && code != 33){
 					var character = String.fromCharCode(code);
 					if(character == 'c' || character == 'C'){
-						chromo.moveMap(120.71,-22.09,5);
+						if(typeof chromo_active.createBoundaries!="function"){
+							$.getScript('constellationlines.js');
+							chromo_active.createBoundaries();
+							chromo_active.updateBoundaries();
+						}else{
+							chromo_active.toggleBoundaries();
+						}
 					}
 				}
 			});
 
 
-//							$.getScript('constellationlines.js');
-//							chromo.createBoundaries();
-//							chromo.updateBoundaries();
 
 		});
 
@@ -77,7 +80,7 @@
 		<h2 class="chromo_version"></h2>
 	</div>
 
-	<div class="chromo_message">Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in <a href="http://blog.chromoscope.net/data/">a range of wavelengths</a> from X-rays to the longest radio waves.<br /><br />Change the wavelength using the <em>slider</em> in the top right of the screen and explore space using your mouse. For more information we have <a href="#" onClick="javascript:showVideoTour();">a quick video tour</a> or you can read <a href="http://blog.chromoscope.net/about/">more on our blog</a>. If you get stuck, click &quot;Help&quot; in the bottom left.<br /><br /><a href="http://www.astro.cardiff.ac.uk/research/instr/"><img src="cardiffuni.png" style="border:0px;margin: 0px 5px 5px 0px;float:left;" /></a>Chromoscope is kindly funded by the <a href="http://www.astro.cardiff.ac.uk/research/instr/">Cardiff University Astronomy Instrumentation Group</a>.</div>
+	<div class="chromo_message">Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in <a href="http://blog.chromoscope.net/data/">a range of wavelengths</a> from X-rays to the longest radio waves.<br /><br />Change the wavelength using the <em>slider</em> in the top right of the screen and explore space using your mouse. For more information we have <a href="#" onClick="javascript:showVideoTour();">a quick video tour</a> or you can read <a href="http://blog.chromoscope.net/about/">more on our blog</a>. If you get stuck, click &quot;Help&quot; in the bottom left.<br /><br /><a href="http://www.astro.cardiff.ac.uk/research/instr/"><img src="cardiffuni.png" style="border:0px;margin: 0px 5px 5px 0px;float:left;" /></a>Chromoscope is kindly funded by the Cardiff University <a href="http://www.astro.cardiff.ac.uk/research/egalactic/">Astronomy</a> and <a href="http://www.astro.cardiff.ac.uk/research/instr/">Astronomy Instrumentation</a> Groups.</div>
 
 </body>
 </html>
