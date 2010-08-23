@@ -1,12 +1,12 @@
 == Introduction
 
-Chromoscope is an accessible, easy tool that anyone can use to explore and understand the sky at multiple wavelengths. It was originally written for the Planck/Herschel Royal Society Summer Exhibition 2009. Developed as an educational resource. This web-application will run locally or can be run on a web server. The only part that requires an internet connection is the search tool which makes use of jodcast.net/lookUP/
+Chromoscope is an accessible, easy tool that anyone can use to explore and understand the sky at multiple wavelengths. It was originally written for the Planck/Herschel Royal Society Summer Exhibition 2009. Developed as an educational resource. This Javascript web-application will run locally or can be run on a web server. The only part that requires an internet connection is the search tool which makes use of jodcast.net/lookUP/
  
 == View the Universe
 
 Chromoscope has been created using public-domain datasets from a number of all-sky astronomy projects. It lets you easily move around the sky and fade between wavelengths using a simple user-interface to illustrate the similarities and differences between what is visible at each wavelength.
 
-There are currently seven included: gamma ray (Fermi), X-ray (ROSAT), H-alpha (WHAM), optical (DSS), infrared (IRAS), microwave (WMAP) and radio (Haslam). You can click on the credit information, shown at the bottom-right of the Chromoscope screen, to learn more about each survey.
+There are currently seven included: gamma ray (Fermi), X-ray (ROSAT), H-alpha (WHAM), optical (DSS), infrared (IRAS), microwave (Planck) and radio (Haslam). You can click on the credit information, shown at the bottom-right of the Chromoscope screen, to learn more about each survey.
 
 == Control the sky
 
@@ -18,7 +18,7 @@ A standard, modern, web browser is all that you need to use Chromoscope so there
 
 == Adapt it
 
-Chromoscope does not need a web connection to operate (other than for the search function) and it can be downloaded to your computer for use elsewhere. You can download the basic code (pretty compact) and then select which wavelength collections you want. The entire package, including all wavelengths and zoom levels, currently stands at just over half a gigabyte. This makes Chromoscope ideal for running from a USB memory stick or for downloading from a server. It can easily be copied around and is an open-source project, meaning that none of the code is hidden and users are welcome to modify and adapt it for their purposes.
+Chromoscope does not need a web connection to operate (other than for the search function) and it can be downloaded to your computer for use elsewhere. You can download the basic code (pretty compact) and then select which wavelength collections you want. The entire package, including images for all wavelengths and zoom levels, currently stands at just over half a gigabyte. This makes Chromoscope ideal for running from a USB memory stick or for downloading from a server. It can easily be copied around and is an open-source project, meaning that none of the code is hidden and users are welcome to modify and adapt it for their purposes.
 
 == Credits
 
