@@ -9,9 +9,9 @@
 	font-weight: normal;
 	color: white;
 }
-.chromo_title h1 { font-size: 18px; line-height: 18px; margin:0px; text-shadow: 0px 0px 5px #fff; letter-spacing: 0.08em; text-transform:uppercase; }
+.chromo_title h1 { font-size: 1.2em; line-height: 1em; margin:0px; text-shadow: 0px 0px 5px #fff; letter-spacing: 0.08em; text-transform:uppercase; }
 .chromo_title h1 a { text-decoration: none; color: white; }
-.chromo_title h2 { font-size: 10px; margin: 0px; margin-top:-3px; margin-left:5px; text-shadow: 0px 0px 8px #fff; }
+.chromo_title h2 { font-size: 0.6em; margin: 0px; margin-top:-3px; margin-left:5px; text-shadow: 0px 0px 8px #fff; }
 img.map { opacity: 1; }
 .balloon { width: 330px; }
 .chromo_layerswitcher {
@@ -144,6 +144,8 @@ img.map { opacity: 1; }
 	-moz-box-shadow:3px 3px 10px #000;
 	-webkit-box-shadow:3px 3px 10px #000;
 }
+.chromo_message p { margin-top: 0px; }
+.chromo_message p:last-child { margin-bottom: 0px; }
 .chromo_close {
 	position:relative;
 	float:right;
@@ -180,10 +182,8 @@ img.map { opacity: 1; }
 	position:absolute;
 	text-align:center;
 	padding:1em;
-	color: white;
 	z-index:102;
 	display: none;
-	background-color: black;
 	width: 250px;
 	opacity: 0.95;
 }

@@ -15,16 +15,17 @@
 	<script type="text/javascript">
 	<!--
 		// Set up the Chromoscope
-		chromo = new Chromoscope({lang:'en',showintro:false})
+		chromo = new Chromoscope({lang:'en'})
 
 		$(document).ready(function(){
 			// The spectral bands should be in order
 			chromo.addWavelength({key:'g',useasdefault:false,name:'gamma',tiles:'http://astrog80.astro.cf.ac.uk/Chromoscope/fermi-tiles/',ext:'jpg',title:'gamma',attribution:'<a href="http://fermi.gsfc.nasa.gov/">Fermi</a>'});
 			chromo.addWavelength({key:'x',useasdefault:false,name:'xray',tiles:'../../RASS-tiles/',ext:'jpg',title:'xray',attribution:'<a href="http://www.mpe.mpg.de/xray/wave/rosat/index.php">ROSAT</a>'});
-			chromo.addWavelength({key:'v',useasdefault:true,name:'optical',tiles:'../../DSS2-tiles/',ext:'jpg',title:'optical',attribution:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>',range:{latitude:[-30,30],longitude:[-90,30]},blank:'blogger.gif'});
+			chromo.addWavelength({key:'v',useasdefault:true,name:'optical',tiles:'../../DSS2-tiles/',ext:'jpg',title:'optical',attribution:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>'});
+			//chromo.addWavelength({key:'v',useasdefault:true,name:'optical',tiles:'../../DSS2-tiles/',ext:'jpg',title:'optical',attribution:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>',range:{latitude:[-30,30],longitude:[-90,30]},blank:'blogger.gif'});
 			chromo.addWavelength({key:'a',useasdefault:false,name:'halpha',tiles:'../../H-alpha-tiles/',ext:'jpg',title:'halpha',attribution:'<a href="http://www.astro.wisc.edu/wham/">WHAM</a>/<a href="http://www.phys.vt.edu/~halpha/">VTSS</a>/<a href="http://amundsen.swarthmore.edu/">SHASSA</a>/<a href="http://www.cfa.harvard.edu/~dfinkbei/">Finkbeiner</a>'});
 			chromo.addWavelength({key:'f',useasdefault:false,name:'farir',tiles:'../../IRAS-tiles/',ext:'jpg',title:'farir',attribution:'<a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html">IRAS</a>/NASA'});
-			chromo.addWavelength({key:'m',useasdefault:false,name:'microwave',tiles:'../../wmap_Ka-tiles/',ext:'jpg',title:'microwave',attribution:'<a href="http://map.gsfc.nasa.gov/">WMAP</a> (Ka-band)'});
+			chromo.addWavelength({key:'m',useasdefault:false,name:'microwave',tiles:'../../../Planck-tiles/',ext:'jpg',title:'microwave',attribution:'<a href="http://map.gsfc.nasa.gov/">WMAP</a> (Ka-band)'});
 			chromo.addWavelength({key:'r',useasdefault:false,name:'radio',tiles:'../../Radio_vsmoothed-tiles/',ext:'jpg',title:'radio',attribution:'<a href="http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm">Haslam et al.</a>'});
 
 			// Annotation layers will be shown at all wavelengths
@@ -33,6 +34,35 @@
 			// Load the map
 			chromo.load();
 			chromo.addSearch();
+
+			$('.chromo_outerDiv').bind("contextmenu",function(e){
+				var offset = 2;
+				var offx = ($(chromo_active.container).length > 0) ? $(chromo_active.container).offset().left : 0;
+				var offy = ($(chromo_active.container).length > 0) ? $(chromo_active.container).offset().top : 0;
+				var newtop = (e.clientY)-offy;
+				var newleft = (e.clientX)-offx;
+				var body = (!chromo_active.container) ? "body" : chromo_active.container;
+				var coords = chromo_active.getCoords(newleft,newtop);
+				var radec = Galactic2Equatorial(coords.l,coords.b);
+				if($(body+" .chromo_context").length == 0) $(body).append('<div class="chromo_context" style="color:black;background-color:#eee;position:absolute;padding:2px;font-size:0.9em;z-index:1000;cursor:default"></div>');
+				var output = '<ul style="margin:0px;padding:0px;font-size:0.9em;list-style:none;display:block;"><li><a href="#" onClick="javascript:chromo_active.moveMap('+coords.l+','+coords.b+','+chromo_active.zoom+');return false;">Centre map at this point</a><li><a href="http://server1.wikisky.org/v2?ra='+(radec.ra)+'&de='+radec.dec+'&zoom='+(chromo_active.zoom-2)+'&img_source=DSS2">View in Wikisky</a></li><li><a href="http://www.worldwidetelescope.org/wwtweb/goto.aspx?object=ViewShortcut&ra='+(radec.ra)+'&dec='+radec.dec+'&zoom='+(0.3*60*360/Math.pow(2,chromo_active.zoom))+'">View in WorldWideTelescope</a></li><li><a href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord='+coords.l.toFixed(4)+'+'+coords.b.toFixed(4)+'&CooFrame=Gal&CooEpoch=2000&CooEqui=2000&Radius=10">Objects within 10&prime; (Simbad)</a></li><li><a href="http://nedwww.ipac.caltech.edu/cgi-bin/nph-objsearch?search_type=Near+Position+Search&in_csys=Galactic&in_equinox=J2000.0&lon='+(coords.l)+'&lat='+coords.b+'&radius=10&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=20&img_stamp=YES">Objects within 10&prime; (NED)</li></ul>';
+				$(body+" .chromo_context").html(output).bind('mouseleave', {el:chromo_active,body:body}, function(e){
+					$(e.data.body+' .chromo_context').hide();
+				})
+				$(body+" .chromo_context li a").css({padding:'3px',display:'block',textDecoration:'none',color:'black'});
+				$(body+" .chromo_context li a").hover( function(){
+					$(this).css('background-color', '#ccc');
+				},function(){
+					$(this).css('background-color', 'transparent');
+				});
+				var w = $(body+" .chromo_context").outerWidth();
+				var h = $(body+" .chromo_context").outerHeight();
+				if(newleft+w > chromo_active.wide) newleft -= w-2*offset;
+				if(newtop+h > chromo_active.tall) newtop -= h-(2*offset);
+				$(body+" .chromo_context").css({left:(newleft-offset)+'px',top:(newtop-offset)+'px',width:'200px'}).show();
+				return false;
+			});
+
 
 
 

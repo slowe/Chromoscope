@@ -354,7 +354,7 @@ Chromoscope.prototype.updateBoundaries = function(){
 	var scale = Math.pow(2,zdiff);
 		
 	var con_on = {stroke:'#fff',fill: '#fff','fill-opacity':0,'stroke-opacity':0.8, 'stroke-width':1.8};
-	var con_off = {stroke:'#fff',fill: '#fff','fill-opacity':0,'stroke-opacity':0.2, 'stroke-width':1.2};
+	var con_off = {stroke:'#fff',fill: '#fff','fill-opacity':0,'stroke-opacity':0.15, 'stroke-width':0.8};
 
 	scaled = (scale) ? true : false;
 	if(!scale) scale = 1;
@@ -381,7 +381,7 @@ Chromoscope.prototype.updateBoundaries = function(){
 
 		if(fs >= 6){
 			this.canvas.t[i] = this.paper.text(this.region[i].x*scale, this.region[i].y*scale, this.region[i].label).attr(this.fontattr);
-			this.canvas.t[i].attr('font-size',fs);
+			this.canvas.t[i].attr({'font-size':fs});
 		}
 
 		if(this.region[i].xypath){

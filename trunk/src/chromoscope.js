@@ -1,5 +1,5 @@
 /*
- * Chromoscope v1.2.7
+ * Chromoscope v1.2.7+
  * Written by Stuart Lowe for the Planck/Herschel Royal Society
  * Summer Exhibition 2009. Developed as an educational resource.
  *
@@ -10,7 +10,7 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes (2010-07-06):
+ * Changes in version 1.2.7+ (2010-07-06):
  *   - Option to limit the longitude/latitude range for specific 
  *     wavelength layers. Outside this region, a placeholder image
  *     tile is used. Should help save bandwidth for surveys that 
@@ -116,6 +116,7 @@
 jQuery.query = function() {
         var r = {};
         var q = location.search;
+	r['length'] = 0;	// A dummy for the length property
 	if(q && q != '#'){
 		q = q.replace(/^\?/,''); // remove the leading ?
 		q = q.replace(/\&$/,''); // remove the trailing &
@@ -124,7 +125,8 @@ jQuery.query = function() {
 			var val = this.split('=')[1];
 			// convert floats
 			if(/^[0-9.]+$/.test(val)) val = parseFloat(val);
-			r[key] = val
+			r[key] = val;
+			r['length']++;
 		});
 	}
         return r;
@@ -133,8 +135,8 @@ jQuery.query = function() {
 // Find out if there are any query string parameters
 var query = $.query();
 
-// Diable text selection thanks to http://chris-barr.com/entry/disable_text_selection_with_jquery/
 $(function(){
+	// Diable text selection thanks to http://chris-barr.com/entry/disable_text_selection_with_jquery/
 	$.extend($.fn.disableTextSelect = function() {
 		return this.each(function(){
 			if($.browser.mozilla){//Firefox
@@ -146,11 +148,49 @@ $(function(){
 			}
 		});
 	});
+
+	$.extend($.fn.addTouch = function(){
+		// Adapted from http://code.google.com/p/rsslounge/source/browse/trunk/public/javascript/addtouch.js?spec=svn115&r=115
+		this.each(function(i,el){
+			$(el).bind('touchstart touchmove touchend touchcancel touchdbltap',function(){
+				// Pass the original event object because the jQuery event object
+				// is normalized to w3c specs and does not provide the TouchList.
+				handleTouch(event);
+			});
+		});
+		var handleTouch = function(event){
+			var touches = event.changedTouches,
+			first = touches[0],
+			type = '';
+			switch(event.type){
+				case 'touchstart':
+					type = 'mousedown';
+					break;
+				case 'touchmove':
+					type = 'mousemove';
+					break;        
+				case 'touchend':
+					type = 'mouseup';
+					break;
+				case 'touchdbltap':
+					type = 'dblclick';
+					break;
+				default:
+					return;
+			}
+			var simulatedEvent = document.createEvent('MouseEvent');
+			simulatedEvent.initMouseEvent(type, true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0/*left*/, null);
+			first.target.dispatchEvent(simulatedEvent);
+			event.preventDefault();
+		};
+	});
 });
+
+
 
 function Chromoscope(input){
 
-	this.version = "1.2.7";
+	this.version = "1.2.7+";
 
 	this.zoom = -1;
 	this.maxZoom = 6;		// Maximum zoom level
@@ -234,7 +274,15 @@ function Chromoscope(input){
 
 Chromoscope.prototype.init = function(inp){
 	// Set variables defined in the query string
+	// The default behaviour is to show the intro message. We will over-ride this
+	// with the query string option 'showintro'. If 'showintro' isn't set manually
+	// in the query string we will only show it if there is no query string; we
+	// will assume that having a query string means this is a shared link and in
+	// that case the intro message can be confusing to the person following the link.
 	if(query.showintro) this.showintro = (query.showintro == "true") ? true : false;
+	else{
+		if(query.length > 0) this.showintro = false;
+	}
 	if(query.sliderbar) this.sliderbar = (query.sliderbar == "true") ? true : false;
 	if(query.zoomctrl) this.zoomctrl = (query.zoomctrl == "true") ? true : false;
 	if(query.compact) this.compact = (query.compact == "true") ? true : false;
@@ -504,7 +552,8 @@ Chromoscope.prototype.load = function(callback){
 		});
 
 	}else var body = 'body';
-
+ 
+ 
 	// Add any query string defined kml files
 	// Should we only do this if only one instance?
 	if(query.kml) this.kmls[this.kmls.length] = query.kml;
@@ -525,9 +574,9 @@ Chromoscope.prototype.load = function(callback){
 	else $(body+" .chromo_outerDiv").css({position:'absolute',height:'0px'});
 
 	// For a Wii make text bigger, hide annotation layer and keyboard shortcuts
-	if($.browser.opera && $.browser.version == 9.3){ $("body").css('font-size','1.6em'); this.annotations = ""; $(".keyboard").hide(); $(".nokeyboard").show(); this.wavelength_load_range = 0; this.spatial_preload = 1; }
+	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && this.wide <= 800)){ $(body+" .chromo_layerswitcher").css({'font-size':'1.5em'}); this.annotations = ""; $(".keyboard").css({'display':'none'}); $(".nokeyboard").css({'display':'show'}); this.wavelength_load_range = 0; this.spatial_preload = 1; }
 	// Opera 10.10 doesn't like transparency and for some reason jQuery sometimes thinks it is version 9.8
-	if($.browser.opera && $.browser.version > 9.3){ this.annotations = ""; this.wavelength_load_range = 0; this.spatial_preload = 1; }
+	if($.browser.opera && $.browser.version < 10.3){ this.annotations = ""; this.wavelength_load_range = 0; this.spatial_preload = 1; }
 
 	if(!this.title) $(body+" .chromo_title").toggle();
 	$(body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
@@ -567,6 +616,19 @@ Chromoscope.prototype.load = function(callback){
 		}
 	}).mouseup(function(event){
 		if(!chromo_active) return;
+		// Bind the double tap to double click
+		if('ontouchstart' in document.documentElement){
+			var delay = 500;
+			var now = new Date().getTime();
+			if(!this.lastTouch) this.lastTouch = now + 1;
+			var delta = now - this.lastTouch;
+			this.lastTouch = now;
+			if(delta < delay && delta > 0){
+				chromo_active.changeMagnification(1,event.pageX,event.pageY);
+				chromo_active.updateCoords();
+				return false;
+			}
+		}
 		chromo_active.checkTiles();
 		chromo_active.updateCoords();
 		$(body+" .chromo_innerDiv").css({cursor:''});
@@ -584,7 +646,11 @@ Chromoscope.prototype.load = function(callback){
 		chromo_active.updateCoords();
 		return false;
 	});
-	
+
+	// If we have a touch screen browser, we should convert touch events into mouse events.
+	if('ontouchstart' in document.documentElement) $(body+" .chromo_outerDiv").addTouch();
+
+
 	ChromoscopeActivate(this)
 	this.setViewport();
 
@@ -993,6 +1059,8 @@ Chromoscope.prototype.makeWavelengthSlider = function(){
 	$(this.container+" .chromo_slider").bind('mousedown',{state:true},jQuery.proxy( this, "draggable" ) );
 	$(this.container+" .chromo_sliderbar").bind('mouseup',{state:false},jQuery.proxy( this, "draggable" ) );
 	$(this.container+" .chromo_slider").bind('mouseup',{state:false},jQuery.proxy( this, "draggable" ) );
+	$(this.container+" .chromo_sliderbar").addTouch();
+	$(this.container+" .chromo_slider").addTouch();
 	this.positionSlider();
 	if(this.zoomctrl) this.makeZoomControl();
 
@@ -1174,7 +1242,9 @@ Chromoscope.prototype.updateCoords = function(){
 		if(this.coordtype == 'G') $(this.container+" .chromo_coords").html(''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>')
 		else{
 			radec = Galactic2Equatorial(coords.l,coords.b);
-			$(this.container+" .chromo_coords").html(''+radec[0].toFixed(2)+'&deg;, '+radec[1].toFixed(2)+'&deg; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
+			$(this.container+" .chromo_coords").html(''+radec.ra_h+'h'+radec.ra_m+'m'+radec.ra_s+'s, '+radec.dec_d+'&deg;'+radec.dec_m+'&prime;'+radec.dec_s+'&Prime; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
+			//radec = Galactic2Equatorial(coords.l,coords.b);
+			//$(this.container+" .chromo_coords").html(''+radec[0].toFixed(2)+'&deg;, '+radec[1].toFixed(2)+'&deg; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
 		}
 	}
 }
@@ -1647,11 +1717,13 @@ Chromoscope.prototype.getNewPosition = function(templeft,temptop,z){
 }
 
 // Get the Galactic coordinates for the current map centre
-Chromoscope.prototype.getCoords = function(){
+Chromoscope.prototype.getCoords = function(offx,offy){
+	if(!offx) var offx = $(this.container+" .chromo_outerDiv").width()*0.5;
+	if(!offy) var offy = $(this.container+" .chromo_outerDiv").height()*0.5;
 	var scale = 360/this.mapSize;
 	var p = $(this.container+" .chromo_innerDiv").position();
-	var l = ($(this.container+" .chromo_outerDiv").width()*0.5-p.left)*scale;
-	var b = (p.top+this.mapSize*0.5-$(this.container+" .chromo_outerDiv").height()*0.5)*scale;
+	var l = (offx-p.left)*scale;
+	var b = (p.top+this.mapSize*0.5-offy)*scale;
 	l = l % 360;
 	l = 180-l;
 	return {l:l, b:b}
@@ -1731,7 +1803,20 @@ function Galactic2Equatorial(l, b, epoch){
 	delta = Math.asin(sinD)*r2d;
 	alpha = (Math.atan2( sinA, cosA ))*r2d + NGP_d;
 
-	return [alpha%360.0,delta]
+	alpha = alpha%360.0;
+	var ra_h = parseInt(alpha/15);
+	var ra_m = parseInt((alpha/15-ra_h)*60);
+	var ra_s = ((alpha/15-ra_h-ra_m/60)*3600).toFixed(2);
+	var ra = (ra_h+ra_m/60+ra_s/3600);
+	if(ra_h < 10) ra_h = "0"+ra_h;
+	if(ra_m < 10) ra_m = "0"+ra_m;
+	if(ra_s < 10) ra_s = "0"+ra_s;
+	var dec_sign = (delta >= 0) ? 1 : -1;
+	var dec_d = parseInt(Math.abs(delta));
+	var dec_m = parseInt((Math.abs(delta)-dec_d)*60);
+	var dec_s = ((Math.abs(delta)-dec_d-dec_m/60)*3600).toFixed(1);
+	return {ra:ra,ra_h:ra_h,ra_m:ra_m,ra_s:ra_s,dec:delta,dec_d:dec_d*dec_sign,dec_m:dec_m,dec_s:dec_s};
+//	return [alpha%360.0,delta]
 }
 
 // Convert from Galactic longitude/latitude to X,Y coordinates within the full sky
@@ -1774,12 +1859,11 @@ Chromoscope.prototype.createLink = function(){
 
 // Return the HTML for a close button
 Chromoscope.prototype.createClose = function(type){
-	if(type == "old"){
-		var s = this.phrasebook.close.replace('C','<span style="text-decoration:underline;">C</span>')
-		return '<div class="chromo_close" title="'+this.phrasebook.closedesc+'">'+s+'</div>';
-	}else return '<span class="chromo_close"><img src="close.png" style="width:28px;" title="'+this.phrasebook.closedesc+'" /></span>';
+	var w = 28;
+	// In the case on the Wii or a small touch screen we should make the close control larger
+	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && this.wide <= 800)) w *= 2;
+	return '<span class="chromo_close"><img src="close.png" style="width:'+w+'px;" title="'+this.phrasebook.closedesc+'" /></span>';
 }
-
 // Return the HTML for a close button
 Chromoscope.prototype.createCloseOld = function(){
 	var s = this.phrasebook.close.replace('C','<span style="text-decoration:underline;">C</span>')
