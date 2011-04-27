@@ -1,16 +1,26 @@
 /*
- * Chromoscope v1.2.7+
+ * Chromoscope v1.3.1
  * Written by Stuart Lowe for the Planck/Herschel Royal Society
  * Summer Exhibition 2009. Developed as an educational resource.
  *
  * This application will run locally or can be run on a web
  * server. The only part that requires an internet connection
- * is the search tool which makes use of jodcast.net/lookUP/
+ * is the search tool which makes use of strudel.org.uk/lookUP/
  *
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.2.7+ (2010-07-06):
+ * Changes in version 1.3.1 (2011-04-27):
+ *   - Fixed a bug that stopped display when the mousewheel code 
+ *     was missing.
+ *   - In readKML() the code now checks for existence of a query
+ *     string so that it doesn't contain two question marks. This
+ *     helps out any server-side codes that only expect one.
+ *
+ * Changes in version 1.3.0 (2010-09-03):
+ *   - Context menu with options for Wikisky/WWT/NED/Simbad
+ *   - Added trial support for touch screen devices that don't
+ *     provide click events.
  *   - Option to limit the longitude/latitude range for specific 
  *     wavelength layers. Outside this region, a placeholder image
  *     tile is used. Should help save bandwidth for surveys that 
@@ -190,7 +200,7 @@ $(function(){
 
 function Chromoscope(input){
 
-	this.version = "1.2.7+";
+	this.version = "1.3.1";
 
 	this.zoom = -1;
 	this.maxZoom = 6;		// Maximum zoom level
@@ -225,16 +235,17 @@ function Chromoscope(input){
 	this.langshort = this.lang.substring(0,2);
 	this.langs = new Array();
 	// Country codes at http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-	this.langs[0] = { code:'en',name:'English'};
-	this.langs[1] = { code:'cy',name:'Cymraeg'};
-	this.langs[2] = { code:'de',name:'Deutsch'};
-	this.langs[3] = { code:'es',name:'Espa&#241;ol'};
-	this.langs[4] = { code:'fr',name:'Fran&#231;ais'};
-	this.langs[5] = { code:'ga',name:'Gaeilge'};
-	this.langs[6] = { code:'it',name:'Italiano'};
-	this.langs[7] = { code:'pl',name:'Polski'};
-	this.langs[8] = { code:'pt',name:'Portugu&#234s'};
-	this.langs[9] = { code:'tr',name:'T&#252;rk&#231;e'};
+	this.langs[0] = {code:'en',name:'English'};
+	this.langs[1] = {code:'cy',name:'Cymraeg'};
+	this.langs[2] = {code:'de',name:'Deutsch'};
+	this.langs[3] = {code:'es',name:'Espa&#241;ol'};
+	this.langs[4] = {code:'fr',name:'Fran&#231;ais'};
+	this.langs[5] = {code:'ga',name:'Gaeilge'};
+	this.langs[6] = {code:'it',name:'Italiano'};
+	this.langs[7] = {code:'pl',name:'Polski'};
+	this.langs[8] = {code:'pt',name:'Portugu&#234s'};
+	this.langs[9] = {code:'sv',name:'Svenska'};
+	this.langs[10] = {code:'tr',name:'T&#252;rk&#231;e'};
 	this.phrasebook = new Language({code:'en'})
 
 	// The map div control and properties
@@ -246,6 +257,7 @@ function Chromoscope(input){
 	this.showabout = true;		// Display the about link
 	this.showlangs = true;		// Display the languages link
 	this.showcoord = true;		// Display the coordinates
+	this.showcontext = true;	// Display the context menu (right-click)
 	this.compact = false;		// Hide parts of the interface if small
 	this.mapSize = 256;
 	this.dragging = false;
@@ -303,6 +315,7 @@ Chromoscope.prototype.init = function(inp){
 		if(typeof inp.showabout=="boolean") this.showabout = inp.showabout;
 		if(typeof inp.showlangs=="boolean") this.showlangs = inp.showlangs;
 		if(typeof inp.showcoord=="boolean") this.showcoord = inp.showcoord;
+		if(typeof inp.showcontext=="boolean") this.showcontext = inp.showcontext;
 		if(typeof inp.sliderbar=="boolean") this.sliderbar = inp.sliderbar;
 		if(typeof inp.zoomctrl=="boolean") this.zoomctrl = inp.zoomctrl;
 		if(typeof inp.compact=="boolean") this.compact = inp.compact;
@@ -360,6 +373,10 @@ function Language(inp){
 	this.microwave = (inp.microwave) ? inp.microwave : 'Microwave';
 	this.radio = (inp.radio) ? inp.radio : 'Radio';
 	this.labels = (inp.labels) ? inp.labels : 'Labels';
+	this.centre = (inp.centre) ? inp.centre : 'Centre map at this point';
+	this.wikisky = (inp.wikisky) ? inp.wikisky : 'View in Wikisky';
+	this.wwt = (inp.wwt) ? inp.wwt : 'View in WorldWideTelescope';
+	this.nearby = (inp.nearby) ? inp.nearby : 'Objects within 10&prime;';
 }
 
 // Unless the requested language is English, try to load 
@@ -553,7 +570,6 @@ Chromoscope.prototype.load = function(callback){
 
 	}else var body = 'body';
  
- 
 	// Add any query string defined kml files
 	// Should we only do this if only one instance?
 	if(query.kml) this.kmls[this.kmls.length] = query.kml;
@@ -573,8 +589,6 @@ Chromoscope.prototype.load = function(callback){
 	if(this.container) $(this.container).css('position','relative');
 	else $(body+" .chromo_outerDiv").css({position:'absolute',height:'0px'});
 
-	// For a Wii make text bigger, hide annotation layer and keyboard shortcuts
-	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && this.wide <= 800)){ $(body+" .chromo_layerswitcher").css({'font-size':'1.5em'}); this.annotations = ""; $(".keyboard").css({'display':'none'}); $(".nokeyboard").css({'display':'show'}); this.wavelength_load_range = 0; this.spatial_preload = 1; }
 	// Opera 10.10 doesn't like transparency and for some reason jQuery sometimes thinks it is version 9.8
 	if($.browser.opera && $.browser.version < 10.3){ this.annotations = ""; this.wavelength_load_range = 0; this.spatial_preload = 1; }
 
@@ -585,15 +599,18 @@ Chromoscope.prototype.load = function(callback){
 
 	// Define the mouse events
 	$(body+" .chromo_outerDiv").mousedown(function(event){
-		this.dragStartLeft = event.clientX;
-		this.dragStartTop = event.clientY;
-		this.y = $(body+" .chromo_innerDiv").position().top;
-		this.x = $(body+" .chromo_innerDiv").position().left;
-		this.dragging = true;
-		this.moved = true;
-		this.clock = new Date();
-		$(body+" .chromo_innerDiv").css({cursor:'grabbing',cursor:'-moz-grabbing'});	
-		return false;
+		if(event.button != 2){
+			// Don't do anything for a right mouse button event
+			this.dragStartLeft = event.clientX;
+			this.dragStartTop = event.clientY;
+			this.y = $(body+" .chromo_innerDiv").position().top;
+			this.x = $(body+" .chromo_innerDiv").position().left;
+			this.dragging = true;
+			this.moved = true;
+			this.clock = new Date();
+			$(body+" .chromo_innerDiv").css({cursor:'grabbing',cursor:'-moz-grabbing'});	
+			return false;
+		}
 	}).mousemove(function(event){
 		if(this.dragging){
 			newtop = this.y + (event.clientY - this.dragStartTop);
@@ -635,24 +652,26 @@ Chromoscope.prototype.load = function(callback){
 		this.dragging = false;
 		// Fix for IE as it seems to set any tiles off-screen to 0 opacity by itself
 		if(jQuery.browser.msie) chromo_active.changeWavelength(0);
-	}).mousewheel(function(event, delta) {
-		if(!chromo_active) return;
-		if(delta > 0) chromo_active.changeMagnification(1,event.pageX,event.pageY);
-		else chromo_active.changeMagnification(-1,event.pageX,event.pageY);
-		return false;
 	}).dblclick(function (event) {
 		if(!chromo_active) return;
 		chromo_active.changeMagnification(1,event.pageX,event.pageY);
 		chromo_active.updateCoords();
 		return false;
-	});
+	}).bind('mousewheel',function(event, delta) {
+		if(!chromo_active) return;
+		if(delta > 0) chromo_active.changeMagnification(1,event.pageX,event.pageY);
+		else chromo_active.changeMagnification(-1,event.pageX,event.pageY);
+		return false;
+	})
 
 	// If we have a touch screen browser, we should convert touch events into mouse events.
 	if('ontouchstart' in document.documentElement) $(body+" .chromo_outerDiv").addTouch();
 
-
 	ChromoscopeActivate(this)
 	this.setViewport();
+
+	// For a Wii make text bigger, hide annotation layer and keyboard shortcuts
+	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall < 600))){ $(body+" .chromo_layerswitcher").css({'font-size':'1.5em'}); this.annotations = ""; $(".keyboard").css({'display':'none'}); $(".nokeyboard").css({'display':'show'}); this.wavelength_load_range = 0; this.spatial_preload = 1; }
 
 	if(query.kml){
 		$(body+" .chromo_message").html('Loading '+query.kml+'.<br />It may take a few seconds.').show()
@@ -714,6 +733,8 @@ Chromoscope.prototype.load = function(callback){
 	this.buildHelp();
 	this.buildLinks();
 	this.buildLang();
+	if(this.showcontext) this.buildContextMenu();
+	
 	if(this.showintro) this.buildIntro();
 	else $(body+" .chromo_message").hide();
 	if($.browser.opera && $.browser.version == 9.3){ $(".keyboard").hide(); $(".nokeyboard").show(); }
@@ -734,7 +755,6 @@ Chromoscope.prototype.load = function(callback){
 	// If we haven't done any XML loading, we should
 	// now execute the callback function
 	if(this.kmls.length == 0 && typeof callback=="function") callback.call();
-
 }
 
 // Construct the Help box
@@ -827,6 +847,48 @@ Chromoscope.prototype.buildLinks = function(overwrite){
 	if(!($.browser.opera && $.browser.version == 9.3)) this.updateCoords();
 }
 
+// Construct the context-sensitive menu
+Chromoscope.prototype.buildContextMenu = function(){
+	var body = (!this.container) ? "body" : this.container;
+	$(body+' .chromo_outerDiv').bind("contextmenu",{el:this,body:body},function(e){
+		var body = e.data.body;
+		var offset = 2;
+		var offx = ($(e.data.el.container).length > 0) ? $(e.data.el.container).offset().left : 0;
+		var offy = ($(e.data.el.container).length > 0) ? $(e.data.el.container).offset().top : 0;
+		var newtop = (e.clientY)-offy;
+		var newleft = (e.clientX)-offx;
+		var coords = e.data.el.getCoords(newleft,newtop);
+		var radec = Galactic2Equatorial(coords.l,coords.b);
+		if($(body+" .chromo_context").length == 0) $(body).append('<div class="chromo_context" style="color:black;background-color:#eee;position:absolute;padding:2px;font-size:0.9em;z-index:1001;cursor:default;"></div>');
+		var output = '<ul style="margin:0px;padding:0px;font-size:0.9em;list-style:none;display:block;">'+(e.data.el.buildContextMenuItems({l:coords.l,b:coords.b,z:e.data.el.zoom,ra:radec.ra,dec:radec.dec}))+'</ul>';
+		$(body+" .chromo_context").html(output).bind('mouseleave', {el:e.data.el,body:body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; });
+		$(body+" .chromo_context li a").css({padding:'3px',display:'block',textDecoration:'none',color:'black'});
+		$(body+" .chromo_context li a").hover( function(){
+			$(this).css('background-color', '#ccc');
+		},function(){
+			$(this).css('background-color', 'transparent');
+		});
+		var w = $(body+" .chromo_context").outerWidth();
+		var h = $(body+" .chromo_context").outerHeight();
+		if(newleft+w > e.data.el.wide) newleft -= w-2*offset;
+		if(newtop+h > e.data.el.tall) newtop -= h-(2*offset);
+		$(body+" .chromo_context").css({left:(newleft-offset)+'px',top:(newtop-offset)+'px',width:'200px'}).show();
+		e.data.el.dragging = false;
+		return false;
+	});
+}
+
+// Function that returns <li> items for the context-sensitive menu.
+// Inputs are:
+// 	inp.l = Galactic longitude (decimal degrees)
+// 	inp.b = Galactic latitude (decimal degrees)
+// 	inp.z = zoom level
+// 	inp.ra = Right Ascension (decimal hours)
+// 	inp.dec = Declination (decimal degrees)
+Chromoscope.prototype.buildContextMenuItems = function(inp){
+	return '<li><a href="#" onClick="javascript:chromo_active.moveMap('+inp.l+','+inp.b+','+inp.z+');return false;">'+(this.phrasebook.centre)+'</a><li><a href="http://server1.wikisky.org/v2?ra='+inp.ra+'&de='+inp.dec+'&zoom='+(inp.z-2)+'&img_source=DSS2">'+this.phrasebook.wikisky+'</a></li><li><a href="http://www.worldwidetelescope.org/wwtweb/goto.aspx?object=ViewShortcut&ra='+(inp.ra)+'&dec='+inp.dec+'&zoom='+(0.3*60*360/Math.pow(2,inp.z))+'">'+this.phrasebook.wwt+'</a></li><li><a href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord='+inp.l.toFixed(4)+'+'+inp.b.toFixed(4)+'&CooFrame=Gal&CooEpoch=2000&CooEqui=2000&Radius=10">'+this.phrasebook.nearby+' (Simbad)</a></li><li><a href="http://nedwww.ipac.caltech.edu/cgi-bin/nph-objsearch?search_type=Near+Position+Search&in_csys=Galactic&in_equinox=J2000.0&lon='+inp.l+'&lat='+inp.b+'&radius=10&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=20&img_stamp=YES">'+this.phrasebook.nearby+' (NED)</li>';
+}
+
 // Construct the Language Switcher
 Chromoscope.prototype.buildLang = function(overwrite){
 	var body = (!this.container) ? "body" : this.container;
@@ -856,10 +918,9 @@ Chromoscope.prototype.showVideoTour = function(){
 	var w = 560;
 	var h = 340;
 	var scale = 1;
-	if(w > this.wide*0.8 || h > this.tall*0.8){
-		w = this.wide*0.8;
-		h = w*0.6;
-	}
+	if(w > this.wide*0.8) w = this.wide*0.8; h = w*0.6;
+	if(h > this.tall*0.75) h = this.tall*0.75; w = h*1.6;
+
 	$(body+" .chromo_help").hide();
 	$(body+" .chromo_message").css({width:(w)+"px","text-align":"center"});
 	$(body+" .chromo_message").html(this.createClose()+'<object width="'+w+'" height="'+h+'"><param name="movie" value="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="'+w+'" height="'+h+'"></embed></object>');
@@ -873,6 +934,8 @@ Chromoscope.prototype.buildIntro = function(delay){
 	var body = (!this.container) ? "body" : this.container;
 	var w = 600;
 	if(w > 0.8*this.wide) w = 0.8*this.wide;
+	// iPhones have wide but not very tall screens so we make the intro a bit wider if the screen height is small.
+	if(this.tall <= 640) w = 0.8*this.wide;
 	$(body+" .chromo_message").html(this.createClose()+this.phrasebook.intro)
 	$(body+" .chromo_message").css({width:w+"px","text-align":"left"});
 	$(body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
@@ -1324,13 +1387,15 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 			output = "";
 			idx = layers[l];
 
-			if(this.spectrum[idx].limitrange){
-				// Work out the x,y range from the user-specified longitude,latitude range
-				var coord1 = Galactic2XY(this.spectrum[idx].range.longitude[0],this.spectrum[idx].range.latitude[0],pixels);
-				var coord2 = Galactic2XY(this.spectrum[idx].range.longitude[1],this.spectrum[idx].range.latitude[1],pixels);
-				this.spectrum[idx].range.x = [coord1[0],coord2[0]];
-				this.spectrum[idx].range.y = [coord1[1],coord2[1]];
-				if(this.spectrum[idx].range.longitude[1] == 180) this.spectrum[idx].range.x[1] -= pixels;
+			if(idx >= 0){
+				if(this.spectrum[idx].limitrange){
+					// Work out the x,y range from the user-specified longitude,latitude range
+					var coord1 = Galactic2XY(this.spectrum[idx].range.longitude[0],this.spectrum[idx].range.latitude[0],pixels);
+					var coord2 = Galactic2XY(this.spectrum[idx].range.longitude[1],this.spectrum[idx].range.latitude[1],pixels);
+					this.spectrum[idx].range.x = [coord1[0],coord2[0]];
+					this.spectrum[idx].range.y = [coord1[1],coord2[1]];
+					if(this.spectrum[idx].range.longitude[1] == 180) this.spectrum[idx].range.x[1] -= pixels;
+				}
 			}
 
 			// Loop over all the tiles that we want to load
@@ -1603,10 +1668,11 @@ Chromoscope.prototype.toggleAnnotationsByName = function(character){
 
 // Return the minimum zoom level
 Chromoscope.prototype.minZoom = function() {
-	var n = Math.ceil($(this.container+" .chromo_outerDiv").width()/this.tileSize);
+	var n = Math.ceil(this.wide/this.tileSize);
+	var n_h = Math.ceil(this.tall*2/this.tileSize);
 	var minZoom = 0;
 	var i = 1;
-	while(i <= n){
+	while(i <= n || i <= n_h){
 		minZoom++;
 		i*=2;
 	};
@@ -1861,7 +1927,7 @@ Chromoscope.prototype.createLink = function(){
 Chromoscope.prototype.createClose = function(type){
 	var w = 28;
 	// In the case on the Wii or a small touch screen we should make the close control larger
-	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && this.wide <= 800)) w *= 2;
+	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall <= 600))) w *= 2;
 	return '<span class="chromo_close"><img src="close.png" style="width:'+w+'px;" title="'+this.phrasebook.closedesc+'" /></span>';
 }
 // Return the HTML for a close button
@@ -1869,18 +1935,6 @@ Chromoscope.prototype.createCloseOld = function(){
 	var s = this.phrasebook.close.replace('C','<span style="text-decoration:underline;">C</span>')
 	return '<div class="chromo_close" title="'+this.phrasebook.closedesc+'">'+s+'</div>';
 }
-
-//// Create a list of other resources related to this view
-//Chromoscope.prototype.createOther = function(){
-//	var coords = this.getCoords();
-//	var safeurl = window.location.protocol + "//" + window.location.host + "" + window.location.pathname+'?l='+coords.l.toFixed(4)+'%26b='+coords.b.toFixed(4)+'%26w='+this.lambda.toFixed(2)+'%26z='+this.zoom;
-//	$(this.container+" .chromo_message").html('Find out more about this view: <ul><li><a href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord='+coords.l.toFixed(4)+'+'+coords.b.toFixed(4)+'&CooFrame=Gal&CooEpoch=2000&CooEqui=2000&Radius=10">Objects within 10 arc minutes of field centre</a> (Simbad)</li></ul>');
-//	$(this.container+" .chromo_message").append(this.createClose());
-//	$(this.container+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
-//	$(this.container+" .chromo_message").css({width:400});
-//	this.centreDiv(".chromo_message");
-//	$(this.container+" .chromo_message").show();
-//}
 
 // Get a locally hosted KML file
 // Usage: readKML(kml,[overwrite],[duration],[callback])
@@ -1903,11 +1957,13 @@ Chromoscope.prototype.readKML = function(kml){
 			}
 			// Keep a copy of this chromoscope for use in the AJAX callback
 			var _obj = this;
+			// If the URL of the KML already has a query string, we just add to it
+			var kmlurl = (kml.indexOf('?') > 0) ? kml+'&'+Math.random() : kml+'?'+Math.random();
 			// Bug fix for reading XML file in FF3
 			$.ajaxSetup({async:false,'beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/xml"); } });
 			$.ajax({
 				type: "POST",
-				url: kml+'?'+Math.random(),
+				url: kmlurl,
 				dataType: ($.browser.msie) ? "text" : "xml",
 				success: function(data) {
 					var xml;
