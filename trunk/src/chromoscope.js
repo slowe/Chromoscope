@@ -1,5 +1,5 @@
 /*
- * Chromoscope v1.3.1
+ * Chromoscope v1.3.2
  * Written by Stuart Lowe for the Planck/Herschel Royal Society
  * Summer Exhibition 2009. Developed as an educational resource.
  *
@@ -10,6 +10,12 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
+ * Changes in version 1.3.2 (2011-05-05):
+ *   - Resources (close.png and the language files) can exist in a
+ *     different directory to the current one - added "dir" option.
+ *   - Ability to have different tile sets and credits at different
+ *     zoom levels.
+ * 
  * Changes in version 1.3.1 (2011-04-27):
  *   - Fixed a bug that stopped display when the mousewheel code 
  *     was missing.
@@ -280,6 +286,7 @@ function Chromoscope(input){
 	this.visibleTilesMap = [];
 	this.minlambda = this.lambda;
 	this.maxlambda = this.lambda+1;
+	this.dir = "";			// The location for resources such as the close image and language files
 
 	this.init(input);
 }
@@ -330,6 +337,7 @@ Chromoscope.prototype.init = function(inp){
 		if(typeof inp.lambda=="number") this.lambda = inp.lambda;
 		if(typeof inp.langs=="object") this.langs = inp.langs;
 		if(typeof inp.kml=="string") this.kmls[this.kmls.length] = inp.kml;
+		if(typeof inp.dir=="string") this.dir = inp.dir;
 	}
 }
 
@@ -388,7 +396,7 @@ Chromoscope.prototype.getLanguage = function(lang){
 	// Bug fix for reading local JSON file in FF3
 	$.ajaxSetup({async:false,'beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/plain"); } });
 	// Get the JSON language file
-	$.getJSON(lang+'.js',function(json){ if(json.code == lang) _obj.changeLanguage(json); })
+	$.getJSON(this.dir+lang+'.js',function(json){ if(json.code == lang) _obj.changeLanguage(json); })
 }
 
 // Change the phrasebook and update the user interface.
@@ -1419,7 +1427,9 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 								// Check if the x,y coordinates for this tile are within the user-defined range
 								if(((visibleTiles[v].x+pixels)%pixels)+1 <= (this.spectrum[idx].range.x[1]) || ((visibleTiles[v].x+pixels)%pixels) >= this.spectrum[idx].range.x[0] || visibleTiles[v].y >= this.spectrum[idx].range.y[0] || visibleTiles[v].y <= this.spectrum[idx].range.y[1]-1) inrange = false;
 							}
-							var img = (inrange) ? this.cdn+this.spectrum[idx].tiles+visibleTiles[v].src+'.'+this.spectrum[idx].ext : this.spectrum[idx].blank;
+							var tiles = this.spectrum[idx].tiles;
+							tiles = (typeof tiles=="string") ? tiles : (typeof tiles["z"+this.zoom]=="string") ? tiles["z"+this.zoom] : tiles.default;
+							var img = (inrange) ? this.cdn+tiles+visibleTiles[v].src+'.'+this.spectrum[idx].ext : this.spectrum[idx].blank;
 							extrastyle = (jQuery.browser.msie) ? 'filter:alpha(opacity='+(this.spectrum[idx].opacity/100)+')' : '';
 							output += '<img src="'+img+'" id="'+tileName+'" class="tile" style="position:absolute;left:'+(visibleTiles[v].x * this.tileSize)+'px; top:'+(visibleTiles[v].y * this.tileSize) +'px; '+extrastyle+'" />\n';
 						} else {
@@ -1427,7 +1437,9 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 								// Check if the x,y coordinates for this tile are within the user-defined range
 								if(((visibleTiles[v].x+pixels)%pixels)+1 <= (this.annotations[-(idx+1)].range.x[1]) || ((visibleTiles[v].x+pixels)%pixels) >= this.annotations[-(idx+1)].range.x[0] || visibleTiles[v].y >= this.annotations[-(idx+1)].range.y[0] || visibleTiles[v].y <= this.annotations[-(idx+1)].range.y[1]-1) inrange = false;
 							}
-							var img = (inrange) ? this.cdn+this.annotations[-(idx+1)].tiles+visibleTiles[v].src+'.'+this.annotations[-(idx+1)].ext : this.spectrum[idx].blank;
+							var tiles = this.annotations[-(idx+1)].tiles;
+							tiles = (typeof tiles=="string") ? tiles : (typeof tiles["z"+this.zoom]=="string") ? tiles["z"+this.zoom] : tiles.default;
+							var img = (inrange) ? this.cdn+tiles+visibleTiles[v].src+'.'+this.annotations[-(idx+1)].ext : this.spectrum[idx].blank;
 							extrastyle = (jQuery.browser.msie) ? 'filter:alpha(opacity='+(this.annotations[-(idx+1)].opacity/100)+')' : '';
 							output += '<img src="'+img+'" id="'+tileName+'" class="tile" style="position:absolute;left:'+(visibleTiles[v].x * this.tileSize)+'px; top:'+(visibleTiles[v].y * this.tileSize) +'px; '+extrastyle+'" />\n';
 						}
@@ -1580,12 +1592,23 @@ Chromoscope.prototype.setWavelength = function(l){
 		this.minlambda = this.lambda;
 		this.maxlambda = this.lambda;
 	}
-	var low = Math.floor(this.lambda);
-	var high = Math.ceil(this.lambda);
-	if(high == low) $(this.container+" .chromo_attribution").html(''+this.spectrum[low].attribution+'');
-	else $(this.container+" .chromo_attribution").html(''+this.spectrum[low].attribution+' &amp; '+this.spectrum[high].attribution+'');
-
+	this.updateCredit();
 	this.positionSlider();
+}
+
+Chromoscope.prototype.updateCredit = function(){
+	var l = Math.floor(this.lambda);
+	var h = Math.ceil(this.lambda);
+	var z = this.zoom
+	var c1 = this.spectrum[l].attribution;
+	c1 = (typeof c1=="string") ? c1 : (typeof c1["z"+z]=="string") ? c1["z"+z] : c1.default;
+
+	if(h == l) $(this.container+" .chromo_attribution").html(c1);
+	else{
+		var c2 = this.spectrum[h].attribution;
+		c2 = (typeof c2=="string") ? c2 : (typeof c2["z"+z]=="string") ? c2["z"+z] : c2.default;
+		$(this.container+" .chromo_attribution").html(''+c1+' &amp; '+c2+'');
+	}
 }
 
 // Position the slider control on the slider bar
@@ -1706,6 +1729,7 @@ Chromoscope.prototype.setMagnification = function(z) {
 	var oldmapSize = this.mapSize;
 	this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
 	this.zoomPins(oldmapSize,this.mapSize);
+	this.updateCredit();
 }
 
 // Alter the magnification
@@ -1928,7 +1952,7 @@ Chromoscope.prototype.createClose = function(type){
 	var w = 28;
 	// In the case on the Wii or a small touch screen we should make the close control larger
 	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall <= 600))) w *= 2;
-	return '<span class="chromo_close"><img src="close.png" style="width:'+w+'px;" title="'+this.phrasebook.closedesc+'" /></span>';
+	return '<span class="chromo_close"><img src="'+this.dir+'close.png" style="width:'+w+'px;" title="'+this.phrasebook.closedesc+'" /></span>';
 }
 // Return the HTML for a close button
 Chromoscope.prototype.createCloseOld = function(){
@@ -1960,7 +1984,7 @@ Chromoscope.prototype.readKML = function(kml){
 			// If the URL of the KML already has a query string, we just add to it
 			var kmlurl = (kml.indexOf('?') > 0) ? kml+'&'+Math.random() : kml+'?'+Math.random();
 			// Bug fix for reading XML file in FF3
-			$.ajaxSetup({async:false,'beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/xml"); } });
+			$.ajaxSetup({async:false,mimeType:'text/xml','beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/plain"); } });
 			$.ajax({
 				type: "POST",
 				url: kmlurl,
@@ -1976,7 +2000,8 @@ Chromoscope.prototype.readKML = function(kml){
 					chromo_active.processKML(xml,overwrite);
 					if(callback) callback.call();
 					if(duration > 0) setTimeout(function(kml,duration){ _obj.readKML(kml,duration); },duration);
-				}
+				},
+				error: function(data) { alert('Fail'); }
 			});
 		}else{
 			// Web link
@@ -2216,3 +2241,4 @@ Chromoscope.prototype.zoomPins = function(oldmapSize,newmapSize){
 		}
 	}
 }
+
