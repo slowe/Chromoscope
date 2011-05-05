@@ -25,6 +25,7 @@ img.map { opacity: 1; }
 	z-index: 10;
 	overflow:hidden;
 	color: white;
+	line-height: 120%;
 }
 .chromo_layerswitcher a {
 	color: white;
@@ -138,6 +139,7 @@ img.map { opacity: 1; }
 	box-shadow:3px 3px 20px #000;
 	-moz-box-shadow:3px 3px 20px #000;
 	-webkit-box-shadow:3px 3px 20px #000;
+	line-height: 120%;
 }
 .chromo_popup, .balloon {
 	box-shadow:3px 3px 10px #000;
