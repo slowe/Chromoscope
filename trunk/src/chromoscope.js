@@ -15,6 +15,7 @@
  *     different directory to the current one - added "dir" option.
  *   - Ability to have different tile sets and credits at different
  *     zoom levels.
+ *   - Fixed floating point error in getOpacity present in Chrome
  * 
  * Changes in version 1.3.1 (2011-04-27):
  *   - Fixed a bug that stopped display when the mousewheel code 
@@ -206,7 +207,7 @@ $(function(){
 
 function Chromoscope(input){
 
-	this.version = "1.3.1";
+	this.version = "1.3.2";
 
 	this.zoom = -1;
 	this.maxZoom = 6;		// Maximum zoom level
@@ -1211,7 +1212,7 @@ Chromoscope.prototype.toggleByID = function(event,duration){
 function getOpacity(el){
 	if(typeof kml=="string") el = $(el);
 	if(jQuery.browser.msie) return (el.css("filter").replace(/[^0-9.]*/g,""))/100;
-	else return el.css("opacity");
+	else return parseFloat(el.css("opacity")).toFixed(3); // Only need 3dp precision - this stops floating point errors in Chrome
 }
 
 // A cross browser way to set the opacity of an element
