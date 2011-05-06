@@ -2022,11 +2022,12 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 
 	var p = this.pins.length;
 	var c = this;	// Keep a copy of this instance for inside the Placemark loop
-	var xmlElements = $(xml).find('Placemark');
-	var length = xmlElements.length;
 	var i = 0;
 
-//var t = new Date();
+	// Set the opacity of all the pins (mostly for IE)
+	setOpacity($(this.container+" .kml"),1.0);
+
+var t = new Date();
 
 	var styles = new Array();
 	$('Style',xml).each(function(i){
@@ -2034,8 +2035,9 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 		styles[j.attr('id')] = {id: j.attr('id'),img:j.find('href').text(),balloonstyle:j.find('BalloonStyle')};
 	});
 
-	// Set the opacity of all the pins (mostly for IE)
-	setOpacity($(this.container+" .kml"),1.0);
+/*
+	var xmlElements = $(xml).find('Placemark');
+	var length = xmlElements.length;
 	var process = function() {
 		for (; i < length; i++) {
 			// Perform xml processing
@@ -2053,7 +2055,7 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 		}
 	};
 	process();
-/*
+*/
 	$('Placemark',xml).each(function(i){
 		// Get the custom icon
 		var img = "";
@@ -2067,9 +2069,9 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 		}
 		c.addPin({id:p++,style:style,img:img,title:$(this).find("name").text(),balloonstyle:balloonstyle,desc:($(this).find("description").text()),ra:parseFloat($(this).find("longitude").text())+180,dec:parseFloat($(this).find("latitude").text())},true);
 	});
-*/
+
 	this.updatePins("",true);
-//console.log("Time to process: " + (new Date() - t) + "ms");
+console.log("Time to process: " + (new Date() - t) + "ms");
 	this.wrapPins();
 }
 
@@ -2185,11 +2187,6 @@ Chromoscope.prototype.updatePins = function(style,delayedhtml){
 		$(this.pins[0].loc).append(html);
 	}
 	for(var p = 0 ; p < max ; p++) this.updatePin(p,style);
-	for(var p = 0 ; p < max ; p++){
-		this.pins[p].jquery.css({left:(parseInt(this.pins[p].x - this.pins[p].xoff)),top:(parseInt(this.pins[p].y - this.pins[p].yoff)),width:this.pins[p].pin_w,height:this.pins[p].pin_h});
-		if(style && this.pins[p].style != style) this.pins[p].jquery.hide();
-		else this.pins[p].jquery.show();
-	}
 }
 
 Chromoscope.prototype.updatePin = function(p,style){

@@ -74,7 +74,7 @@ function lookUP(id,object) {
 		lookup_done = false;
 		$.ajaxSetup({async:false,'beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/plain"); } });
 		// Get the JSON results file
-		$.getJSON('http://www.jodcast.net/lookUP/json/?name='+encodeURL(object)+'&callback=?', getLookUPResults);
+		$.getJSON('http://www.strudel.org.uk/lookUP/json/?name='+encodeURL(object)+'&callback=?', getLookUPResults);
 		setTimeout("areWeWaiting("+id+")",500);
 	}
 }
@@ -90,7 +90,7 @@ Chromoscope.prototype.addSearch = function(){
 
 	// Create the search box if necessary
 	if($(body+" .chromo_search").length == 0){
-		$(body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'Find an object with <a href="http://www.jodcast.net/lookUP/">lookUP</a>:<br /><form action="http://www.jodcast.net/lookUP/" method="GET" id="'+id+'_lookUPform" name="'+id+'_lookUPform"><input type="text" name="name" id="'+id+'_lookupobject" onFocus="disableKeys(true);" onBlur="disableKeys(false);" /><input type="submit" name="button" id="'+id+'_lookupsubmit" value="'+this.phrasebook.search+'" /></form><div id="'+id+'_lookupmessages"></div></div>');
+		$(body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'Find an object with <a href="http://www.strudel.org.uk/lookUP/">lookUP</a>:<br /><form action="http://www.strudel.org.uk/lookUP/" method="GET" id="'+id+'_lookUPform" name="'+id+'_lookUPform"><input type="text" name="name" id="'+id+'_lookupobject" onFocus="disableKeys(true);" onBlur="disableKeys(false);" /><input type="submit" name="button" id="'+id+'_lookupsubmit" value="'+this.phrasebook.search+'" /></form><div id="'+id+'_lookupmessages"></div></div>');
 	}
 	$(body+" .chromo_search").hide()
 	$(body+" .chromo_search .chromo_close").bind('click',{id:'.chromo_search',me:this,input:'#'+id+'_lookupobject'}, function(ev){ ev.data.me.toggleByID(ev.data.id); $(ev.data.input).blur(); } );
