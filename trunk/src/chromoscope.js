@@ -2145,8 +2145,7 @@ function Pin(input,el,delayhtml){
 
 		this.balloon = "balloon-"+this.id;
 		this.pin = "pin-"+this.id;
-		this.pinhtml = '<div class="pin '+this.pin+'" id="'+chromo_active.container+'-'+this.pin+'" style="position:absolute;display:block;"><img src="'+this.img+'" /></div>';
-		//this.pinhtml = '<div class="pin '+this.pin+'" title="'+this.title+'" id="'+chromo_active.container+'-'+this.pin+'" style="position:absolute;display:block;"><img src="'+this.img+'" /></div>';
+		this.pinhtml = '<div class="pin '+this.pin+'" title="'+this.title+'" id="'+chromo_active.container+'-'+this.pin+'" style="position:absolute;display:block;"><img src="'+this.img+'" /></div>';
 		this.pinloc = el.container+" ."+this.pin;
 
 		// Deal with KML balloon styles
