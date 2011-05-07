@@ -111,10 +111,9 @@ $(function(){
 });
 
 
-
 function Chromoscope(input){
 
-	this.version = "1.3.2";
+	this.version = "1.3.2 beta";
 
 	this.zoom = -1;
 	this.maxZoom = 6;		// Maximum zoom level
@@ -497,7 +496,6 @@ Chromoscope.prototype.load = function(callback){
 	if($(body+" .chromo_info").length == 0) $(body).append('<p class="chromo_info"></p>');
 	if($(body+" .chromo_message").length == 0) $(body).append('<div class="chromo_message"></div>');
 	if($(body+" .chromo_layerswitcher").length == 0) $(body).append('<div class="chromo_layerswitcher"></div>');
-
 	
 	this.processLayers();
 
@@ -1196,17 +1194,11 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 	var newtop = ((b)*this.mapSize/360)+(this.tall - this.mapSize)/2;
 	var newpos = this.limitBounds(newleft,newtop);
 
-//	if(duration == 0){
-		$(this.container+" .chromo_innerDiv").css(newpos);
-//	}else{
-//		//$(this.container+" .chromo_innerDiv").animate(newpos,duration,this.checkTiles);
-//	}
+	$(this.container+" .chromo_innerDiv").css(newpos);
 	if(jQuery.browser.msie) this.changeWavelength(0);
 
 	this.checkTiles();
 	this.updateCoords();
-
-//alert(newleft+' '+newtop+' '+this.mapSize+' '+newpos.left)
 
 }
 
@@ -1943,18 +1935,6 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 		var j = $(this);
 		// We currently use the <href> and <hotSpot> variables as defined in:
 		// http://code.google.com/apis/kml/documentation/kmlreference.html#icon
-		// <IconStyle>
-		// 	<Icon>
-		// 		<href>http://blah.blah</href>
-		//		<gx:w>10</gx:w>
-		//		<gx:h>10</gx:h>
-		//		<gx:x>0</gx:x>
-		//		<gx:y>0</gx:y>
-		//		<gx:y>0</gx:y>
-		//	</Icon>
-		//	<scale>1</scale>
-		//	<hotSpot x="0.5"  y="0.5" xunits="fraction" yunits="fraction"/> units can be fraction/pixels
-		// </IconStyle>
 		styles[j.attr('id')] = {id: j.attr('id'),img:new Image(),balloonstyle:j.find('BalloonStyle'),x:j.find('hotSpot').attr('x'),y:j.find('hotSpot').attr('y')};
 		// Preload the images
 		styles[j.attr('id')].img.src = j.find('href').text();
@@ -2170,7 +2150,6 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 		pin.balloonvisible = false;
 		$(pin.loc).append(pin.balloonhtml);
 	}
-	//$(pin.balloon).append('<b style="color:black;">'+$(pin.balloonstyle).find('text')+'</b>');
 
 	var id = this.container+" ."+pin.balloon;
 	var w = $(id).outerWidth();
@@ -2178,8 +2157,8 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 
 	// Position the balloon relative to the pin
 	pin.balloonx = -w/2;
-	pin.balloony = ((pin.y-h-rad) < this.mapSize*0.25) ? (pin.pin_h*0.25):(-h-pin.pin_h*1.5/2);
-	$(this.container+" ."+pin.balloon).css({'left':(parseInt(pin.x+pin.xoff)+pin.balloonx),'top':(parseInt(pin.y+pin.yoff)+pin.balloony)});
+	pin.balloony = ((pin.y-h-rad) < this.mapSize*0.25) ? (pin.pin_h*0.25):(-h-pin.pin_h*0.5);
+	$(this.container+" ."+pin.balloon).css({'left':(parseInt(pin.x+pin.xoff)+pin.balloonx),'top':(pin.y+pin.balloony)});
 	if(duration && duration > 0) $(id).fadeIn(duration);
 	else $(id).show();
 	pin.balloonvisible = true;
