@@ -566,7 +566,7 @@ Chromoscope.prototype.load = function(callback){
 			// Add the message
 			$(".chromo_message").append("The element <strong>"+this.container+"</strong> doesn't seem to exist.");
 			// Style it
-			$(".chromo_message").css({width:"500px","text-align":"center"});
+			$(".chromo_message").css({width:"500px","text-align":"center"}).delay(2000).fadeOut(500);
 			this.container = '';
 			return true;
 		}
@@ -683,7 +683,7 @@ Chromoscope.prototype.load = function(callback){
 	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall < 600))){ $(body+" .chromo_layerswitcher").css({'font-size':'1.5em'}); this.annotations = ""; $(".keyboard").css({'display':'none'}); $(".nokeyboard").css({'display':'show'}); this.wavelength_load_range = 0; this.spatial_preload = 1; }
 
 	if(query.kml){
-		$(body+" .chromo_message").html('Loading '+query.kml+'.<br />It may take a few seconds.').show()
+		$(this.container+" .chromo_message").html('Loading '+query.kml+'.<br />It may take a few seconds.').show()
 		this.centreDiv(".chromo_message");
 	}
 	
@@ -695,7 +695,7 @@ Chromoscope.prototype.load = function(callback){
 		$(this.container+" .chromo_message").css({width:"400px","text-align":"center"});
 		$(this.container+" .chromo_message").append("No wavelengths have been added to your HTML file so there's nothing to see. :-(");
 		this.centreDiv(".chromo_message");
-		$(this.container+" .chromo_message").show();
+		$(this.container+" .chromo_message").show().delay(2000).fadeOut(500);
 	}else{
 		// Sort out wavelength order and slider bar
 		if(query.o) this.orderWavelengths(query.o.split(","));
@@ -736,16 +736,15 @@ Chromoscope.prototype.load = function(callback){
 		// We need to send the callback function into it
 		// because we don't want to execute the callback
 		// until the AJAX XML request comes back.
-		for (var k = 0; k < this.kmls.length; k++) { this.readKML(this.kmls[k],callback,30000); $(body+" .chromo_info").append("KML "+this.kmls[k]+"<br />"); }
+		for (var k = 0; k < this.kmls.length; k++) { this.readKML(this.kmls[k],callback,30000); $(body+" .chromo_info").append("KML "+this.kmls[k]+"<br />"); this.showintro = false; }
 	}
 
 	this.buildHelp();
 	this.buildLinks();
 	this.buildLang();
+	if(this.showintro) this.buildIntro();
 	if(this.showcontext) this.buildContextMenu();
 	
-	if(this.showintro) this.buildIntro();
-	else $(body+" .chromo_message").hide();
 	if($.browser.opera && $.browser.version == 9.3){ $(".keyboard").hide(); $(".nokeyboard").show(); }
 
 	$(this.container+" .chromo_title a").bind('click', jQuery.proxy( this, "reset" ) );
@@ -942,16 +941,15 @@ Chromoscope.prototype.showVideoTour = function(){
 Chromoscope.prototype.buildIntro = function(delay){
 	var body = (!this.container) ? "body" : this.container;
 	var w = 600;
-	if(w > 0.8*this.wide) w = 0.8*this.wide;
 	// iPhones have wide but not very tall screens so we make the intro a bit wider if the screen height is small.
-	if(this.tall <= 640) w = 0.8*this.wide;
-	$(body+" .chromo_message").html(this.createClose()+this.phrasebook.intro)
+	if(this.tall <= 640) w *= 1.2;
+	if(w > 0.8*this.wide) w = 0.8*this.wide;
+	if(this.showintro) $(body+" .chromo_message").html(this.createClose()+this.phrasebook.intro)
 	$(body+" .chromo_message").css({width:w+"px","text-align":"left"});
 	$(body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
-	//this.showintro = false;
 	this.centreDiv(".chromo_message");
 	$(body+" .chromo_message").show();
-	if(delay > 0) $(body+" .chromo_message").delay(delay).hide()
+	if(this.showintro && delay > 0) $(body+" .chromo_message").delay(delay).fadeOut(500)
 }
 
 Chromoscope.prototype.showLang = function(){
@@ -963,12 +961,10 @@ Chromoscope.prototype.showLang = function(){
 // we need to recalculate the screen properties
 // and re-position things.
 $(window).resize(function(){
-	//for(c = 0 ; c < chromo.length ; c++){
-		chromo_active.setViewport();
-		chromo_active.positionMap();
-		chromo_active.centreDiv(".chromo_help");
-		chromo_active.centreDiv(".chromo_message");
-	//}
+	chromo_active.setViewport();
+	chromo_active.positionMap();
+	chromo_active.centreDiv(".chromo_help");
+	chromo_active.centreDiv(".chromo_message");
 });
 
 // A fake key press. Allows us to use the 
@@ -2001,8 +1997,12 @@ Chromoscope.prototype.readKML = function(kml){
 					chromo_active.processKML(xml,overwrite);
 					if(callback) callback.call();
 					if(duration > 0) setTimeout(function(kml,duration){ _obj.readKML(kml,duration); },duration);
+					$(_obj.container+" .chromo_message").hide();
 				},
-				error: function(data) { alert('Fail'); }
+				error: function(data) {
+					$(_obj.container+" .chromo_message").html('Failed to load '+kml+'. It may not exist or be inaccessible.').show().delay(2000).fadeOut(500);
+					_obj.centreDiv(".chromo_message");
+				}
 			});
 		}else{
 			// Web link
