@@ -1429,7 +1429,7 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 								if(((visibleTiles[v].x+pixels)%pixels)+1 <= (this.spectrum[idx].range.x[1]) || ((visibleTiles[v].x+pixels)%pixels) >= this.spectrum[idx].range.x[0] || visibleTiles[v].y >= this.spectrum[idx].range.y[0] || visibleTiles[v].y <= this.spectrum[idx].range.y[1]-1) inrange = false;
 							}
 							var tiles = this.spectrum[idx].tiles;
-							tiles = (typeof tiles=="string") ? tiles : (typeof tiles["z"+this.zoom]=="string") ? tiles["z"+this.zoom] : tiles.default;
+							tiles = (typeof tiles=="string") ? tiles : (typeof tiles["z"+this.zoom]=="string") ? tiles["z"+this.zoom] : tiles.z;
 							var img = (inrange) ? this.cdn+tiles+visibleTiles[v].src+'.'+this.spectrum[idx].ext : this.spectrum[idx].blank;
 							extrastyle = (jQuery.browser.msie) ? 'filter:alpha(opacity='+(this.spectrum[idx].opacity/100)+')' : '';
 							output += '<img src="'+img+'" id="'+tileName+'" class="tile" style="position:absolute;left:'+(visibleTiles[v].x * this.tileSize)+'px; top:'+(visibleTiles[v].y * this.tileSize) +'px; '+extrastyle+'" />\n';
@@ -1439,7 +1439,7 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 								if(((visibleTiles[v].x+pixels)%pixels)+1 <= (this.annotations[-(idx+1)].range.x[1]) || ((visibleTiles[v].x+pixels)%pixels) >= this.annotations[-(idx+1)].range.x[0] || visibleTiles[v].y >= this.annotations[-(idx+1)].range.y[0] || visibleTiles[v].y <= this.annotations[-(idx+1)].range.y[1]-1) inrange = false;
 							}
 							var tiles = this.annotations[-(idx+1)].tiles;
-							tiles = (typeof tiles=="string") ? tiles : (typeof tiles["z"+this.zoom]=="string") ? tiles["z"+this.zoom] : tiles.default;
+							tiles = (typeof tiles=="string") ? tiles : (typeof tiles["z"+this.zoom]=="string") ? tiles["z"+this.zoom] : tiles.z;
 							var img = (inrange) ? this.cdn+tiles+visibleTiles[v].src+'.'+this.annotations[-(idx+1)].ext : this.spectrum[idx].blank;
 							extrastyle = (jQuery.browser.msie) ? 'filter:alpha(opacity='+(this.annotations[-(idx+1)].opacity/100)+')' : '';
 							output += '<img src="'+img+'" id="'+tileName+'" class="tile" style="position:absolute;left:'+(visibleTiles[v].x * this.tileSize)+'px; top:'+(visibleTiles[v].y * this.tileSize) +'px; '+extrastyle+'" />\n';
@@ -1602,12 +1602,12 @@ Chromoscope.prototype.updateCredit = function(){
 	var h = Math.ceil(this.lambda);
 	var z = this.zoom
 	var c1 = this.spectrum[l].attribution;
-	c1 = (typeof c1=="string") ? c1 : (typeof c1["z"+z]=="string") ? c1["z"+z] : c1.default;
+	c1 = (typeof c1=="string") ? c1 : (typeof c1["z"+z]=="string") ? c1["z"+z] : c1.z;
 
 	if(h == l) $(this.container+" .chromo_attribution").html(c1);
 	else{
 		var c2 = this.spectrum[h].attribution;
-		c2 = (typeof c2=="string") ? c2 : (typeof c2["z"+z]=="string") ? c2["z"+z] : c2.default;
+		c2 = (typeof c2=="string") ? c2 : (typeof c2["z"+z]=="string") ? c2["z"+z] : c2.z;
 		$(this.container+" .chromo_attribution").html(''+c1+' &amp; '+c2+'');
 	}
 }
@@ -1985,9 +1985,9 @@ Chromoscope.prototype.readKML = function(kml){
 			// If the URL of the KML already has a query string, we just add to it
 			var kmlurl = (kml.indexOf('?') > 0) ? kml+'&'+Math.random() : kml+'?'+Math.random();
 			// Bug fix for reading XML file in FF3
-			$.ajaxSetup({async:false,mimeType:'text/xml','beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/plain"); } });
+			$.ajaxSetup({async:false,'beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/plain"); } });
 			$.ajax({
-				type: "POST",
+				type: "GET",
 				url: kmlurl,
 				dataType: ($.browser.msie) ? "text" : "xml",
 				success: function(data) {
@@ -2032,7 +2032,23 @@ var t = new Date();
 	var styles = new Array();
 	$('Style',xml).each(function(i){
 		var j = $(this);
-		styles[j.attr('id')] = {id: j.attr('id'),img:j.find('href').text(),balloonstyle:j.find('BalloonStyle')};
+		// We currently use the <href> and <hotSpot> variables as defined in:
+		// http://code.google.com/apis/kml/documentation/kmlreference.html#icon
+		// <IconStyle>
+		// 	<Icon>
+		// 		<href>http://blah.blah</href>
+		//		<gx:w>10</gx:w>
+		//		<gx:h>10</gx:h>
+		//		<gx:x>0</gx:x>
+		//		<gx:y>0</gx:y>
+		//		<gx:y>0</gx:y>
+		//	</Icon>
+		//	<scale>1</scale>
+		//	<hotSpot x="0.5"  y="0.5" xunits="fraction" yunits="fraction"/> units can be fraction/pixels
+		// </IconStyle>
+		styles[j.attr('id')] = {id: j.attr('id'),img:new Image(),balloonstyle:j.find('BalloonStyle'),x:j.find('hotSpot').attr('x'),y:j.find('hotSpot').attr('y')};
+		// Preload the images
+		styles[j.attr('id')].img.src = j.find('href').text();
 	});
 
 /*
@@ -2056,23 +2072,30 @@ var t = new Date();
 	};
 	process();
 */
+
 	$('Placemark',xml).each(function(i){
 		// Get the custom icon
 		var img = "";
 		var balloonstyle = false;
+		var x, y, xunits, yunits, w, h = "";
 		var style = $(this).find("styleUrl").text();
 		style = style.substring(1);
 		var id_text = "";
 		if(typeof styles[style]=="object"){
 			img = styles[style].img;
 			ballonstyle = styles[style].balloonstyle
+			x = (typeof styles[style].x=="undefined") ? "" : parseFloat(styles[style].x);
+			y = (typeof styles[style].y=="undefined") ? "" : parseFloat(styles[style].y);
+			xu = styles[style].xunits;
+			yu = styles[style].yunits;
+			w = (styles[style].img.width) ? styles[style].img.width : "";
+			h = (styles[style].img.height) ? styles[style].img.height : "";
 		}
-		c.addPin({id:p++,style:style,img:img,title:$(this).find("name").text(),balloonstyle:balloonstyle,desc:($(this).find("description").text()),ra:parseFloat($(this).find("longitude").text())+180,dec:parseFloat($(this).find("latitude").text())},true);
+		c.addPin({id:p++,style:style,img:img,title:$(this).find("name").text(),x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:($(this).find("description").text()),ra:parseFloat($(this).find("longitude").text())+180,dec:parseFloat($(this).find("latitude").text())},true);
 	});
-
 	this.updatePins("",true);
-console.log("Time to process: " + (new Date() - t) + "ms");
 	this.wrapPins();
+console.log("Time to process: " + (new Date() - t) + "ms");
 }
 
 // Create a layer to hold pins
@@ -2103,6 +2126,12 @@ Chromoscope.prototype.removePin = function(id){
 // Usage: chromo_active.pins[p] = new Pin({id:1,img:'something.png',title:'Title',desc:'A description',glon:120.0,glat:5.2},chromo_active,delayhtml)
 //	id = The unique ID which will refer to this pin
 //	img (string) = The location of an image file to use as a pin. Can be remote.
+//	x (number) = The x position of the pin
+//	y (number) = The y position of the pin
+//	xunits (string) = pixels/fraction
+//	yunits (string) = pixels/fraction
+//	w (number) = The width of the pin
+//	h (number) = The height of the pin
 //	title (string) = The title in the popup balloon (it will be an <h3>).
 //	desc (string) = The description shown in the popup balloon. Can contain HTML.
 //	ra (number) = The Right Ascension of the pin (optional: instead of glon)
@@ -2113,7 +2142,6 @@ Chromoscope.prototype.removePin = function(id){
 //	delayhtml = True if you want to add a lot of pins one-after-the-other. You'll need to call updatePins("",true)
 function Pin(input,el,delayhtml){
 	if(input){
-		defaultimg = 'pin.png'
 		this.el = el;
 		this.id = (input.id) ? input.id : el.pins.length;
 		this.loc = (input.loc) ? el.container+input.loc : el.container+" .kml";
@@ -2132,11 +2160,21 @@ function Pin(input,el,delayhtml){
 		this.input= input;
 		this.style = input.style;
 		this.balloonstyle = (input.balloonstyle) ? input.balloonstyle : false;
-		this.img = (input.img) ? input.img : defaultimg;
-		this.pinImg = new Image();
-		this.pinImg.src = this.img;
-		this.pin_h = this.pinImg.height ? this.pinImg.height : 30;
-		this.pin_w = this.pinImg.width ? this.pinImg.width : 25;
+
+		if(typeof input.img=="object") this.img = input.img;
+		else{
+			this.img = new Image();
+			this.img.src = (typeof input.img=="string") ? input.img : 'pin.png';
+		}
+
+
+		// Use 
+		this.pin_h = (typeof input.h=="number") ? input.h : (this.img.height) ? this.img.height : 30;
+		this.pin_w = (typeof input.w=="number") ? input.w : (this.img.width) ? this.img.width : 30;
+		this.pin_x = (typeof input.x=="number") ? input.x : 0.5;
+		this.pin_y = (typeof input.y=="number") ? input.y : 1;
+		this.xunits = (typeof input.xunits=="string") ? input.xunits : "fraction";
+		this.yunits = (typeof input.yunits=="string") ? input.yunits : "fraction";
 
 		this.x = kml_coord[0];
 		this.y = kml_coord[1];
@@ -2145,8 +2183,9 @@ function Pin(input,el,delayhtml){
 
 		this.balloon = "balloon-"+this.id;
 		this.pin = "pin-"+this.id;
-		this.pinhtml = '<div class="pin '+this.pin+'" title="'+this.title+'" id="'+chromo_active.container+'-'+this.pin+'" style="position:absolute;display:block;"><img src="'+this.img+'" /></div>';
+		this.pinhtml = '<div class="pin '+this.pin+'" title="'+this.title+'" id="'+chromo_active.container+'-'+this.pin+'" style="position:absolute;display:block;"><img src="'+this.img.src+'" style="width:'+this.pin_w+';height:'+this.pin_h+'" /></div>';
 		this.pinloc = el.container+" ."+this.pin;
+
 
 		// Deal with KML balloon styles
 		if(this.balloonstyle){
@@ -2163,8 +2202,10 @@ function Pin(input,el,delayhtml){
 		this.balloonvisible = false;
 
 		// Position the pin and add the event to it
-		this.xoff = this.pin_w*0.5;
-		this.yoff = this.pin_h;
+		this.xoff = (this.xunits=="pixels") ? this.pin_x : this.pin_w*this.pin_x;
+		this.yoff = (this.yunits=="pixels") ? this.pin_y : this.pin_h*this.pin_y;
+
+		//console.log(this.img.src+' '+input.w+','+input.h+' '+this.pin_w+','+this.pin_h+' '+input.x+','+input.y+' '+this.pin_x+','+this.pin_y+' '+this.xoff+','+this.yoff)
 		if(!delayhtml){
 			$(this.loc).append(this.pinhtml);
 			this.jquery = $(el.container+" ."+this.pin);
@@ -2189,15 +2230,16 @@ Chromoscope.prototype.updatePins = function(style,delayedhtml){
 }
 
 Chromoscope.prototype.updatePin = function(p,style){
-	this.pins[p].jquery = $(this.pins[p].pinloc);
-	this.pins[p].pin_h = this.pins[p].pinImg.height ? this.pins[p].pinImg.height : 30;
-	this.pins[p].pin_w = this.pins[p].pinImg.width ? this.pins[p].pinImg.width : 30;
-	this.pins[p].xoff = this.pins[p].pin_w*0.5;
-	this.pins[p].yoff = this.pins[p].pin_h;
-	this.pins[p].jquery.css({left:(parseInt(this.pins[p].x - this.pins[p].xoff)),top:(parseInt(this.pins[p].y - this.pins[p].yoff)),width:this.pins[p].pin_w,height:this.pins[p].pin_h});
-	if(style && this.pins[p].style != style) this.pins[p].jquery.hide();
-	else this.pins[p].jquery.show();
-	this.pins[p].jquery.bind('click',{p:this.pins[p],el:this.pins[p].el},function(e){
+	var pin = this.pins[p];
+	pin.jquery = $(pin.pinloc);
+	pin.pin_h = pin.img.height ? pin.img.height : 30;
+	pin.pin_w = pin.img.width ? pin.img.width : 30;
+	pin.xoff = (pin.xunits=="pixels") ? pin.pin_x : pin.pin_w*pin.pin_x;
+	pin.yoff = (pin.yunits=="pixels") ? pin.pin_y : pin.pin_h*pin.pin_y;
+	pin.jquery.css({left:(parseInt(pin.x - pin.xoff)),top:(parseInt(pin.y - pin.yoff)),width:pin.pin_w,height:pin.pin_h});
+	if(style && pin.style != style) pin.jquery.hide();
+	else pin.jquery.show();
+	pin.jquery.bind('click',{p:pin,el:pin.el},function(e){
 		e.data.el.toggleBalloon(e.data.p);
 	});
 
