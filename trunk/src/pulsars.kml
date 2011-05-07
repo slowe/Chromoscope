@@ -4,9 +4,10 @@
 	<name>Pulsars</name>
 	<Style id="pulsar">
 		<IconStyle>
-		<Icon>
-		<href>pin_green.png</href>
-		</Icon>
+			<Icon>
+				<href>bullet_green.png</href>
+			</Icon>
+			<hotSpot x="0.5"  y="0.5" xunits="fraction" yunits="fraction" />
 		</IconStyle>
 		<LabelStyle>
 			<color>00ffffff</color>
@@ -14,9 +15,10 @@
 	</Style>
 	<Style id="millisecond">
 		<IconStyle>
-		<Icon>
-		<href>pin_red.png</href>
-		</Icon>
+			<Icon>
+				<href>bullet_red.png</href>
+			</Icon>
+			<hotSpot x="0.5"  y="0.5" xunits="fraction" yunits="fraction" />
 		</IconStyle>
 		<LabelStyle>
 			<color>00ffffff</color>
