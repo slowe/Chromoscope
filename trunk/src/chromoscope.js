@@ -10,12 +10,14 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.3.2 (2011-05-05):
+ * Changes in version 1.3.2 (2011-05-07):
  *   - Resources (close.png and the language files) can exist in a
  *     different directory to the current one - added "dir" option.
  *   - Ability to have different tile sets and credits at different
  *     zoom levels.
  *   - Fixed floating point error in getOpacity present in Chrome
+ *   - Improved KML reading code for large numbers of pins
+ *   - Fixed the positioning of pins and added <hotSpot> kml option
  * 
  * Changes in version 1.3.1 (2011-04-27):
  *   - Fixed a bug that stopped display when the mousewheel code 
@@ -1994,10 +1996,12 @@ Chromoscope.prototype.readKML = function(kml){
 						xml.async = false;
 						xml.loadXML(data);
 					}else xml = data;
-					chromo_active.processKML(xml,overwrite);
+					$(_obj.container+" .chromo_message").html('Processing '+$('Document',xml).find('name').text());
+					_obj.processKML(xml,overwrite);
 					if(callback) callback.call();
 					if(duration > 0) setTimeout(function(kml,duration){ _obj.readKML(kml,duration); },duration);
 					$(_obj.container+" .chromo_message").hide();
+					if(_obj.showintro) _obj.buildIntro();
 				},
 				error: function(data) {
 					$(_obj.container+" .chromo_message").html('Failed to load '+kml+'. It may not exist or be inaccessible.').show().delay(2000).fadeOut(500);
@@ -2027,7 +2031,7 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 	// Set the opacity of all the pins (mostly for IE)
 	setOpacity($(this.container+" .kml"),1.0);
 
-var t = new Date();
+	//var t = new Date();
 
 	var styles = new Array();
 	$('Style',xml).each(function(i){
@@ -2095,7 +2099,7 @@ var t = new Date();
 	});
 	this.updatePins("",true);
 	this.wrapPins();
-console.log("Time to process: " + (new Date() - t) + "ms");
+	//console.log("Time to process: " + (new Date() - t) + "ms");
 }
 
 // Create a layer to hold pins
@@ -2270,7 +2274,7 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 	// Position the balloon relative to the pin
 	pin.balloonx = -w/2;
 	pin.balloony = ((pin.y-h-rad) < this.mapSize*0.25) ? (pin.pin_h*0.25):(-h-pin.pin_h*1.5/2);
-	$(this.container+" ."+pin.balloon).css({'left':(parseInt(pin.x)+pin.balloonx),'top':(parseInt(pin.y)+pin.balloony)});
+	$(this.container+" ."+pin.balloon).css({'left':(parseInt(pin.x+pin.xoff)+pin.balloonx),'top':(parseInt(pin.y+pin.yoff)+pin.balloony)});
 	if(duration && duration > 0) $(id).fadeIn(duration);
 	else $(id).show();
 	pin.balloonvisible = true;
