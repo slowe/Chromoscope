@@ -2164,7 +2164,7 @@ function Pin(input,el,delayhtml){
 		if(typeof input.img=="object") this.img = input.img;
 		else{
 			this.img = new Image();
-			this.img.src = (typeof input.img=="string") ? input.img : 'pin.png';
+			this.img.src = (typeof input.img=="string" && input.img.length > 0) ? input.img : 'pin.png';
 		}
 
 
