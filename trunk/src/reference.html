@@ -1,0 +1,395 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>Documentation | Chromoscope</title>
+	<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.chromoscope.net/favicon.ico" />
+	<style type="text/css">
+		body {
+			font-family: 'Trebuchet MS',Tahoma,Helvetica,Verdana,sans-serif;
+		}
+		ul i {
+			color: #999;
+		}
+		pre.code {
+			background: none repeat scroll 0 0 #000000;
+			border-bottom-right-radius: 1em;
+			border-top-right-radius: 1em;
+			color: #FFFFFF;
+			margin-left: -2.5em;
+			overflow-x: auto;
+			padding: 1em;
+		}
+		pre.code b {
+			color: #E9DF8F!important;
+			font-weight: normal!important;
+		}
+		pre.code i, ul li code {
+			color: #339955!important;
+			font-style: normal!important;
+		}
+		pre.code .c {
+			color: #888888!important;
+		}
+		pre.code .d,ul li code.d {
+			color: #CF6A4C!important;
+		}
+		pre.code .s {
+			color: #E7BE61!important;
+		}
+    	</style>
+</head>
+<body>
+	<h1>Chromoscope Documentation</h1>
+	<p><a href="http://www.chromoscope.net/">Chromoscope</a> is an accessible, easy tool that anyone can use to explore and understand the sky at multiple wavelengths. It lets you easily move around the sky and fade between wavelengths using a simple user-interface to illustrate the similarities and differences between what is visible at each wavelength.</p>
+	<p>A standard, modern, web browser is all that you need to use Chromoscope so there is no need to install any extra software, plugins or learn a new interface. Being platform independent means that whether you use Windows, Mac or Linux, it should still be accessible. The code (<a href="https://github.com/slowe/Chromoscope">latest development version</a>) <a href="http://blog.chromoscope.net/download/">can be downloaded</a> to your own computer or web server and then you can select which wavelength collections you want.</p>
+
+	<h2>Chromoscope</h2>
+	<p>Creates a Chromoscope object to show a zoomable, multi-source map. You must do this first.</p>
+	<h3>Parameters</h3>
+	<p>All of these parameters are optional. The defaults are given in brackets.</p>
+	<ul>
+		<li><b>container</b> <i>string</i> attach to an element ID rather than the full window</li>
+		<li><b>l</b> <i>number</i> a starting Galactic longitude (<code class="d">0</code>)</li>
+		<li><b>b</b> <i>number</i> a starting Galactic latitude (<code class="d">0</code>)</li>
+		<li><b>ra</b> <i>number</i> a starting Right Ascension</li>
+		<li><b>dec</b> <i>number</i> a starting Declination</li>
+		<li><b>zoom</b> <i>integer</i> an integer defining the starting zoom level (<code class="d">-1</code>; sets it to whatever best fills the view)</li>
+		<li><b>maxZoom</b> <i>integer</i> the maximum zoom level (<code class="d">6</code>)</li>
+		<li><b>lambda</b> <i>number</i> current pseudo-wavelength. First wavelength is zero and they are spaced by 1.0. (<code class="d">0.0</code>)</li>
+		<li><b>lang</b> <i>string</i> the two letter language code to use as default (<code>"en"</code>)</li>
+		<li><b>langs</b> <i>object</i> an array of language objects (<code class="d">[{code:'en',name:'English'}]</code>)</li>
+		<li><b>title</b> <i>boolean</i> show the title (<code class="d">true</code>)</li>
+		<li><b>showintro</b> <i>boolean</i> show the introductory message (<code class="d">true</code>)</li>
+		<li><b>showshare</b> <i>boolean</i> show the share link (<code class="d">true</code>)</li>
+		<li><b>showabout</b> <i>boolean</i> show the about link (<code class="d">true</code>)</li>
+		<li><b>showlangs</b> <i>boolean</i> show the language changer (<code class="d">true</code>)</li>
+		<li><b>showcoord</b> <i>boolean</i> show the centre coordinates (<code class="d">true</code>)</li>
+		<li><b>showcontext</b> <i>boolean</i> allow the context menu (<code class="d">true</code>)</li>
+		<li><b>sliderbar</b> <i>boolean</i> show the wavelength slider bar (<code class="d">true</code>)</li>
+		<li><b>zoomctrl</b> <i>boolean</i> show the zoom controls (<code class="d">true</code>)</li>
+		<li><b>kml</b> <i>string</i> a KML file to draw map pins</li>
+		<li><b>dir</b> <i>string</i> location of the language files and non-map-tile images</li>
+		<li><b>compact</b> <i>boolean</i> alter the display for very compact versions (<code class="d">false</code>)</li>
+		<li><b>performance</b> <i>boolean</i> debugging to see how long it took to process checkTiles</li>
+		<li><b>cdn</b> <i>string</i> use specified content distribution network to reduce bandwidth</li>
+		<li><b>ignorekeys</b> <i>boolean</i> disallow keyboard control (<code class="d">false</code>)</li>
+		<li><b>wavelength_speed</b> <i>number</i> the speed of wavelength transitions (<code class="d">0.05</code>)</li>
+		<li><b>wavelength_load_range</b> <i>integer</i> the number of wavelengths either side of nominal to load simultaneously (<code class="d">1</code>)</li>
+		<li><b>spatial_preload</b> the number of tiles off the edge of the map to load. Higher numbers take more memory but makes it more responsive (<code class="d">1</code>)</li>
+	</ul>
+
+	<h3>Usage</h3>
+	<pre class="code">
+	<span class="c">// Set up the Chromoscope</span>
+	<b>var</b> chromo <span class="s">=</span> new Chromoscope();
+
+	<span class="c">// Set up the Chromoscope to show Italian and no introductory message</span>
+	<b>var</b> chromo <span class="s">=</span> new Chromoscope({lang:<i>'en'</i>, showintro:<span class="d">false</span>});
+
+	<span class="c">// Attach to the element with the ID chromoscopeholder2 and in compact mode</span>
+	<b>var</b> chromo <span class="s">=</span> new Chromoscope({container:<i>'#chromoscopeholder2'</i>, compact:<span class="d">true</span>});
+
+	<span class="c">// Don't show the introductory message, the "share" link, or the "about" link </span>
+	<b>var</b> chromo <span class="s">=</span> new Chromoscope({showintro:<span class="d">false</span>, showshare:<span class="d">false</span>, showabout:<span class="d">false</span>});
+
+	<span class="c">// Start with the view centred on Galactic coordinates 205.5, -17.4, a zoom level of 5 and at a psuedo-wavelength of 2.6</span>
+	<b>var</b> chromo <span class="s">=</span> new Chromoscope({l:<span class="d">205.5</span>, b:<span class="d">-17.4</span>, zoom:<span class="d">5</span>, lambda:<span class="d">2.6</span>});
+
+	<span class="c">// Use the specified KML file to add map pins</span>
+	<b>var</b> chromo <span class="s">=</span> new Chromoscope({kml:<i>'telescopes.kml'</i>});
+	</pre>
+
+	<h2>Adding Wavelength and Annotation Layers</h2>
+
+	<p>Once Chromoscope is set up and ready we can add the wavelengths and annotation layers we want</p>
+
+	<h3>Usage</h3>
+
+	<ul>
+		<li><b>useasdefault</b> <i>boolean</i> this will be the starting wavelength displayed</li>
+		<li><b>key</b> <i>string</i> a keyboard shortcut to go to this wavelength</li>
+		<li><b>name</b> <i>string</i> an internal ID for this wavelength. Should be unique.</li>
+		<li><b>tiles</b> <i>string</i> the path to the directory containing the tiles. Can be remote.</li>
+		<li><b>ext</b> <i>string</i> the file extension. Likely to be jpg if using the Google Maps Image Cutter.  (<code class="d">ext</code>)</li>
+		<li><b>title</b> <i>string</i> the text that will appear in the wavelength slider</li>
+		<li><b>attribution</b> <i>string</i> The text that contains the credit line. Can contain HTML links.</li>
+		<li><b>range</b> <i>string</i> the Galactic longitude/latitude range for your data (<code class="d">{longitude:[-180,180],latitude:[-90,90]}</code>)</li>
+		<li><b>blank</b> <i>string</i> this image will be used if a tile is outside the specified range. This saves bandwidth when you don't have the full sky.</li>
+	</ul>
+
+	<pre class="code">
+	<span class="c">// Attach to document ready</span>
+	$(document).ready(<b>function</b>(){
+
+		<span class="c">// The spectral bands should be in order they will be displayed in</span>
+		chromo.addWavelength({useasdefault:<span class="d">true</span>,key:<i>'v'</i>,name:<i>'optical'</i>,tiles:<i>'../../DSS2-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'optical'</i>,attribution:<i>'&lt;a href="http://stdatu.stsci.edu/dss/"&gt;DSS2&lt;/a&gt;/&lt;a href="http://www.wikisky.org/"&gt;Wikisky&lt;/a&gt;'</i>});
+		chromo.addWavelength({useasdefault:<span class="d">false</span>,key:<i>'f'</i>,name:<i>'farir'</i>,tiles:<i>'../../IRAS-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'farir'</i>,attribution:<i>'&lt;a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html"&gt;IRAS&lt;/a&gt;/NASA'</i>});
+
+		<span class="c">// A range limited layer</span>
+		chromo.addWavelength({range:{longitude: [<span class="d">-120</span>,<span class="d">80</span>],latitude:[<span class="d">-20</span>,<span class="d">20</span>]},blank:<i>'blank.gif'</i>,useasdefault:<span class="d">false</span>,key:<i>'r'</i>,name:<i>'radio'</i>,tiles:<i>'../../Radio_vsmoothed-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'radio'</i>,attribution:<i>'&lt;a href="http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm"&gt;Haslam et al.&lt;/a&gt;'</i>});
+
+		<span class="c">// Add an annotation layer. This uses tiles like the wavelength layers but will be toggled on/off</span>
+		chromo.addAnnotationLayer({opacity:<span class="d">0.4</span>,key:<i>'l'</i>,name:<i>'labels'</i>,tiles:<i>'../../labels-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'Labels'</i>,attribution:<i>'some Labels from Chris'</i>});
+
+
+	}
+	</pre>
+
+	<h2>Load</h2>
+	<p>Once you've set up the wavelength (and annotation) layers you need to tell Chromoscope that you are ready
+	<ul>
+		<li><b>callback</b> <i>function</i> an optional function that will be called after this executes</li>
+	</ul>
+	<h3>Usage</h3>
+	<pre class="code">
+	<span class="c">// Load the map</span>
+	chromo.load();
+
+	<span class="c">// Or call it with a callback function</span>
+	chromo.load(<b>function</b>(){
+		alert(<i>'Loaded'</i>);
+	});
+	</pre>
+
+	<h2>Other functions</h2>
+
+	<h2>Set Language</h2>
+	<p>If you want to load an alternate language you use <code>getLanguage()</code>. The language should be stored in a JSON file of the same name.</p>
+	<ul>
+		<li><b>lang</b> <i>string</i> - a string giving the filename (without the .js) of the JSON file containing the language</li>
+	</ul>
+	<h3>Usage</h3>
+	<pre class="code">
+	chromo.getLanguage(<span class="d">lang</span>);
+
+	<span class="c">// Load the French language file stored in fr.js</span>
+	chromo.getLanguage(<i>'fr'</i>);
+	</pre>
+
+	<h2>Define Language</h2>
+	<p>If you want to you can hard-code the entire language translation.</p>
+	<ul>
+		<li><b>lang</b> <i>object</i> - the language structure</li>
+	</ul>
+	<h3>Usage</h3>
+	<pre class="code">
+	chromo.changeLanguage(<span class="d">lang</span>)
+
+	<span class="c">// Define English (this is the default anyway but should give you hints for writing your own)</span>
+	chromo.changeLanguage({code:<i>'en'</i>,
+		name : <i>'English'</i>,
+		translator : <i>''</i>,
+		lang : <i>'Change language:'</i>,
+		version : <i>'version'</i>,
+		help : <i>'Help'</i>,
+		helpmenu : <i>'Help'</i>,
+		helpdesc : <i>'The Milky Way is shown across the middle. The north pole of the Galaxy is towards the top. Use the mouse to drag the sky around. Want more info? &lt;a href="#" onClick="javascript:chromo_active.showVideoTour();return false;"&gt;Watch a quick tour&lt;/a&gt; (opens in this window). &lt;span class="keyboard"&gt;The keyboard controls are:&lt;ul class="chromo_controlkeys"&gt;&lt;/ul&gt;&lt;/span&gt;&lt;span class="nokeyboard"&gt;&lt;ul class="chromo_controlbuttons"&gt;&lt;/ul&gt;&lt;/span&gt; &lt;span class="keyboard"&gt;Created by &lt;a href="http://www.strudel.org.uk/"&gt;Stuart Lowe&lt;/a&gt;, &lt;a href="http://www.astro.cf.ac.uk/pub/Robert.Simpson/index.html"&gt;Rob Simpson&lt;/a&gt;, and &lt;a href="http://www.astro.cardiff.ac.uk/contactsandpeople/?page=full&id=493"&gt;Chris North&lt;/a&gt;. You can also &lt;a href="http://blog.chromoscope.net/download/"&gt;download it&lt;/a&gt; to run locally.&lt;/span&gt;'</i>,
+		about : <i>'About'</i>,
+		share : <i>'Share'</i>,
+		sharewith : <i>'Share it with'</i>,
+		switchtext : <i>'switch to __WAVELENGTH__ view of the sky'</i>,
+		search : <i>'search'</i>,
+		press : <i>'Press __KEY__'</i>,
+		close : <i>'Close'</i>,
+		closedesc : <i>'click to close'</i>,
+		switchannotation : <i>' show or hide __ANNOTATION__'</i>,
+		showhide : <i>'show or hide all screen furniture (except the credit line)'</i>,
+		up : <i>'higher energy (reduce the wavelength)'</i>,
+		down : <i>'lower energy (increase the wavelength)'</i>,
+		zoomin : <i>'zoom in'</i>,
+		zoomout : <i>'zoom out'</i>,
+		nozoomin : <i>'Can\'t zoom in any more'</i>,
+		nozoomout : <i>'Can\'t zoom out any more'</i>,
+		url : <i>'The URL for this view is:'</i>,
+		intro : <i>'&lt;p&gt;Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in &lt;a href="http://blog.chromoscope.net/data/"&gt;a range of wavelengths&lt;/a&gt; from X-rays to the longest radio waves.&lt;/p&gt;&lt;p&gt;Change the wavelength using the &lt;em&gt;slider&lt;/em&gt; in the top right of the screen and explore space using your mouse. For more information we have &lt;a href="#" onClick="javascript:chromo_active.showVideoTour();return false;"&gt;a quick video tour&lt;/a&gt; or you can read &lt;a href="http://blog.chromoscope.net/about/"&gt;more on our blog&lt;/a&gt;. If you get stuck, click &quot;Help&quot; in the bottom left.&lt;/p&gt;&lt;p&gt;&lt;a href="http://www.astro.cardiff.ac.uk/research/instr/"&gt;&lt;img src="cardiffuni.png" style="border:0px;margin: 0px 5px 5px 0px;float:left;" /&gt;&lt;/a&gt;Chromoscope is kindly funded by the Cardiff University &lt;a href="http://www.astro.cardiff.ac.uk/research/egalactic/"&gt;Astronomy&lt;/a&gt; and &lt;a href="http://www.astro.cardiff.ac.uk/research/instr/"&gt;Astronomy Instrumentation&lt;/a&gt; Groups.&lt;/p&gt;'</i>,
+		gal : <i>'http://en.wikipedia.org/wiki/Galactic_coordinate_system'</i>,
+		galcoord : <i>'Galactic Coordinates'</i>,
+		eq : <i>'http://en.wikipedia.org/wiki/Equatorial_coordinate_system'</i>,
+		eqcoord : <i>'Equatorial Coordinates'</i>,
+		gamma : <i>'Gamma ray'</i>,
+		xray : <i>'X-ray'</i>,
+		optical : <i>'Visible'</i>,
+		halpha : <i>'Hydrogen &alpha;'</i>,
+		farir : <i>'Far-IR'</i>,
+		microwave : <i>'Microwave'</i>,
+		radio : <i>'Radio'</i>,
+		labels : <i>'Labels'</i>,
+		centre : <i>'Centre map at this point'</i>,
+		wikisky : <i>'View in Wikisky'</i>,
+		wwt : <i>'View in WorldWideTelescope'</i>,
+		nearby : <i>'Objects within 10&prime;'</i>,
+	})
+	</pre>
+
+
+	<h2>Reset</h2>
+	<p>Reset the map view</p>
+	<h3>Usage</h3>
+	<pre class="code">
+	chromo.reset()
+	</pre>
+
+
+	<h2>Simulated key press</h2>
+	<p>Sometimes you just want to pretend the user has pressed a key. This function lets you do that.</p>
+	<ul>
+		<li><b>key</b> <i>character</i> - the keypress you want to simulate</li>
+	</ul>
+	<pre class="code">
+	chromo.simulateKeyPress(<span class="d">key</span>);
+
+	chromo.simulateKeyPress(<i>'l'</i>);
+	</pre>
+
+
+	<h2>Move Map</h2>
+	<p>Centre the map on the specified Galactic coordinates.</p>
+	<ul>
+		<li><b>longitude</b> <i>number</i> the Galactic longitude</li>
+		<li><b>latitude</b> <i>number</i> the Galactic latitude</li>
+		<li><b>zoom</b> <i>number</i> the zoom level</li>
+	</ul>
+	<pre class="code">
+		chromo.moveMap(<span class="d">longitude</span>, <span class="d">latitude</span>, <span class="d">zoom</span>);
+
+		chromo.moveMap(<span class="d">-67.2</span>, <span class="d">14.4</span>, <span class="d">3</span>);
+	</pre>
+
+	<h2>Coordinates</h2>
+	<p>Chromoscope will provide the coordinates of the centre of the view. It also has some useful coordinate transforms so that it can convert between systems.</p>
+	<ul>
+		<li><b>ra</b> <i>number</i> the Right ascension</i>
+		<li><b>dec</b> <i>number</i> the Declination</i>
+		<li><b>l</b> <i>number</i> the Galactic longitude</i>
+		<li><b>b</b> <i>number</i> the Galactic latitude</i>
+		<li><b>epoch</b> <i>number</i> [optional]  the epoch (<i>2000</i>)</i>
+	</ul>
+	<pre class="code">
+	<span class="c">// Return a two element structure containing the Galactic l,b {l, b}</span>
+	<b>coords</b> <span class="s">=</span> chromo.getCoords();
+	alert(<b>coords</b>.l+','+<b>coords</b>.b)
+
+	<span class="c">// Return a two element array containing the Galactic l,b from RA/Dec</span>
+	<b>var</b> galactic <span class="s">=</span> Equatorial2Galactic(<span class="d">ra</span>, <span class="d">dec</span>, <span class="d">epoch</span>);
+
+	<span class="c">// Return a two element array containing the Right Ascension and Declination from Galactic Coordinates</span>
+	<b>var</b> radec <span class="s">=</span> Galactic2Equatorial(<span class="d">l</span>, <span class="d">b</span>, <span class="d">epoch</span>);
+	</pre>
+
+
+	<h2>visible Range</h2>
+	<p>Get the coordinate range for the current view as a structure <code>{left, right, top, bottom }</code>. The default output is map x,y coordinates.</p>
+	<ul>
+		<li><b>coordtype</b> <i>string</i> [optional] specify as <code>'G'</code> if you want the range in Galactic coordinates or 'X' to get the map x,y values.</li>
+	</ul>
+	<pre class="code">
+	<b>var</b> range <span class="s">=</span> chromo.getVisibleRange(<span class="d">coordtype</span>);
+
+	<span class="c">// Returns the Galactic coordinates for the view.</span>
+	<b>var</b> range <span class="s">=</span> chromo.getVisibleRange(<i>'G'</i>);
+
+	<span class="c">// Popup showing the result structure contents { left: l, right: r, top: t, bottom: b }</span>
+	alert(range.left+' '+range.right+' '+range.top+' '+range.bottom);
+	</pre>
+
+
+
+	<h2>Increment Wavelength</h2>
+	<p>Change the wavelength by a value between 0 and 1 where 1 changes a full pseudo-wavelength.</p>
+	<ul>
+		<li><b>delta</b> <i>number</i> the amount to change by</li>
+	</ul>
+	<pre class="code">
+	chromo.changeWavelength(<span class="d">delta</span>);
+
+	chromo.changeWavelength(<span class="d">0.1</span>);
+	</pre>
+
+
+
+	<h2>Zoom</h2>
+	<p>Set the zoom level.</p>
+	<ul>
+		<li><b>zoom</b> <i>integer</i> the new zoom level</li>
+	</ul>
+	<pre class="code">
+	<span class="c">// Zoom in 1 zoom level</span>
+	chromo.zoomIn();
+
+	<span class="c">// Zoom out 1 zoom level</span>
+	chromo.zoomOut();
+
+	chromo.setMagnification(<span class="d">zoom</span>);
+
+	chromo.setMagnification(<span class="d">4</span>);
+	</pre>
+
+
+
+
+	<h2>Read KML file</h2>
+	<p>Read a KML file. Due to browser security policies, this will have to be hosted on the same domain.</p>
+	<ul>
+		<li><b>kml</b> <i>string</i> the location of the KML file</li>
+		<li><b>overwrite</b> <i>boolean</i> [optional] overwrite previously loaded Placemarkers</li>
+		<li><b>duration</b> <i>number</i> [optional] number of milliseconds before reloading the KML</li>
+		<li><b>callback</b> <i>function</i> [optional] a function to call after this</li>
+	</ul>
+	<pre class="code">
+	<span class="c">// Zoom in 1 zoom level</span>
+	chromo.readKML(<span class="d">kml</span>,<span class="d">overwrite</span>,<span class="d">duration</span>,<span class="d">callback</span>);
+
+	<span class="c">// Load the pulsars.kml file</span>
+	chromo.readKML(<i>'pulsars.kml'</i>);
+	</pre>
+
+
+
+	<h2>Add a map pin</h2>
+	<p>A suitable layer will need to exist for the pin</p>
+	<ul>
+		<li><b>ra</b> <i>number</i> [optional] The Right Ascension of the pin</b></li>
+		<li><b>dec</b> <i>number</i> [optional] The declination of the pin</b></li>
+		<li><b>glon</b> <i>number</i> [optional] The Galactic longitude of the pin</li>
+		<li><b>glat</b> <i>number</i> [optional] The Galactic latitude of the pin</li>
+		<li><b>id</b> <i>string</i> [optional] the unique ID which will refer to this pin (defaults to pin number)</li>
+		<li><b>img</b> <i>string</i> the location of an image file to use as a pin. Can be remote.</li>
+		<li><b>x</b> <i>number</i> the relative x position of the pin</li>
+		<li><b>y</b> <i>number</i> the relative y position of the pin</li>
+		<li><b>xunits</b> <i>string</i> <code>"pixels"</code> or <code>"fraction"</code></li>
+		<li><b>yunits</b> <i>string</i> <code>"pixels"</code> or <code>"fraction"</code></li>
+		<li><b>w</b> <i>number</i> the width of the pin</li>
+		<li><b>h</b> <i>number</i> the height of the pin</li>
+		<li><b>title</b> <i>string</i> the title in the popup balloon</b> (it will be an &lt;h3&gt;).</li>
+		<li><b>desc</b> <i>string</i> The description shown in the popup balloon. Can contain HTML.</li>
+		<li><b>balloonstyle</b> <i>string</i> kml defining the style of the balloon contents.</li>
+		<li><b>chromo</b> <i>chromoscope</i> the chromoscope you want to add the pin to</li>
+		<li><b>delayhtml</b> add a lot of pins one-after-the-other. You'll need to call <code>chromo.updatePins("",true)</code></li>
+	</ul>
+	<pre class="code">
+	chromo.pins[p] = new Pin({id:<span class="d">1</span>, img:<i>'something.png'</i>, title:<i>'Title'</i>, desc:<i>'A description'</i>, glon:<span class="d">120.0</span>, glat:<span class="d">5.2</span>}, <span class="d">chromo</span>)
+
+
+	<span class="c">// Adding many pins may get slow so here we don't add the pins to the screen until we've provided them all to Chromoscope.</span>
+	<span class="c">// We'll allow their IDs to be auto-generated.</span>
+	p = 0;
+	chromo.pins[p++] = new Pin({img:<i>'something.png'</i>, title:<i>'A title'</i>, desc:<i>'A description'</i>, glon:<span class="d">120.0</span>, glat:<span class="d">5.2</span>}, <span class="d">chromo</span>)
+	...
+	chromo.pins[p++] = new Pin({img:<i>'somethingelse.png'</i>, title:<i>'Pin x'</i>, desc:<i>'The umpteenth pin'</i>, glon:<span class="d">-43.8</span>, glat:<span class="d">-43.2</span>}, <span class="d">chromo</span>)
+	chromo.updatePins(<i>""</i>, <span class="d">true</span>)
+	</pre>
+
+
+
+	<h2>Show balloon</h2>
+	<p>Display the information balloon associated with a particular pin.
+	<ul>
+		<li><b>pin</b> <i>pin</i> - the pin you want to show the info balloon for.</li>
+	</ul>
+	<pre class="code">
+	chromo.showBalloon(<span class="d">pin</span>)
+
+	chromo.showBalloon(<span class="d">chromo.pins[0]</span>)
+	</pre>
+
+</body>
+</html>
