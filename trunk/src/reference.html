@@ -109,9 +109,11 @@
 		<li><b>key</b> <i>string</i> a keyboard shortcut to go to this wavelength</li>
 		<li><b>name</b> <i>string</i> an internal ID for this wavelength. Should be unique.</li>
 		<li><b>tiles</b> <i>string</i> the path to the directory containing the tiles. Can be remote.</li>
+		<li><b>tiles</b> <i>structure</i> a structure containing paths to the directories containing the tiles. Can be remote.</li>
 		<li><b>ext</b> <i>string</i> the file extension. Likely to be jpg if using the Google Maps Image Cutter.  (<code class="d">ext</code>)</li>
 		<li><b>title</b> <i>string</i> the text that will appear in the wavelength slider</li>
-		<li><b>attribution</b> <i>string</i> The text that contains the credit line. Can contain HTML links.</li>
+		<li><b>attribution</b> <i>string</i> the text that contains the credit line. Can contain HTML links.</li>
+		<li><b>attribution</b> <i>structure</i> a structure contains the appropriate credit lines. Can contain HTML links.</li>
 		<li><b>range</b> <i>string</i> the Galactic longitude/latitude range for your data (<code class="d">{longitude:[-180,180],latitude:[-90,90]}</code>)</li>
 		<li><b>blank</b> <i>string</i> this image will be used if a tile is outside the specified range. This saves bandwidth when you don't have the full sky.</li>
 	</ul>
@@ -122,10 +124,13 @@
 
 		<span class="c">// The spectral bands should be in order they will be displayed in</span>
 		chromo.addWavelength({useasdefault:<span class="d">true</span>,key:<i>'v'</i>,name:<i>'optical'</i>,tiles:<i>'../../DSS2-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'optical'</i>,attribution:<i>'&lt;a href="http://stdatu.stsci.edu/dss/"&gt;DSS2&lt;/a&gt;/&lt;a href="http://www.wikisky.org/"&gt;Wikisky&lt;/a&gt;'</i>});
-		chromo.addWavelength({useasdefault:<span class="d">false</span>,key:<i>'f'</i>,name:<i>'farir'</i>,tiles:<i>'../../IRAS-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'farir'</i>,attribution:<i>'&lt;a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html"&gt;IRAS&lt;/a&gt;/NASA'</i>});
 
 		<span class="c">// A range limited layer</span>
 		chromo.addWavelength({range:{longitude: [<span class="d">-120</span>,<span class="d">80</span>],latitude:[<span class="d">-20</span>,<span class="d">20</span>]},blank:<i>'blank.gif'</i>,useasdefault:<span class="d">false</span>,key:<i>'r'</i>,name:<i>'radio'</i>,tiles:<i>'../../Radio_vsmoothed-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'radio'</i>,attribution:<i>'&lt;a href="http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm"&gt;Haslam et al.&lt;/a&gt;'</i>});
+
+		<span class="c">// A layer with different sources of tiles for different zoom levels</span>
+		<span class="c">// Here we use Herschel tiles for the level 5 zoom. 'z' defines the default</span>
+		chromo.addWavelength({useasdefault:<span class="d">false</span>,key:<i>'f'</i>,name:<i>'farir'</i>,tiles:{z:<i>'../../IRAS-tiles/'</i>,z5:<i>'Herschel-tiles/'</i>},ext:<i>'jpg'</i>,title:<i>'farir'</i>,attribution:{z:<i>'&lt;a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html"&gt;IRAS&lt;/a&gt;/NASA'</i>,z5:<i>'ESA/Herschel'</i>}});
 
 		<span class="c">// Add an annotation layer. This uses tiles like the wavelength layers but will be toggled on/off</span>
 		chromo.addAnnotationLayer({opacity:<span class="d">0.4</span>,key:<i>'l'</i>,name:<i>'labels'</i>,tiles:<i>'../../labels-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'Labels'</i>,attribution:<i>'some Labels from Chris'</i>});
