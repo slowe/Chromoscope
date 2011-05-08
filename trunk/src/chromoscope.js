@@ -18,6 +18,7 @@
  *   - Fixed floating point error in getOpacity present in Chrome
  *   - Improved KML reading code for large numbers of pins
  *   - Fixed the positioning of pins and added <hotSpot> kml option
+ *   - Added speech bubble styling to the info balloons using CSS
  * 
  * Changes in version 1.3.1 (2011-04-27):
  *   - Fixed a bug that stopped display when the mousewheel code 
@@ -37,6 +38,7 @@
  *
  */
 
+// Get the URL query string and parse it
 jQuery.query = function() {
         var r = {};
         var q = location.search;
@@ -55,10 +57,9 @@ jQuery.query = function() {
 	}
         return r;
 };
-
-// Find out if there are any query string parameters
 var query = $.query();
 
+// Extend jQuery
 $(function(){
 	// Diable text selection thanks to http://chris-barr.com/entry/disable_text_selection_with_jquery/
 	$.extend($.fn.disableTextSelect = function() {
@@ -111,6 +112,7 @@ $(function(){
 });
 
 
+// Declare the Chromoscope object
 function Chromoscope(input){
 
 	this.version = "1.3.2 beta";
@@ -176,7 +178,7 @@ function Chromoscope(input){
 	this.dragging = false;
 	this.draggingSlider = false;
 	this.moved = false;
-	this.ignorekeys = false;
+	this.ignorekeys = false;	// Allow/disallow keyboard control
 	this.coordtype = 'G';		// The coordinate type to display 'G' for Galactic and 'A' for equatorial
 	this.y = 0;
 	this.x = 0;
@@ -198,13 +200,13 @@ function Chromoscope(input){
 	this.init(input);
 }
 
+// Set variables defined in the query string
+// The default behaviour is to show the intro message. We will over-ride this
+// with the query string option 'showintro'. If 'showintro' isn't set manually
+// in the query string we will only show it if there is no query string; we
+// will assume that having a query string means this is a shared link and in
+// that case the intro message can be confusing to the person following the link.
 Chromoscope.prototype.init = function(inp){
-	// Set variables defined in the query string
-	// The default behaviour is to show the intro message. We will over-ride this
-	// with the query string option 'showintro'. If 'showintro' isn't set manually
-	// in the query string we will only show it if there is no query string; we
-	// will assume that having a query string means this is a shared link and in
-	// that case the intro message can be confusing to the person following the link.
 	if(query.showintro) this.showintro = (query.showintro == "true") ? true : false;
 	else{
 		if(query.length > 0) this.showintro = false;
@@ -321,7 +323,7 @@ Chromoscope.prototype.changeLanguage = function(data){
 	if($.browser.opera && $.browser.version == 9.3){ $(".keyboard").hide(); $(".nokeyboard").show(); }
 }
 
-// Reset the map to 
+// Reset the map
 Chromoscope.prototype.reset = function(){
 
 	this.setMagnification(-1);
@@ -364,8 +366,8 @@ Chromoscope.prototype.reset = function(){
 // Manually define the variable to hold the Chromoscope instance.
 var chromo_active
 
-function ChromoscopeActivate(obj) {
-	chromo_active = obj;
+Chromoscope.prototype.activate = function(){
+	chromo_active = this;
 }
 
 // Define the keyboard functions
@@ -478,7 +480,7 @@ Chromoscope.prototype.load = function(callback){
 		}
 		var body = this.container;
 		$(this.container).bind('mouseover', {me:this}, function(e){
-			ChromoscopeActivate(e.data.me)
+			e.data.me.activate(); //ChromoscopeActivate(e.data.me)
 		}).bind('mouseout', function(e){
 			chromo_active = "";
 		});
@@ -581,7 +583,7 @@ Chromoscope.prototype.load = function(callback){
 	// If we have a touch screen browser, we should convert touch events into mouse events.
 	if('ontouchstart' in document.documentElement) $(body+" .chromo_outerDiv").addTouch();
 
-	ChromoscopeActivate(this)
+	this.activate(); //ChromoscopeActivate(this)
 	this.setViewport();
 
 	// For a Wii make text bigger, hide annotation layer and keyboard shortcuts
@@ -1181,7 +1183,7 @@ Chromoscope.prototype.limitBounds = function(left,top){
 //	l (number) = Galactic longitude (degrees)
 //	b (number) = Galactic latitude (degrees)
 //	z (number) = Zoom level. A value of -1 should be used if you don't want to affect the zoom.
-//	duration (number) = The duration of the transition in milliseconds (default = 0)
+//	(deprecated) duration (number) = The duration of the transition in milliseconds (default = 0)
 Chromoscope.prototype.moveMap = function(l,b,z,duration){
 	z = (z && z >= 0) ? z : 5;
 	duration = (duration) ? duration : 0;
@@ -1199,7 +1201,6 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 
 	this.checkTiles();
 	this.updateCoords();
-
 }
 
 // Update the coordinate holder
@@ -2087,7 +2088,7 @@ function Pin(input,el,delayhtml){
 			this.ballooncontents = (input.msg) ? input.msg : '<h3>'+this.title+'</h3><p>'+this.desc+'</p>';
 		}
 		// Make the <div> to hold the contents of the balloon
-		this.balloonhtml = '<div class="balloon '+this.balloon+'" style="position:absolute;">'+this.ballooncontents+el.createCloseOld()+'</div>';
+		this.balloonhtml = '<div class="balloon '+this.balloon+'" style="position:absolute;">'+this.ballooncontents+el.createCloseOld()+'<div class="arrow"></div></div>';
 		this.balloonvisible = false;
 
 		// Position the pin and add the event to it
@@ -2157,8 +2158,12 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 
 	// Position the balloon relative to the pin
 	pin.balloonx = -w/2;
-	pin.balloony = ((pin.y-h-rad) < this.mapSize*0.25) ? (pin.pin_h*0.25):(-h-pin.pin_h*0.5);
-	$(this.container+" ."+pin.balloon).css({'left':(parseInt(pin.x+pin.xoff)+pin.balloonx),'top':(pin.y+pin.balloony)});
+//	pin.balloony = ((pin.y-h-rad) < this.mapSize*0.25) ? (pin.pin_h*0.25) : (-h-pin.pin_h*0.5);
+	pin.balloony = ((pin.y-h-rad) < this.mapSize*0.25) ? (pin.pin_h*0.25) : -h-(pin.pin_h-pin.yoff)-10
+	console.log(pin.y+' '+pin.yoff+' '+pin.balloony+' '+h)
+	$(this.container+" ."+pin.balloon).css({'left':parseInt(pin.x+pin.balloonx),'top':(pin.y+pin.balloony)});
+	$(this.container+" ."+pin.balloon+" .arrow").css({'left':((parseInt(w/2)-10))});
+
 	if(duration && duration > 0) $(id).fadeIn(duration);
 	else $(id).show();
 	pin.balloonvisible = true;

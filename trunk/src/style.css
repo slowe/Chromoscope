@@ -1,3 +1,4 @@
+.abbl { position: absolute; display: block; }
 .chromoscope { overflow: hidden; }
 .chromo_link { color: #ddddff; text-decoration:underline; cursor: pointer; }
 .chromo_helplink a, .chromo_attribution a { color: #ddddff; }
@@ -173,6 +174,24 @@ img.map { opacity: 1; }
 	-webkit-border-radius: 0px;
 }
 .balloon table { color: black; }
+.balloon .arrow {
+	border-color: white transparent transparent transparent;
+	border-style: solid;
+	border-width: 10px;
+	height:0;
+	width:0;
+	padding:0px;
+	position:absolute;
+	bottom:-19px;
+	left:155px;
+}
+/* IE6 */
+.balloon .arrow {
+    _border-left-color: pink;
+    _border-bottom-color: pink;
+    _border-right-color: pink;
+    _filter: chroma(color=pink);
+}
 .keyboard { }
 .nokeyboard { display: none; }
 .chromo_help {
@@ -229,3 +248,4 @@ p.social img {
 	border:0px;
 	margin-left: 4px;
 }
+
