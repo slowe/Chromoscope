@@ -1952,6 +1952,13 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 				else $(_obj.container+" .chromo_message").hide();
 			}
 		};
+		styles[j.attr('id')].img.onerror = function(){
+			if(++_obj.pinstyleload == _obj.pinstylecount){
+				_obj.updatePins("",false,true); 
+				if(_obj.showintro) _obj.buildIntro();
+				else $(_obj.container+" .chromo_message").hide();
+			}
+		}
 		styles[j.attr('id')].img.src = j.find('href').text();
 		if(styles[j.attr('id')].img.src) _obj.pinstylecount++;
 	});
@@ -2106,7 +2113,7 @@ function Pin(input,el,delayhtml){
 	}
 }
 
-Chromoscope.prototype.updatePins = function(style,delayedhtml){
+Chromoscope.prototype.updatePins = function(style,delayedhtml,finish){
 	max = this.pins.length;
 	// Construct the HTML for all the pins in one go as
 	// this is quicker than adding them one at a time
@@ -2115,13 +2122,13 @@ Chromoscope.prototype.updatePins = function(style,delayedhtml){
 		for(var p = 0 ; p < max ; p++) html += this.pins[p].pinhtml;
 		$(this.pins[0].loc).append(html);
 	}
-	for(var p = 0 ; p < max ; p++) this.updatePin(p,style,delayedhtml);
+	for(var p = 0 ; p < max ; p++) this.updatePin(p,style,finish);
 }
 
-Chromoscope.prototype.updatePin = function(p,style,delayedhtml){
+Chromoscope.prototype.updatePin = function(p,style,finish){
 	var pin = this.pins[p];
 	if(!pin.jquery) pin.jquery = $(pin.pinloc);
-	if(pin.dimensionguess && pin.img.width){
+	if(pin.dimensionguess && (pin.img.width || finish)){
 		pin.pin_h = pin.img.height ? pin.img.height : 30;
 		pin.pin_w = pin.img.width ? pin.img.width : 30;
 		pin.dimensionguess = false;
