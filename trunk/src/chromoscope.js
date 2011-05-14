@@ -10,7 +10,7 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.3.2 (2011-05-07):
+ * Changes in version 1.3.2 (2011-05-14):
  *   - Resources (close.png and the language files) can exist in a
  *     different directory to the current one - added "dir" option.
  *   - Ability to have different tile sets and credits at different
@@ -19,6 +19,7 @@
  *   - Improved KML reading code for large numbers of pins
  *   - Fixed the positioning of pins and added <hotSpot> kml option
  *   - Added speech bubble styling to the info balloons using CSS
+ *   - Allow variable (within reason) width for info balloons
  * 
  * Changes in version 1.3.1 (2011-04-27):
  *   - Fixed a bug that stopped display when the mousewheel code 
@@ -196,6 +197,7 @@ function Chromoscope(input){
 	this.minlambda = this.lambda;
 	this.maxlambda = this.lambda+1;
 	this.dir = "";			// The location for resources such as the close image and language files
+	this.start = new Date();
 
 	this.init(input);
 }
@@ -639,11 +641,6 @@ Chromoscope.prototype.load = function(callback){
 		// Fix for IE as it does its own thing to the opacities.
 		if(jQuery.browser.msie) this.changeWavelength(0);
 
-		// If kml is defined as a string load it up
-		// We need to send the callback function into it
-		// because we don't want to execute the callback
-		// until the AJAX XML request comes back.
-		for (var k = 0; k < this.kmls.length; k++) { this.readKML(this.kmls[k],callback,30000); $(body+" .chromo_info").append("KML "+this.kmls[k]+"<br />"); this.showintro = false; }
 	}
 
 	this.buildHelp();
@@ -667,9 +664,16 @@ Chromoscope.prototype.load = function(callback){
 		$(this.container+" .chromo_keys").bind('sortupdate',{el:this},function (event,ui){ event.data.el.orderWavelengths($(this).sortable('toArray')); });
 	}
 
+	// If kml is defined as a string load it up
+	// We need to send the callback function into it
+	// because we don't want to execute the callback
+	// until the AJAX XML request comes back.
+	for (var k = 0; k < this.kmls.length; k++) { this.readKML(this.kmls[k],callback,30000); $(this.container+" .chromo_info").append("KML "+this.kmls[k]+"<br />"); }
+
 	// If we haven't done any XML loading, we should
 	// now execute the callback function
 	if(this.kmls.length == 0 && typeof callback=="function") callback.call();
+	$(this.container+" .chromo_info").html("Took " + (new Date() - this.start) + "ms to load.")
 }
 
 // Construct the Help box
@@ -1239,7 +1243,6 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 	var changeXY = (visibleRange.xstart != this.previousRange.xstart || visibleRange.ystart != this.previousRange.ystart) ? true : false;
 	var changeZ = (this.zoom == this.previousZoom) ? false : true;
 	
-	//alert(changeXY)
 	// Has the range changed?
 	if(changeXY || changeW || changeZ || changeForced){
 
@@ -1727,12 +1730,15 @@ function Equatorial2Galactic(ra, dec, epoch){
 	var a = (epoch && epoch == 1950) ? 27.4 : 27.128251;	// The RA of the North Galactic Pole
 	var d = (epoch && epoch == 1950) ? 192.25 : 192.859481;	// The declination of the North Galactic Pole
 	var l = (epoch && epoch == 1950) ? 33.0 : 32.931918;	// The ascending node of the Galactic plane on the equator
-
-	var GT = Math.asin(Math.cos(dec)*Math.cos(a*d2r)*Math.cos(ra-d*d2r)+Math.sin(dec)*Math.sin(a*d2r));
-	var GL = Math.atan((Math.sin(dec)-Math.sin(GT)*Math.sin(a*d2r))/(Math.cos(dec)*Math.sin(ra- d*d2r)*Math.cos(a*d2r)));
-	GL = GL / d2r;
-	var TP = Math.sin(dec)-Math.sin(GT)*Math.sin(a*d2r);
-	var BT = Math.cos(dec)*Math.sin(ra-d*d2r)*Math.cos(a*d2r);
+	var sdec = Math.sin(dec);
+	var cdec = Math.cos(dec);
+	var sa = Math.sin(a*d2r);
+	var ca = Math.cos(a*d2r)
+	
+	var GT = Math.asin(cdec*ca*Math.cos(ra-d*d2r)+sdec*sa);
+	var GL = Math.atan((sdec-Math.sin(GT)*sa)/(cdec*Math.sin(ra- d*d2r)*ca))/d2r;
+	var TP = sdec-Math.sin(GT)*sa;
+	var BT = cdec*Math.sin(ra-d*d2r)*ca;
 	if(BT<0) GL=GL+180;
 	else {
 		if (TP<0) GL=GL+360;
@@ -1772,19 +1778,19 @@ function Galactic2Equatorial(l, b, epoch){
 	LAL_ALPHAGAL = NGP_d*d2r;
 	LAL_DELTAGAL = NGP_a*d2r;
 
-	sinDGal = Math.sin(LAL_DELTAGAL);
-	cosDGal = Math.cos(LAL_DELTAGAL);
+	sDGal = Math.sin(LAL_DELTAGAL);
+	cDGal = Math.cos(LAL_DELTAGAL);
 	l = l-LAL_LGAL;
 
-	sinB = Math.sin(b);
-	cosB = Math.cos(b);
-	sinL = Math.sin(l);
-	cosL = Math.cos(l);
+	sB = Math.sin(b);
+	cB = Math.cos(b);
+	sL = Math.sin(l);
+	cL = Math.cos(l);
 
 	/* Compute components. */
-	sinD = cosB*cosDGal*sinL + sinB*sinDGal;
-	sinA = cosB*cosL;
-	cosA = sinB*cosDGal - cosB*sinL*sinDGal;
+	sinD = cB*cDGal*sL + sB*sDGal;
+	sinA = cB*cL;
+	cosA = sB*cDGal - cB*sL*sDGal;
 
 	/* Compute final results. */
 	delta = Math.asin(sinD)*r2d;
@@ -1803,7 +1809,6 @@ function Galactic2Equatorial(l, b, epoch){
 	var dec_m = parseInt((Math.abs(delta)-dec_d)*60);
 	var dec_s = ((Math.abs(delta)-dec_d-dec_m/60)*3600).toFixed(1);
 	return {ra:ra,ra_h:ra_h,ra_m:ra_m,ra_s:ra_s,dec:delta,dec_d:dec_d*dec_sign,dec_m:dec_m,dec_s:dec_s};
-//	return [alpha%360.0,delta]
 }
 
 // Convert from Galactic longitude/latitude to X,Y coordinates within the full sky
@@ -1894,12 +1899,10 @@ Chromoscope.prototype.readKML = function(kml){
 						xml.async = false;
 						xml.loadXML(data);
 					}else xml = data;
-					$(_obj.container+" .chromo_message").html('Processing '+$('Document',xml).find('name').text());
+					$(_obj.container+" .chromo_message").html('Processing '+$('Document',xml).children('name').text());
 					_obj.processKML(xml,overwrite);
 					if(callback) callback.call();
 					if(duration > 0) setTimeout(function(kml,duration){ _obj.readKML(kml,duration); },duration);
-					$(_obj.container+" .chromo_message").hide();
-					if(_obj.showintro) _obj.buildIntro();
 				},
 				error: function(data) {
 					$(_obj.container+" .chromo_message").html('Failed to load '+kml+'. It may not exist or be inaccessible.').show().delay(2000).fadeOut(500);
@@ -1929,39 +1932,29 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 	// Set the opacity of all the pins (mostly for IE)
 	setOpacity($(this.container+" .kml"),1.0);
 
-	//var t = new Date();
+	//console.log("Time until running processKML: " + (new Date() - this.start) + "ms");
 
 	var styles = new Array();
+	this.pinstylecount = 0;
+	this.pinstyleload = 0;
+	var _obj = this;
 	$('Style',xml).each(function(i){
 		var j = $(this);
 		// We currently use the <href> and <hotSpot> variables as defined in:
 		// http://code.google.com/apis/kml/documentation/kmlreference.html#icon
 		styles[j.attr('id')] = {id: j.attr('id'),img:new Image(),balloonstyle:j.find('BalloonStyle'),x:j.find('hotSpot').attr('x'),y:j.find('hotSpot').attr('y')};
-		// Preload the images
-		styles[j.attr('id')].img.src = j.find('href').text();
-	});
-
-/*
-	var xmlElements = $(xml).find('Placemark');
-	var length = xmlElements.length;
-	var process = function() {
-		for (; i < length; i++) {
-			// Perform xml processing
-			var toProcess = xmlElements[i];
-			var img = "";
-			var balloonstyle = false;
-			var style = $(toProcess).find("styleUrl").text();
-			style = style.substring(1);
-			if(typeof styles[style]=="object"){
-				img = styles[style].img;
-				ballonstyle = styles[style].balloonstyle
+		// Preload the images. First set the onload then attach the src.
+		// We'll update the pins again once all the style images have loaded
+		styles[j.attr('id')].img.onload = function(){ 
+			if(++_obj.pinstyleload == _obj.pinstylecount){
+				_obj.updatePins(""); 
+				if(_obj.showintro) _obj.buildIntro();
+				else $(_obj.container+" .chromo_message").hide();
 			}
-			c.addPin({id:p++,style:style,img:img,title:$(toProcess).find("name").text(),balloonstyle:balloonstyle,desc:($(toProcess).find("description").text()),ra:parseFloat($(toProcess).find("longitude").text())+180,dec:parseFloat($(toProcess).find("latitude").text())},true);
-			if (i + 1 < length && i % 100 == 0) setTimeout(process, 5);
-		}
-	};
-	process();
-*/
+		};
+		styles[j.attr('id')].img.src = j.find('href').text();
+		if(styles[j.attr('id')].img.src) _obj.pinstylecount++;
+	});
 
 	$('Placemark',xml).each(function(i){
 		// Get the custom icon
@@ -1985,7 +1978,7 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 	});
 	this.updatePins("",true);
 	this.wrapPins();
-	//console.log("Time to process: " + (new Date() - t) + "ms");
+	//console.log("Time to end of processKML: " + (new Date() - this.start) + "ms");
 }
 
 // Create a layer to hold pins
@@ -2049,7 +2042,8 @@ function Pin(input,el,delayhtml){
 		kml_coord = Galactic2XY(this.glon,this.glat,el.mapSize);
 		this.input= input;
 		this.style = input.style;
-		this.balloonstyle = (input.balloonstyle) ? input.balloonstyle : false;
+		this.info = { id:'',style:'', html:'', visible:false };
+		this.info.style = (input.balloonstyle) ? input.balloonstyle : false;
 
 		if(typeof input.img=="object") this.img = input.img;
 		else{
@@ -2057,10 +2051,12 @@ function Pin(input,el,delayhtml){
 			this.img.src = (typeof input.img=="string" && input.img.length > 0) ? input.img : 'pin.png';
 		}
 
-
 		// Use 
+		this.w = (typeof input.width=="number") ? input.width : 0;
 		this.pin_h = (typeof input.h=="number") ? input.h : (this.img.height) ? this.img.height : 30;
 		this.pin_w = (typeof input.w=="number") ? input.w : (this.img.width) ? this.img.width : 30;
+		// Have we guessed the dimensions?
+		this.dimensionguess = (this.pin_h==30 && this.pin_w==30) ? true : false;
 		this.pin_x = (typeof input.x=="number") ? input.x : 0.5;
 		this.pin_y = (typeof input.y=="number") ? input.y : 1;
 		this.xunits = (typeof input.xunits=="string") ? input.xunits : "fraction";
@@ -2070,39 +2066,42 @@ function Pin(input,el,delayhtml){
 		this.y = kml_coord[1];
 		this.title = (input.title) ? input.title : '';
 		this.desc = (input.desc) ? input.desc : '';
-
-		this.balloon = "balloon-"+this.id;
+		this.info.id = "balloon-"+this.id;
 		this.pin = "pin-"+this.id;
-		this.pinhtml = '<div class="pin '+this.pin+'" title="'+this.title+'" id="'+chromo_active.container+'-'+this.pin+'" style="position:absolute;display:block;"><img src="'+this.img.src+'" style="width:'+this.pin_w+';height:'+this.pin_h+'" /></div>';
+		this.pinhtml = '<div class="pin '+this.pin+'" title="'+this.title+'" id="'+chromo_active.container+'-'+this.pin+'" style="position:absolute;display:block;width:'+this.pin_w+';height:'+this.pin_h+'"><img src="'+this.img.src+'" style="width:100%;height:100%;" /></div>';
 		this.pinloc = el.container+" ."+this.pin;
-
+		this.isplaced = false;
+		this.isbound = false;
+		var contents = "";
 
 		// Deal with KML balloon styles
-		if(this.balloonstyle){
+		if(this.info.style){
 			// We need to replace the $[name] and $[description]
-			var text = this.balloonstyle.find('text').text();
+			var text = this.info.style.find('text').text();
 			text = text.replace("$[name]",this.title)
-			this.ballooncontents = text.replace("$[description]",this.desc)
+			contents = text.replace("$[description]",this.desc)
 		}else{
 			// There is no user-provided styling so apply a basic style
-			this.ballooncontents = (input.msg) ? input.msg : '<h3>'+this.title+'</h3><p>'+this.desc+'</p>';
+			contents = (input.msg) ? input.msg : '<h3>'+this.title+'</h3><p>'+this.desc+'</p>';
 		}
 		// Make the <div> to hold the contents of the balloon
-		this.balloonhtml = '<div class="balloon '+this.balloon+'" style="position:absolute;">'+this.ballooncontents+el.createCloseOld()+'<div class="arrow"></div></div>';
-		this.balloonvisible = false;
+		this.info.html = '<div class="balloon '+this.info.id+'" style="position:absolute;">'+contents+el.createCloseOld()+'</div>';
 
-		// Position the pin and add the event to it
-		this.xoff = (this.xunits=="pixels") ? this.pin_x : this.pin_w*this.pin_x;
-		this.yoff = (this.yunits=="pixels") ? this.pin_y : this.pin_h*this.pin_y;
 
-		//console.log(this.img.src+' '+input.w+','+input.h+' '+this.pin_w+','+this.pin_h+' '+input.x+','+input.y+' '+this.pin_x+','+this.pin_y+' '+this.xoff+','+this.yoff)
+		if(!this.dimensionguess){
+			// Position the pin and add the event to it
+			this.xoff = (this.xunits=="pixels") ? this.pin_x : this.pin_w*this.pin_x;
+			this.yoff = (this.yunits=="pixels") ? this.pin_y : this.pin_h*this.pin_y;
+		}
 		if(!delayhtml){
 			$(this.loc).append(this.pinhtml);
 			this.jquery = $(el.container+" ."+this.pin);
 			this.jquery.css({left:(parseInt(this.x - this.xoff)),top:(parseInt(this.y - this.yoff))});
+			this.isplaced = true;
 			this.jquery.bind('click',{p:this,el:el},function(e){
 				e.data.el.toggleBalloon(e.data.p);
 	 		});
+	 		this.isbound = true;
 		}
 	}
 }
@@ -2116,60 +2115,81 @@ Chromoscope.prototype.updatePins = function(style,delayedhtml){
 		for(var p = 0 ; p < max ; p++) html += this.pins[p].pinhtml;
 		$(this.pins[0].loc).append(html);
 	}
-	for(var p = 0 ; p < max ; p++) this.updatePin(p,style);
+	for(var p = 0 ; p < max ; p++) this.updatePin(p,style,delayedhtml);
 }
 
-Chromoscope.prototype.updatePin = function(p,style){
+Chromoscope.prototype.updatePin = function(p,style,delayedhtml){
 	var pin = this.pins[p];
-	pin.jquery = $(pin.pinloc);
-	pin.pin_h = pin.img.height ? pin.img.height : 30;
-	pin.pin_w = pin.img.width ? pin.img.width : 30;
-	pin.xoff = (pin.xunits=="pixels") ? pin.pin_x : pin.pin_w*pin.pin_x;
-	pin.yoff = (pin.yunits=="pixels") ? pin.pin_y : pin.pin_h*pin.pin_y;
-	pin.jquery.css({left:(parseInt(pin.x - pin.xoff)),top:(parseInt(pin.y - pin.yoff)),width:pin.pin_w,height:pin.pin_h});
+	if(!pin.jquery) pin.jquery = $(pin.pinloc);
+	if(pin.dimensionguess && pin.img.width){
+		pin.pin_h = pin.img.height ? pin.img.height : 30;
+		pin.pin_w = pin.img.width ? pin.img.width : 30;
+		pin.dimensionguess = false;
+		pin.xoff = (pin.xunits=="pixels") ? pin.pin_x : pin.pin_w*pin.pin_x;
+		pin.yoff = (pin.yunits=="pixels") ? pin.pin_y : pin.pin_h*pin.pin_y;
+		pin.jquery.css({left:(parseInt(pin.x - pin.xoff)),top:(parseInt(pin.y - pin.yoff)),width:pin.pin_w,height:pin.pin_h});
+		pin.isplaced = true;
+	}else{
+		if(!pin.isplaced){
+			pin.jquery.css({left:(parseInt(pin.x - pin.xoff)),top:(parseInt(pin.y - pin.yoff))});
+			pin.isplaced = true;
+		}
+	}
 	if(style && pin.style != style) pin.jquery.hide();
 	else pin.jquery.show();
-	pin.jquery.bind('click',{p:pin,el:pin.el},function(e){
-		e.data.el.toggleBalloon(e.data.p);
-	});
-
+	if(!pin.isbound){
+		pin.jquery.bind('click',{p:pin,el:pin.el},function(e){ e.data.el.toggleBalloon(e.data.p); });
+		pin.isbound = true;
+	}
 }
 
 Chromoscope.prototype.toggleBalloon = function(pin){
-	if(pin.balloonvisible){
-		$(pin.loc+" ."+pin.balloon).remove();
-		pin.balloonvisible = false;
+	if(pin.info.visible){
+		$(pin.loc+" ."+pin.info.id).remove();
+		pin.info.visible = false;
 	}else this.showBalloon(pin);
 }
 
 Chromoscope.prototype.showBalloon = function(pin,duration){
-	var rad = 8;
+	var rad = 10;
 
-	if(!pin.balloonvisible) $(pin.loc).append(pin.balloonhtml);
+	if(!pin.info.visible) $(pin.loc).append(pin.info.html);
 	else {
-		$(pin.loc+" ."+pin.balloon).remove();
-		pin.balloonvisible = false;
-		$(pin.loc).append(pin.balloonhtml);
+		$(pin.loc+" ."+pin.info.id).remove();
+		pin.info.visible = false;
+		$(pin.loc).append(pin.info.html);
 	}
 
-	var id = this.container+" ."+pin.balloon;
+	var id = pin.loc+" ."+pin.info.id;
+	if(pin.width > 0) $(id).css({'width':pin.width});
 	var w = $(id).outerWidth();
 	var h = $(id).outerHeight();
 
+	// Correction for (e.g. IE < 9) where the width goes crazy
+	if(w > this.wide){
+		w = (w > 500) ? 330 : w/2;
+		$(id).css({'width':w});
+	}
+
 	// Position the balloon relative to the pin
-	pin.balloonx = -w/2;
-//	pin.balloony = ((pin.y-h-rad) < this.mapSize*0.25) ? (pin.pin_h*0.25) : (-h-pin.pin_h*0.5);
-	pin.balloony = ((pin.y-h-rad) < this.mapSize*0.25) ? (pin.pin_h*0.25) : -h-(pin.pin_h-pin.yoff)-10
-	console.log(pin.y+' '+pin.yoff+' '+pin.balloony+' '+h)
-	$(this.container+" ."+pin.balloon).css({'left':parseInt(pin.x+pin.balloonx),'top':(pin.y+pin.balloony)});
-	$(this.container+" ."+pin.balloon+" .arrow").css({'left':((parseInt(w/2)-10))});
+	pin.info.x = -w/2;
+	if((pin.y-h-rad) < this.mapSize*0.25){
+		pin.info.y = pin.pin_h*0.25;
+		$(id).prepend('<div class="arrowtop"></div>');
+		$(id+" .arrowtop").css({'left':((parseInt(w/2)-rad))});
+	}else{
+		pin.info.y = -h-rad;
+		$(id).append('<div class="arrow"></div>');
+		$(id+" .arrow").css({'left':((parseInt(w/2)-rad))});
+	}
+	$(id).css({'left':parseInt(pin.x+pin.info.x),'top':(pin.y+pin.info.y)});
 
 	if(duration && duration > 0) $(id).fadeIn(duration);
 	else $(id).show();
-	pin.balloonvisible = true;
+	pin.info.visible = true;
 	
 	// Attach event
-	$(id+" .chromo_close").bind('click',{id:id,pin:pin},function(e){ $(e.data.id).remove(); e.data.pin.balloonvisible = false; } );
+	$(id+" .chromo_close").bind('click',{id:id,pin:pin},function(e){ $(e.data.id).remove(); e.data.pin.info.visible = false; } );
 }
 
 
@@ -2225,7 +2245,7 @@ Chromoscope.prototype.zoomPins = function(oldmapSize,newmapSize){
 		}
 		// If the info balloon is visible, update its position too
 		for(var p = 0 ; p < this.pins.length ; p++){
-			if(this.pins[p].balloonvisible) $(this.container+" ."+this.pins[p].balloon).css({'left':((this.pins[p].x)+this.pins[p].balloonx),'top':((this.pins[p].y)+this.pins[p].balloony)});
+			if(this.pins[p].info.visible) $(this.container+" ."+this.pins[p].info.id).css({'left':((this.pins[p].x)+this.pins[p].info.x),'top':((this.pins[p].y)+this.pins[p].info.y)});
 		}
 	}
 }

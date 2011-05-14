@@ -43,10 +43,10 @@ function getLookUPResults(jData) {
 				chromo_active.makePinHolder('lookupresults');
 				setOpacity($(body+' .lookupresults'),1.0);
 			}
-			chromo_active.addPin({loc:' .lookupresults',id:'lookuppin',title:target.name,desc:msg,glon:gal.lon,glat:gal.lat,msg:msg});
-			chromo_active.showBalloon(chromo_active.pins[chromo_active.pins.length-1])
+			chromo_active.addPin({loc:' .lookupresults',id:'lookuppin',title:target.name,desc:msg,glon:gal.lon,glat:gal.lat,msg:msg,width:330});
 			if(jQuery.browser.msie) chromo_active.moveMap(gal.lon,gal.lat,3);
 			else chromo_active.moveMap(gal.lon,gal.lat);
+			chromo_active.showBalloon(chromo_active.pins[chromo_active.pins.length-1])
 			chromo_active.wrapPins();
 		}else{
 			if(message) $('#'+id+'_lookupmessages').html(message);

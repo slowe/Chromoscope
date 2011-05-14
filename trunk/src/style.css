@@ -14,7 +14,6 @@
 .chromo_title h1 a { text-decoration: none; color: white; }
 .chromo_title h2 { font-size: 0.6em; margin: 0px; margin-top:-3px; margin-left:5px; text-shadow: 0px 0px 8px #fff; }
 img.map { opacity: 1; }
-.balloon { width: 330px; }
 .chromo_layerswitcher {
 	font-family: Arial, sans-serif;
 	font-size: 0.9em;
@@ -183,12 +182,28 @@ img.map { opacity: 1; }
 	padding:0px;
 	position:absolute;
 	bottom:-19px;
-	left:155px;
 }
 /* IE6 */
 .balloon .arrow {
     _border-left-color: pink;
     _border-bottom-color: pink;
+    _border-right-color: pink;
+    _filter: chroma(color=pink);
+}
+.balloon .arrowtop {
+	border-color: transparent transparent white transparent;
+	border-style: solid;
+	border-width: 10px;
+	height:0;
+	width:0;
+	padding:0px;
+	position:absolute;
+	top:-19px;
+}
+/* IE6 */
+.balloon .arrowtop {
+    _border-left-color: pink;
+    _border-top-color: pink;
     _border-right-color: pink;
     _filter: chroma(color=pink);
 }
@@ -234,7 +249,8 @@ img.map { opacity: 1; }
 	cursor: default;
 	font-size:0.8em;
 	background-color: white;
-	z-index:12;
+	z-index:15;
+	max-width: 800px;
 }
 .balloon h3 {
 	margin: 0px;
