@@ -362,7 +362,7 @@ Chromoscope.prototype.reset = function(){
 		// Fix for IE as it does its own thing to the opacities.
 		if(jQuery.browser.msie) this.changeWavelength(0);
 	}
-
+	this.wrapPins();
 }
 
 // Manually define the variable to hold the Chromoscope instance.
@@ -2230,6 +2230,7 @@ Chromoscope.prototype.wrapPins = function(i){
 			this.pins[p].x -= this.mapSize;
 		}
 		this.pins[p].jquery.css({left:(parseInt(this.pins[p].x)-this.pins[p].xoff)});
+		if(this.pins[p].info.visible) $(this.container+" ."+this.pins[p].info.id).css({'left':((this.pins[p].x)+this.pins[p].info.x),'top':((this.pins[p].y)+this.pins[p].info.y)});
 	}
 }
 
