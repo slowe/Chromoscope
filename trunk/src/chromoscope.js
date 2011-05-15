@@ -1217,16 +1217,18 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 
 // Update the coordinate holder
 Chromoscope.prototype.updateCoords = function(){
-	if(this.showcoord){
-		var coords = this.getCoords();
-		if(this.coordtype == 'G') $(this.container+" .chromo_coords").html(''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>')
-		else{
-			radec = Galactic2Equatorial(coords.l,coords.b);
-			$(this.container+" .chromo_coords").html(''+radec.ra_h+'h'+radec.ra_m+'m'+radec.ra_s+'s, '+radec.dec_d+'&deg;'+radec.dec_m+'&prime;'+radec.dec_s+'&Prime; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
-			//$(this.container+" .chromo_coords").html(''+radec[0].toFixed(2)+'&deg;, '+radec[1].toFixed(2)+'&deg; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
-		}
+	var coords = this.getCoords();
+	if(this.coordtype == 'G') var label = ''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>'; //$(this.container+" .chromo_coords").html(''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>')
+	else{
+		radec = Galactic2Equatorial(coords.l,coords.b);
+		var label = ''+radec.ra_h+'h'+radec.ra_m+'m'+radec.ra_s+'s, '+radec.dec_d+'&deg;'+radec.dec_m+'&prime;'+radec.dec_s+'&Prime; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>';
+		//$(this.container+" .chromo_coords").html(''+radec[0].toFixed(2)+'&deg;, '+radec[1].toFixed(2)+'&deg; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
 	}
-	if(typeof this.events.wcsupdate=="function") this.events.wcsupdate.apply(this);
+	if(this.showcoord){ $(this.container+" .chromo_coords").html(label); }
+	// Call an attached event
+	if(this.coordlabel != label && typeof this.events.wcsupdate=="function") this.events.wcsupdate.apply(this);
+	// Store the current value of the coordinate label
+	this.coordlabel = label;
 }
 
 // Centre the map
