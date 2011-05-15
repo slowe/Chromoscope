@@ -1,5 +1,5 @@
 /*
- * Chromoscope v1.3.2
+ * Chromoscope v1.3.3
  * Written by Stuart Lowe for the Planck/Herschel Royal Society
  * Summer Exhibition 2009. Developed as an educational resource.
  *
@@ -9,6 +9,9 @@
  *
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
+ *
+ * Changes in version 1.3.3 (2011-05-15):
+ *   - Added event binding
  *
  * Changes in version 1.3.2 (2011-05-14):
  *   - Resources (close.png and the language files) can exist in a
@@ -65,24 +68,18 @@ $(function(){
 	// Diable text selection thanks to http://chris-barr.com/entry/disable_text_selection_with_jquery/
 	$.extend($.fn.disableTextSelect = function() {
 		return this.each(function(){
-			if($.browser.mozilla){//Firefox
-				$(this).css('MozUserSelect','none');
-			}else if($.browser.msie){//IE
-				$(this).bind('selectstart',function(){return false;});
-			}else{//Opera, etc.
-				$(this).mousedown(function(){return false;});
-			}
+			if($.browser.mozilla) $(this).css('MozUserSelect','none'); //Firefox
+			else if($.browser.msie) $(this).bind('selectstart',function(){return false;}); //IE
+			else $(this).mousedown(function(){return false;}); //Opera, etc.
 		});
 	});
 
 	$.extend($.fn.addTouch = function(){
 		// Adapted from http://code.google.com/p/rsslounge/source/browse/trunk/public/javascript/addtouch.js?spec=svn115&r=115
 		this.each(function(i,el){
-			$(el).bind('touchstart touchmove touchend touchcancel touchdbltap',function(){
-				// Pass the original event object because the jQuery event object
-				// is normalized to w3c specs and does not provide the TouchList.
-				handleTouch(event);
-			});
+			// Pass the original event object because the jQuery event object
+			// is normalized to w3c specs and does not provide the TouchList.
+			$(el).bind('touchstart touchmove touchend touchcancel touchdbltap',function(){ handleTouch(event); });
 		});
 		var handleTouch = function(event){
 			var touches = event.changedTouches,
@@ -116,7 +113,7 @@ $(function(){
 // Declare the Chromoscope object
 function Chromoscope(input){
 
-	this.version = "1.3.2 beta";
+	this.version = "1.3.3 beta";
 
 	this.zoom = -1;
 	this.maxZoom = 6;		// Maximum zoom level
@@ -162,7 +159,7 @@ function Chromoscope(input){
 	this.langs[8] = {code:'pt',name:'Portugu&#234s'};
 	this.langs[9] = {code:'sv',name:'Svenska'};
 	this.langs[10] = {code:'tr',name:'T&#252;rk&#231;e'};
-	this.phrasebook = new Language({code:'en'})
+	this.phrasebook = new Language({code:'en'});
 
 	// The map div control and properties
 	this.sliderbar = true;		// Display the slider bar?
@@ -199,6 +196,7 @@ function Chromoscope(input){
 	this.dir = "";			// The location for resources such as the close image and language files
 	this.start = new Date();
 
+	this.events = {move:"",zoom:"",slide:""};	// Let's add some events
 	this.init(input);
 }
 
@@ -516,27 +514,29 @@ Chromoscope.prototype.load = function(callback){
 	//$(body+" .chromo_innerDiv").disableTextSelect();	//No text selection
 
 	// Define the mouse events
-	$(body+" .chromo_outerDiv").mousedown(function(event){
-		if(event.button != 2){
+	$(body+" .chromo_outerDiv").mousedown({me:this},function(ev){
+		if(ev.button != 2){
+			var chromo = ev.data.me;
 			// Don't do anything for a right mouse button event
-			this.dragStartLeft = event.clientX;
-			this.dragStartTop = event.clientY;
-			this.y = $(body+" .chromo_innerDiv").position().top;
-			this.x = $(body+" .chromo_innerDiv").position().left;
+			this.dragStartLeft = ev.clientX;
+			this.dragStartTop = ev.clientY;
+			this.y = $(chromo.container+" .chromo_innerDiv").position().top;
+			this.x = $(chromo.container+" .chromo_innerDiv").position().left;
 			this.dragging = true;
 			this.moved = true;
 			this.clock = new Date();
-			$(body+" .chromo_innerDiv").css({cursor:'grabbing',cursor:'-moz-grabbing'});	
+			$(chromo.container+" .chromo_innerDiv").css({cursor:'grabbing',cursor:'-moz-grabbing'});	
 			return false;
 		}
-	}).mousemove(function(event){
+	}).mousemove({me:this},function(ev){
 		if(this.dragging){
-			newtop = this.y + (event.clientY - this.dragStartTop);
-			newleft = this.x + (event.clientX - this.dragStartLeft);
+			var chromo = ev.data.me;
+			newtop = this.y + (ev.clientY - this.dragStartTop);
+			newleft = this.x + (ev.clientX - this.dragStartLeft);
 			this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
-			newpos = chromo_active.limitBounds(newleft,newtop);
-			$(body+" .chromo_innerDiv").css("top",newpos.top);
-			$(body+" .chromo_innerDiv").css("left",newpos.left);
+			newpos = chromo.limitBounds(newleft,newtop);
+			$(chromo.container+" .chromo_innerDiv").css("top",newpos.top);
+			$(chromo.container+" .chromo_innerDiv").css("left",newpos.left);
 			var check = true;
 			if(this.performance){
 				var tempclock = new Date();
@@ -545,12 +545,14 @@ Chromoscope.prototype.load = function(callback){
 			// We don't need to constantly check the tiles. Only
 			// recheck if we haven't checked within the past 0.5s
 			if(check){
-				chromo_active.checkTiles();
+				chromo.checkTiles();
 				this.clock = tempclock;
+				if(typeof chromo.events.move=="function") chromo.events.move.apply(chromo_active);
 			}
 		}
-	}).mouseup(function(event){
-		if(!chromo_active) return;
+	}).mouseup({me:this},function(ev){
+		var chromo = ev.data.me;
+		if(!chromo) return;
 		// Bind the double tap to double click
 		if('ontouchstart' in document.documentElement){
 			var delay = 500;
@@ -559,26 +561,28 @@ Chromoscope.prototype.load = function(callback){
 			var delta = now - this.lastTouch;
 			this.lastTouch = now;
 			if(delta < delay && delta > 0){
-				chromo_active.changeMagnification(1,event.pageX,event.pageY);
-				chromo_active.updateCoords();
+				chromo.changeMagnification(1,ev.pageX,ev.pageY);
+				chromo.updateCoords();
 				return false;
 			}
 		}
-		chromo_active.checkTiles();
-		chromo_active.updateCoords();
-		$(body+" .chromo_innerDiv").css({cursor:''});
+		chromo.checkTiles();
+		chromo.updateCoords();
+		$(chromo.container+" .chromo_innerDiv").css({cursor:''});
 		this.dragging = false;
 		// Fix for IE as it seems to set any tiles off-screen to 0 opacity by itself
-		if(jQuery.browser.msie) chromo_active.changeWavelength(0);
-	}).dblclick(function (event) {
-		if(!chromo_active) return;
-		chromo_active.changeMagnification(1,event.pageX,event.pageY);
-		chromo_active.updateCoords();
+		if(jQuery.browser.msie) chromo.changeWavelength(0);
+	}).dblclick({me:this},function (ev) {
+		var chromo = ev.data.me;
+		if(!chromo) return;
+		chromo.changeMagnification(1,ev.pageX,ev.pageY);
+		chromo.updateCoords();
 		return false;
-	}).bind('mousewheel',function(event, delta) {
-		if(!chromo_active) return;
-		if(delta > 0) chromo_active.changeMagnification(1,event.pageX,event.pageY);
-		else chromo_active.changeMagnification(-1,event.pageX,event.pageY);
+	}).bind('mousewheel',{me:this},function(ev, delta) {
+		var chromo = ev.data.me;
+		if(!chromo) return;
+		if(delta > 0) chromo.changeMagnification(1,ev.pageX,ev.pageY);
+		else chromo.changeMagnification(-1,ev.pageX,ev.pageY);
 		return false;
 	})
 
@@ -1152,7 +1156,10 @@ Chromoscope.prototype.positionMap = function(){
 			if(!this.l) this.l = 0.0;
 			if(!this.b) this.b = 0.0;
 			this.moveMap(this.l,this.b,this.zoom);
-		}else this.centreMap();
+		}else{
+			if(typeof query.z=="number" && query.z!=this.zoom) this.setMagnification(query.z);
+			this.centreMap();
+		}
 	}
 }
 
@@ -1205,6 +1212,7 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 
 	this.checkTiles();
 	this.updateCoords();
+	if(typeof chromo.events.move=="function") chromo.events.move.apply(chromo_active);
 }
 
 // Update the coordinate holder
@@ -1509,6 +1517,7 @@ Chromoscope.prototype.setWavelength = function(l){
 	}
 	this.updateCredit();
 	this.positionSlider();
+	if(typeof this.events.slide=="function") this.events.slide.apply(this);
 }
 
 Chromoscope.prototype.updateCredit = function(){
@@ -1645,6 +1654,7 @@ Chromoscope.prototype.setMagnification = function(z) {
 	this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
 	this.zoomPins(oldmapSize,this.mapSize);
 	this.updateCredit();
+	if(typeof this.events.zoom=="function") this.events.zoom.apply(this);
 }
 
 // Alter the magnification
@@ -1867,7 +1877,7 @@ Chromoscope.prototype.createLink = function(){
 // Return the HTML for a close button
 Chromoscope.prototype.createClose = function(type){
 	var w = 28;
-	// In the case on the Wii or a small touch screen we should make the close control larger
+	// In the case of the Wii or a small touch screen we should make the close control larger
 	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall <= 600))) w *= 2;
 	return '<span class="chromo_close"><img src="'+this.dir+'close.png" style="width:'+w+'px;" title="'+this.phrasebook.closedesc+'" /></span>';
 }
@@ -1876,6 +1886,15 @@ Chromoscope.prototype.createCloseOld = function(){
 	var s = this.phrasebook.close.replace('C','<span style="text-decoration:underline;">C</span>')
 	return '<div class="chromo_close" title="'+this.phrasebook.closedesc+'">'+s+'</div>';
 }
+// Bind events
+Chromoscope.prototype.bind = function(ev,fn){
+	if(typeof ev!="string" || typeof fn!="function") return this;
+	if(ev == "move") this.events.move = fn;
+	else if(ev == "zoom") this.events.zoom = fn;
+	else if(ev == "slide") this.events.slide = fn;
+	return this;
+}
+
 
 // Get a locally hosted KML file
 // Usage: readKML(kml,[overwrite],[duration],[callback])
