@@ -547,7 +547,7 @@ Chromoscope.prototype.load = function(callback){
 			if(check){
 				chromo.checkTiles();
 				this.clock = tempclock;
-				if(typeof chromo.events.move=="function") chromo.events.move.apply(chromo_active);
+				if(typeof chromo.events.move=="function") chromo.events.move.apply(chromo);
 			}
 		}
 	}).mouseup({me:this},function(ev){
@@ -1212,7 +1212,7 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 
 	this.checkTiles();
 	this.updateCoords();
-	if(typeof chromo.events.move=="function") chromo.events.move.apply(chromo_active);
+	if(typeof this.events.move=="function") this.events.move.apply(this);
 }
 
 // Update the coordinate holder
@@ -1223,10 +1223,10 @@ Chromoscope.prototype.updateCoords = function(){
 		else{
 			radec = Galactic2Equatorial(coords.l,coords.b);
 			$(this.container+" .chromo_coords").html(''+radec.ra_h+'h'+radec.ra_m+'m'+radec.ra_s+'s, '+radec.dec_d+'&deg;'+radec.dec_m+'&prime;'+radec.dec_s+'&Prime; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
-			//radec = Galactic2Equatorial(coords.l,coords.b);
 			//$(this.container+" .chromo_coords").html(''+radec[0].toFixed(2)+'&deg;, '+radec[1].toFixed(2)+'&deg; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
 		}
 	}
+	if(typeof this.events.wcsupdate=="function") this.events.wcsupdate.apply(this);
 }
 
 // Centre the map
@@ -1892,6 +1892,7 @@ Chromoscope.prototype.bind = function(ev,fn){
 	if(ev == "move") this.events.move = fn;
 	else if(ev == "zoom") this.events.zoom = fn;
 	else if(ev == "slide") this.events.slide = fn;
+	else if(ev == "wcsupdate") this.events.wcsupdate = fn;
 	return this;
 }
 
