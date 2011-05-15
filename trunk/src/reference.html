@@ -76,7 +76,6 @@
 		<li><b>wavelength_load_range</b> <i>integer</i> the number of wavelengths either side of nominal to load simultaneously (<code class="d">1</code>)</li>
 		<li><b>spatial_preload</b> the number of tiles off the edge of the map to load. Higher numbers take more memory but makes it more responsive (<code class="d">1</code>)</li>
 	</ul>
-
 	<h3>Usage</h3>
 	<pre class="code">
 	<span class="c">// Set up the Chromoscope</span>
@@ -98,12 +97,11 @@
 	<b>var</b> chromo <span class="s">=</span> new Chromoscope({kml:<i>'telescopes.kml'</i>});
 	</pre>
 
+
+
 	<h2>Adding Wavelength and Annotation Layers</h2>
-
 	<p>Once Chromoscope is set up and ready we can add the wavelengths and annotation layers we want</p>
-
 	<h3>Usage</h3>
-
 	<ul>
 		<li><b>useasdefault</b> <i>boolean</i> this will be the starting wavelength displayed</li>
 		<li><b>key</b> <i>string</i> a keyboard shortcut to go to this wavelength</li>
@@ -139,7 +137,10 @@
 	}
 	</pre>
 
-	<h2>Load</h2>
+
+
+	<a name="load"></a>
+	<h2><a href="#load">Load</a></h2>
 	<p>Once you've set up the wavelength (and annotation) layers you need to tell Chromoscope that you are ready
 	<ul>
 		<li><b>callback</b> <i>function</i> an optional function that will be called after this executes</li>
@@ -155,7 +156,10 @@
 	});
 	</pre>
 
-	<h2>Events</h2>
+
+
+	<a name="events"></a>
+	<h2><a href="#events">Events</a></h2>
 	<p>As of version 1.3.3 you can bind your own functions to certain events. It behaves in a way similar to jQuery's <b>bind()</b> function and can be chained together. The <b>this</b> context will be the Chromoscope object.
 	<ul>
 		<li><b>event</b> <i>string</i> the event to bind to: "zoom", "move", "wcsupdate", or "slide".</li>
@@ -183,7 +187,9 @@
 
 	<h2>Other functions</h2>
 
-	<h2>Set Language</h2>
+
+	<a name="language"></a>
+	<h2><a href="#language">Set Language</a></h2>
 	<p>If you want to load an alternate language you use <code>getLanguage()</code>. The language should be stored in a JSON file of the same name.</p>
 	<ul>
 		<li><b>lang</b> <i>string</i> - a string giving the filename (without the .js) of the JSON file containing the language</li>
