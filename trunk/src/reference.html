@@ -183,6 +183,14 @@
 		<b>var</b> vr = this.getVisibleRange('G');
 		alert(<i>'left = '</i>+vr.left+<i>'&lt;br /&gt;right = '</i>+vr.right+<i>'&lt;br /&gt;top = '</i>+vr.top+<i>'&lt;br /&gt;bottom = '</i>+vr.bottom);
 	});
+
+	<span class="c">// Event variables</span>
+	chromo.bind(<i>'zoom'</i>,<b>function</b>(ev){
+		alert(<i>'Zoomed to '</i>+ev.zoom);
+	}).bind(<i>'wcsupdate'</i>,<b>function</b>(ev){
+		<span class="c">// Display an alert with the Galactic coordinates for the view centre</span>
+		alert(<i>'l,b = '</i>+ev.position.l+<i>','</i>+ev.position.b);
+	});
 	</pre>
 
 	<h2>Other functions</h2>
