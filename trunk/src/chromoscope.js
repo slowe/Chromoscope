@@ -196,7 +196,7 @@ function Chromoscope(input){
 	this.dir = "";			// The location for resources such as the close image and language files
 	this.start = new Date();
 
-	this.events = {move:"",zoom:"",slide:"", wcsupdate:""};	// Let's add some events
+	this.events = {move:"",zoom:"",slide:"", wcsupdate:"",kml:""};	// Let's add some events
 	this.init(input);
 }
 
@@ -1896,6 +1896,7 @@ Chromoscope.prototype.bind = function(ev,fn){
 	else if(ev == "zoom") this.events.zoom = fn;
 	else if(ev == "slide") this.events.slide = fn;
 	else if(ev == "wcsupdate") this.events.wcsupdate = fn;
+	else if(ev == "kml") this.events.kml = fn;
 	return this;
 }
 
@@ -1938,7 +1939,8 @@ Chromoscope.prototype.readKML = function(kml){
 						xml.loadXML(data);
 					}else xml = data;
 					$(_obj.container+" .chromo_message").html('Processing '+$('Document',xml).children('name').text());
-					_obj.processKML(xml,overwrite);
+					var total = _obj.processKML(xml,overwrite);
+					if(typeof _obj.events.kml=="function") _obj.events.kml.call(_obj,{total:total,name:$('Document',xml).children('name').text()});
 					if(callback) callback.call();
 					if(duration > 0) setTimeout(function(kml,duration){ _obj.readKML(kml,duration); },duration);
 				},
@@ -1976,6 +1978,7 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 	this.pinstylecount = 0;
 	this.pinstyleload = 0;
 	var _obj = this;
+	var added = 0;
 	$('Style',xml).each(function(i){
 		var j = $(this);
 		// We currently use the <href> and <hotSpot> variables as defined in:
@@ -2020,10 +2023,12 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 			h = (styles[style].img.height) ? styles[style].img.height : "";
 		}
 		c.addPin({id:p++,style:style,img:img,title:$(this).find("name").text(),x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:($(this).find("description").text()),ra:parseFloat($(this).find("longitude").text())+180,dec:parseFloat($(this).find("latitude").text())},true);
+		added++;
 	});
 	this.updatePins("",true);
 	this.wrapPins();
 	//console.log("Time to end of processKML: " + (new Date() - this.start) + "ms");
+	return added;
 }
 
 // Create a layer to hold pins
