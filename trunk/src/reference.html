@@ -155,6 +155,32 @@
 	});
 	</pre>
 
+	<h2>Events</h2>
+	<p>As of version 1.3.3 you can bind your own functions to certain events. It behaves in a way similar to jQuery's <b>bind()</b> function and can be chained together. The <b>this</b> context will be the Chromoscope object.
+	<ul>
+		<li><b>event</b> <i>string</i> the event to bind to: "zoom", "move", "wcsupdate", or "slide".</li>
+		<li><b>myfunction</b> <i>function</i> an optional function that will be called when the specified event happens</li>
+	</ul>
+	<h3>Usage</h3>
+	<pre class="code">
+	<span class="c">// Using a predefined function</span>
+	chromo.bind(<b>event</b>,<b>myfunction</b>);
+
+	<span class="c">// Using an inline function</span>
+	chromo.bind(<i>'zoom'</i>,<b>function</b>(){
+		alert(<i>'Zoomed'</i>);
+	});
+
+	<span class="c">// Chaining functions</span>
+	chromo.bind(<i>'zoom'</i>,<b>function</b>(){
+		alert(<i>'Zoomed to '</i>+this.zoom);
+	}).bind(<i>'wcsupdate'</i>,<b>function</b>(){
+		<span class="c">// Display an alert with the Galactic Coordinates for the edges of the view</span>
+		<b>var</b> vr = this.getVisibleRange('G');
+		alert(<i>'left = '</i>+vr.left+<i>'&lt;br /&gt;right = '</i>+vr.right+<i>'&lt;br /&gt;top = '</i>+vr.top+<i>'&lt;br /&gt;bottom = '</i>+vr.bottom);
+	});
+	</pre>
+
 	<h2>Other functions</h2>
 
 	<h2>Set Language</h2>
