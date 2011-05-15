@@ -28,7 +28,7 @@ No installation needed
 
 A standard, modern, web browser is all that you need to use Chromoscope so there is no need to install any extra software, plugins or learn a new interface. Being platform independent means that whether you use Windows, Mac or Linux, it should still be accessible.
 
-Note that the Chrome browser has extra security when running locally which will stop Chromoscope seeing KML and JS files even if they are in the same directory. If you want to use these features you should start Chrome with the option "--allow-file-access-from-files".
+Note that the Chrome browser has extra security when running locally which will stop Chromoscope seeing KML and the language JS files even if they are in the same directory. If you want to use these features you should start Chrome with the option "--allow-file-access-from-files".
 
 Adapt it
 --------
