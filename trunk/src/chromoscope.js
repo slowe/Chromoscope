@@ -1449,31 +1449,20 @@ Chromoscope.prototype.getVisibleTiles = function(range){
 	return visibleTileArray;
 }
 
-// Get an array of pins which are visible within the provided range
+// Get an array of pin objects which are visible within the provided range
 // Usage: getVisiblePins()
 Chromoscope.prototype.getVisiblePins = function(){
 	var visiblePins = Array(0)
-	var coords = Array(0)
-	
-	var l = -$(this.container+" .chromo_innerDiv").position().left;
-	var r = l+this.wide;
-	var t = -$(this.container+" .chromo_innerDiv").position().top;
-	var b = t+this.tall;
-	
-	for (indx in this.pins) {
-		
-		var x = this.pins[indx].x;
-		var y = this.pins[indx].y;
-		
-		var xbool = (x > l) && (x < r);
-		var ybool = (y > t) && (y < b);
-		
-		if (xbool && ybool) {
-			visiblePins.push(this.pins[indx]);
-		}
+	var r = this.getVisibleRange('X');
+	for (var i in this.pins) {
+
+		var x = this.pins[i].x;
+		var y = this.pins[i].y;
+
+		if ((x > r.left) && (x < r.right) && (y > r.top) && (y < r.bottom)) visiblePins.push(this.pins[i]);
 	}
 	return visiblePins;
- }
+}
 
 // Get the URL for the particular tile at x,y
 Chromoscope.prototype.getTileURLGsky = function(x,y,s) {
