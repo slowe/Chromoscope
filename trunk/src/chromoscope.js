@@ -547,7 +547,8 @@ Chromoscope.prototype.load = function(callback){
 			if(check){
 				chromo.checkTiles();
 				this.clock = tempclock;
-				if(typeof chromo.events.move=="function") chromo.events.move.apply(chromo);
+				var coords = chromo.getCoords();
+				if(typeof chromo.events.move=="function") chromo.events.move.call(chromo,{position:coords,zoom:chromo.zoom});
 			}
 		}
 	}).mouseup({me:this},function(ev){
@@ -1212,7 +1213,7 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 
 	this.checkTiles();
 	this.updateCoords();
-	if(typeof this.events.move=="function") this.events.move.apply(this);
+	if(typeof this.events.move=="function") this.events.move.call(this,{position:{l:l,b:b},zoom:z});
 }
 
 // Update the coordinate holder
@@ -1226,7 +1227,7 @@ Chromoscope.prototype.updateCoords = function(){
 	}
 	if(this.showcoord){ $(this.container+" .chromo_coords").html(label); }
 	// Call an attached event
-	if(this.coordlabel != label && typeof this.events.wcsupdate=="function") this.events.wcsupdate.apply(this);
+	if(this.coordlabel != label && typeof this.events.wcsupdate=="function") this.events.wcsupdate.call(this,{position:coords,zoom:this.zoom});
 	// Store the current value of the coordinate label
 	this.coordlabel = label;
 }
@@ -1519,7 +1520,7 @@ Chromoscope.prototype.setWavelength = function(l){
 	}
 	this.updateCredit();
 	this.positionSlider();
-	if(typeof this.events.slide=="function") this.events.slide.apply(this);
+	if(typeof this.events.slide=="function") this.events.slide.call(this,{lambda:this.lambda});
 }
 
 Chromoscope.prototype.updateCredit = function(){
@@ -1656,7 +1657,7 @@ Chromoscope.prototype.setMagnification = function(z) {
 	this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
 	this.zoomPins(oldmapSize,this.mapSize);
 	this.updateCredit();
-	if(typeof this.events.zoom=="function") this.events.zoom.apply(this);
+	if(typeof this.events.zoom=="function") this.events.zoom.call(this,{zoom:this.zoom});
 }
 
 // Alter the magnification
