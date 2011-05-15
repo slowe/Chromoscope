@@ -196,7 +196,7 @@ function Chromoscope(input){
 	this.dir = "";			// The location for resources such as the close image and language files
 	this.start = new Date();
 
-	this.events = {move:"",zoom:"",slide:""};	// Let's add some events
+	this.events = {move:"",zoom:"",slide:"", wcsupdate:""};	// Let's add some events
 	this.init(input);
 }
 
