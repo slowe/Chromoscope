@@ -196,7 +196,7 @@ function Chromoscope(input){
 	this.dir = "";			// The location for resources such as the close image and language files
 	this.start = new Date();
 
-	this.events = {move:"",zoom:"",slide:"", wcsupdate:""};	// Let's add some events
+	this.events = {move:"",zoom:"",slide:"", wcsupdate:"",kml:""};	// Let's add some events
 	this.init(input);
 }
 
@@ -547,7 +547,8 @@ Chromoscope.prototype.load = function(callback){
 			if(check){
 				chromo.checkTiles();
 				this.clock = tempclock;
-				if(typeof chromo.events.move=="function") chromo.events.move.apply(chromo);
+				var coords = chromo.getCoords();
+				if(typeof chromo.events.move=="function") chromo.events.move.call(chromo,{position:coords,zoom:chromo.zoom});
 			}
 		}
 	}).mouseup({me:this},function(ev){
@@ -1212,21 +1213,23 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 
 	this.checkTiles();
 	this.updateCoords();
-	if(typeof this.events.move=="function") this.events.move.apply(this);
+	if(typeof this.events.move=="function") this.events.move.call(this,{position:{l:l,b:b},zoom:z});
 }
 
 // Update the coordinate holder
 Chromoscope.prototype.updateCoords = function(){
-	if(this.showcoord){
-		var coords = this.getCoords();
-		if(this.coordtype == 'G') $(this.container+" .chromo_coords").html(''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>')
-		else{
-			radec = Galactic2Equatorial(coords.l,coords.b);
-			$(this.container+" .chromo_coords").html(''+radec.ra_h+'h'+radec.ra_m+'m'+radec.ra_s+'s, '+radec.dec_d+'&deg;'+radec.dec_m+'&prime;'+radec.dec_s+'&Prime; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
-			//$(this.container+" .chromo_coords").html(''+radec[0].toFixed(2)+'&deg;, '+radec[1].toFixed(2)+'&deg; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
-		}
+	var coords = this.getCoords();
+	if(this.coordtype == 'G') var label = ''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>'; //$(this.container+" .chromo_coords").html(''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>')
+	else{
+		radec = Galactic2Equatorial(coords.l,coords.b);
+		var label = ''+radec.ra_h+'h'+radec.ra_m+'m'+radec.ra_s+'s, '+radec.dec_d+'&deg;'+radec.dec_m+'&prime;'+radec.dec_s+'&Prime; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>';
+		//$(this.container+" .chromo_coords").html(''+radec[0].toFixed(2)+'&deg;, '+radec[1].toFixed(2)+'&deg; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
 	}
-	if(typeof this.events.wcsupdate=="function") this.events.wcsupdate.apply(this);
+	if(this.showcoord){ $(this.container+" .chromo_coords").html(label); }
+	// Call an attached event
+	if(this.coordlabel != label && typeof this.events.wcsupdate=="function") this.events.wcsupdate.call(this,{position:coords,zoom:this.zoom});
+	// Store the current value of the coordinate label
+	this.coordlabel = label;
 }
 
 // Centre the map
@@ -1517,7 +1520,7 @@ Chromoscope.prototype.setWavelength = function(l){
 	}
 	this.updateCredit();
 	this.positionSlider();
-	if(typeof this.events.slide=="function") this.events.slide.apply(this);
+	if(typeof this.events.slide=="function") this.events.slide.call(this,{lambda:this.lambda});
 }
 
 Chromoscope.prototype.updateCredit = function(){
@@ -1654,7 +1657,7 @@ Chromoscope.prototype.setMagnification = function(z) {
 	this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
 	this.zoomPins(oldmapSize,this.mapSize);
 	this.updateCredit();
-	if(typeof this.events.zoom=="function") this.events.zoom.apply(this);
+	if(typeof this.events.zoom=="function") this.events.zoom.call(this,{zoom:this.zoom});
 }
 
 // Alter the magnification
@@ -1893,6 +1896,7 @@ Chromoscope.prototype.bind = function(ev,fn){
 	else if(ev == "zoom") this.events.zoom = fn;
 	else if(ev == "slide") this.events.slide = fn;
 	else if(ev == "wcsupdate") this.events.wcsupdate = fn;
+	else if(ev == "kml") this.events.kml = fn;
 	return this;
 }
 
@@ -1935,7 +1939,8 @@ Chromoscope.prototype.readKML = function(kml){
 						xml.loadXML(data);
 					}else xml = data;
 					$(_obj.container+" .chromo_message").html('Processing '+$('Document',xml).children('name').text());
-					_obj.processKML(xml,overwrite);
+					var total = _obj.processKML(xml,overwrite);
+					if(typeof _obj.events.kml=="function") _obj.events.kml.call(_obj,{total:total,name:$('Document',xml).children('name').text()});
 					if(callback) callback.call();
 					if(duration > 0) setTimeout(function(kml,duration){ _obj.readKML(kml,duration); },duration);
 				},
@@ -1973,6 +1978,7 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 	this.pinstylecount = 0;
 	this.pinstyleload = 0;
 	var _obj = this;
+	var added = 0;
 	$('Style',xml).each(function(i){
 		var j = $(this);
 		// We currently use the <href> and <hotSpot> variables as defined in:
@@ -2017,10 +2023,12 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 			h = (styles[style].img.height) ? styles[style].img.height : "";
 		}
 		c.addPin({id:p++,style:style,img:img,title:$(this).find("name").text(),x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:($(this).find("description").text()),ra:parseFloat($(this).find("longitude").text())+180,dec:parseFloat($(this).find("latitude").text())},true);
+		added++;
 	});
 	this.updatePins("",true);
 	this.wrapPins();
 	//console.log("Time to end of processKML: " + (new Date() - this.start) + "ms");
+	return added;
 }
 
 // Create a layer to hold pins
