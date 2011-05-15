@@ -196,7 +196,7 @@ function Chromoscope(input){
 	this.dir = "";			// The location for resources such as the close image and language files
 	this.start = new Date();
 
-	this.events = {move:"",zoom:"",slide:"", wcsupdate:"",kml:""};	// Let's add some events
+	this.events = {move:"",zoom:"",slide:"", wcsupdate:"",kml:"",pinopen:"",pinclose:""};	// Let's add some events
 	this.init(input);
 }
 
@@ -1897,6 +1897,8 @@ Chromoscope.prototype.bind = function(ev,fn){
 	else if(ev == "slide") this.events.slide = fn;
 	else if(ev == "wcsupdate") this.events.wcsupdate = fn;
 	else if(ev == "kml") this.events.kml = fn;
+	else if(ev == "pinopen") this.events.pinopen = fn;
+	else if(ev == "pinclose") this.events.pinclose = fn;
 	return this;
 }
 
@@ -2042,6 +2044,7 @@ Chromoscope.prototype.makePinHolder = function(loc) {
 
 // Add to the pin array
 Chromoscope.prototype.addPin = function(input,delayhtml){
+	if(typeof delayhtml=="undefined") delayhtml = false;
 	this.pins[this.pins.length] = new Pin(input,this,delayhtml);
 }
 
@@ -2092,7 +2095,7 @@ function Pin(input,el,delayhtml){
 		kml_coord = Galactic2XY(this.glon,this.glat,el.mapSize);
 		this.input= input;
 		this.style = input.style;
-		this.info = { id:'',style:'', html:'', visible:false };
+		this.info = { id:'',style:'', html:'', visible:false, width:((typeof input.width=="number") ? input.width : 0) };
 		this.info.style = (input.balloonstyle) ? input.balloonstyle : false;
 
 		if(typeof input.img=="object") this.img = input.img;
@@ -2101,8 +2104,6 @@ function Pin(input,el,delayhtml){
 			this.img.src = (typeof input.img=="string" && input.img.length > 0) ? input.img : 'pin.png';
 		}
 
-		// Use 
-		this.w = (typeof input.width=="number") ? input.width : 0;
 		this.pin_h = (typeof input.h=="number") ? input.h : (this.img.height) ? this.img.height : 30;
 		this.pin_w = (typeof input.w=="number") ? input.w : (this.img.width) ? this.img.width : 30;
 		// Have we guessed the dimensions?
@@ -2118,7 +2119,7 @@ function Pin(input,el,delayhtml){
 		this.desc = (input.desc) ? input.desc : '';
 		this.info.id = "balloon-"+this.id;
 		this.pin = "pin-"+this.id;
-		this.pinhtml = '<div class="pin '+this.pin+'" title="'+this.title+'" id="'+chromo_active.container+'-'+this.pin+'" style="position:absolute;display:block;width:'+this.pin_w+';height:'+this.pin_h+'"><img src="'+this.img.src+'" style="width:100%;height:100%;" /></div>';
+		this.html = '<div class="pin '+this.pin+'" title="'+this.title+'" id="'+chromo_active.container+'-'+this.pin+'" style="position:absolute;display:block;width:'+this.pin_w+';height:'+this.pin_h+'"><img src="'+this.img.src+'" style="width:100%;height:100%;" /></div>';
 		this.pinloc = el.container+" ."+this.pin;
 		this.isplaced = false;
 		this.isbound = false;
@@ -2137,20 +2138,22 @@ function Pin(input,el,delayhtml){
 		// Make the <div> to hold the contents of the balloon
 		this.info.html = '<div class="balloon '+this.info.id+'" style="position:absolute;">'+contents+el.createCloseOld()+'</div>';
 
-
 		if(!this.dimensionguess){
 			// Position the pin and add the event to it
 			this.xoff = (this.xunits=="pixels") ? this.pin_x : this.pin_w*this.pin_x;
 			this.yoff = (this.yunits=="pixels") ? this.pin_y : this.pin_h*this.pin_y;
 		}
 		if(!delayhtml){
-			$(this.loc).append(this.pinhtml);
+			$(this.loc).append(this.html);
 			this.jquery = $(el.container+" ."+this.pin);
+			this.xoff = (this.xunits=="pixels") ? this.pin_x : this.pin_w*this.pin_x;
+			this.yoff = (this.yunits=="pixels") ? this.pin_y : this.pin_h*this.pin_y;
 			this.jquery.css({left:(parseInt(this.x - this.xoff)),top:(parseInt(this.y - this.yoff))});
-			this.isplaced = true;
 			this.jquery.bind('click',{p:this,el:el},function(e){
 				e.data.el.toggleBalloon(e.data.p);
 	 		});
+	 		this.jquery.show();
+			this.isplaced = true;
 	 		this.isbound = true;
 		}
 	}
@@ -2162,7 +2165,7 @@ Chromoscope.prototype.updatePins = function(style,delayedhtml,finish){
 	// this is quicker than adding them one at a time
 	if(delayedhtml){
 		var html = "";
-		for(var p = 0 ; p < max ; p++) html += this.pins[p].pinhtml;
+		for(var p = 0 ; p < max ; p++) html += this.pins[p].html;
 		$(this.pins[0].loc).append(html);
 	}
 	for(var p = 0 ; p < max ; p++) this.updatePin(p,style,finish);
@@ -2197,6 +2200,7 @@ Chromoscope.prototype.toggleBalloon = function(pin){
 	if(pin.info.visible){
 		$(pin.loc+" ."+pin.info.id).remove();
 		pin.info.visible = false;
+		if(typeof this.events.pinclose=="function") this.events.pinclose.call(this,{pin:pin});
 	}else this.showBalloon(pin);
 }
 
@@ -2211,7 +2215,7 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 	}
 
 	var id = pin.loc+" ."+pin.info.id;
-	if(pin.width > 0) $(id).css({'width':pin.width});
+	if(pin.info.width > 0) $(id).css({'width':pin.info.width});
 	var w = $(id).outerWidth();
 	var h = $(id).outerHeight();
 
@@ -2239,7 +2243,11 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 	pin.info.visible = true;
 	
 	// Attach event
-	$(id+" .chromo_close").bind('click',{id:id,pin:pin},function(e){ $(e.data.id).remove(); e.data.pin.info.visible = false; } );
+	$(id+" .chromo_close").bind('click',{id:id,pin:pin},function(e){
+		$(e.data.id).remove(); e.data.pin.info.visible = false;
+		if(typeof e.data.pin.el.events.pinclose=="function") e.data.pin.el.events.pinclose.call(e.data.pin.el,{pin:e.data.pin});
+	});
+	if(typeof this.events.pinopen=="function") this.events.pinopen.call(this,{pin:pin});
 }
 
 
