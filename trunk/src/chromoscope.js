@@ -10,8 +10,9 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.3.3 (2011-05-15):
+ * Changes in version 1.3.3 (2011-05-16):
  *   - Added event binding
+ *   - addWavelength() and addAnnotationLayer() are now chainable
  *
  * Changes in version 1.3.2 (2011-05-14):
  *   - Resources (close.png and the language files) can exist in a
@@ -971,6 +972,7 @@ function AnnotationLayer(input){
 // Add to the wavelength array
 Chromoscope.prototype.addWavelength = function(input){
 	this.spectrum[this.spectrum.length] = new Wavelength(input);
+	return this;
 }
 
 // Rearrange the order of the wavelengths.
@@ -996,6 +998,7 @@ Chromoscope.prototype.cloneLayers = function(other){
 // Add to the annotations array
 Chromoscope.prototype.addAnnotationLayer = function(input){
 	this.annotations[this.annotations.length] = new AnnotationLayer(input);
+	return this;
 }
 
 // Construct the wavelength slider and give it mouse events
