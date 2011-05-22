@@ -10,9 +10,11 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.3.3 (2011-05-16):
+ * Changes in version 1.3.3 (2011-05-22):
  *   - Added event binding
  *   - addWavelength() and addAnnotationLayer() are now chainable
+ *   - Fixed <BalloonStyle> parsing from KML
+ *   - Added ability to load from KML-like JSON file (.json extension)
  *
  * Changes in version 1.3.2 (2011-05-14):
  *   - Resources (close.png and the language files) can exist in a
@@ -62,7 +64,6 @@ jQuery.query = function() {
 	}
         return r;
 };
-var query = $.query();
 
 // Extend jQuery
 $(function(){
@@ -116,6 +117,7 @@ function Chromoscope(input){
 
 	this.version = "1.3.3 beta";
 
+	this.q = $.query();
 	this.zoom = -1;
 	this.maxZoom = 6;		// Maximum zoom level
 	this.wavelength_speed = 0.05;	// Alters the speed of wavelength transitions
@@ -140,7 +142,7 @@ function Chromoscope(input){
 	this.pins = new Array();	// For information pin/balloons
 	this.times = new Array(10);	// Processing times for map moving updates
 	this.keys = new Array();	// Keyboard commands
-	this.kmls = new Array();	// KML files to add to this map (doesn't work yet)
+	this.kmls = new Array();	// KML files to add to this map
 	this.tidx = 0;			// Current index of the times array
 	this.clock = 0;			// Holds the time
 
@@ -197,7 +199,7 @@ function Chromoscope(input){
 	this.dir = "";			// The location for resources such as the close image and language files
 	this.start = new Date();
 
-	this.events = {move:"",zoom:"",slide:"", wcsupdate:"",kml:"",pinopen:"",pinclose:""};	// Let's add some events
+	this.events = {move:"",zoom:"",slide:"", wcsupdate:"",kml:"",json:"",pinopen:"",pinclose:""};	// Let's add some events
 	this.init(input);
 }
 
@@ -208,15 +210,17 @@ function Chromoscope(input){
 // will assume that having a query string means this is a shared link and in
 // that case the intro message can be confusing to the person following the link.
 Chromoscope.prototype.init = function(inp){
-	if(query.showintro) this.showintro = (query.showintro == "true") ? true : false;
+	if(this.q.showintro) this.showintro = (this.q.showintro == "true") ? true : false;
 	else{
-		if(query.length > 0) this.showintro = false;
+		if(this.q.length > 0) this.showintro = false;
 	}
-	if(query.sliderbar) this.sliderbar = (query.sliderbar == "true") ? true : false;
-	if(query.zoomctrl) this.zoomctrl = (query.zoomctrl == "true") ? true : false;
-	if(query.compact) this.compact = (query.compact == "true") ? true : false;
-	if(query.title) this.title = (query.title == "true") ? true : false;
-	if(query.kml=="string") this.kmls[0] = query.kml;
+	if(this.q.sliderbar) this.sliderbar = (this.q.sliderbar == "true") ? true : false;
+	if(this.q.zoomctrl) this.zoomctrl = (this.q.zoomctrl == "true") ? true : false;
+	if(this.q.compact) this.compact = (this.q.compact == "true") ? true : false;
+	if(this.q.title) this.title = (this.q.title == "true") ? true : false;
+	if(this.q.kml=="string") this.kmls[this.kmls.length] = this.q.kml;
+	if(this.q.json=="string") this.kmls[this.kmls.length] = this.q.json;
+	if(this.q.performance) this.performance = true;
 
 	// Overwrite with variables passed to the function
 	if(inp){
@@ -247,6 +251,7 @@ Chromoscope.prototype.init = function(inp){
 		if(typeof inp.lambda=="number") this.lambda = inp.lambda;
 		if(typeof inp.langs=="object") this.langs = inp.langs;
 		if(typeof inp.kml=="string") this.kmls[this.kmls.length] = inp.kml;
+		if(typeof inp.json=="string") this.kmls[this.kmls.length] = inp.json;
 		if(typeof inp.dir=="string") this.dir = inp.dir;
 	}
 }
@@ -297,8 +302,7 @@ function Language(inp){
 	this.nearby = (inp.nearby) ? inp.nearby : 'Objects within 10&prime;';
 }
 
-// Unless the requested language is English, try to load 
-// the external phrasebook as JSON.
+// Unless the requested language is English, try to load the external phrasebook as JSON.
 // Usage: this.getLanguage('fr')
 Chromoscope.prototype.getLanguage = function(lang){
 	if(!lang) lang = 'en';
@@ -331,20 +335,18 @@ Chromoscope.prototype.reset = function(){
 	this.moveMap(0,0,this.minZoom())
 	
 	// Turn off the annotation layers
-	if(query.annotations == null || !query.annotations){
-		for(var i=0 ; i < this.annotations.length ; i++) {
-			setOpacity($(this.container+" ."+this.annotations[i].name),0.0);
-		}
+	if(this.q.annotations == null || !this.q.annotations){
+		for(var i=0 ; i < this.annotations.length ; i++) setOpacity($(this.container+" ."+this.annotations[i].name),0.0);
 	}
 
 	if(this.spectrum.length > 0){
 		// Use a user suggested wavelength or default to visible
-		if(query.w){
-			if(typeof query.w=="number"){
-				this.setWavelength(query.w);
+		if(this.q.w){
+			if(typeof this.q.w=="number"){
+				this.setWavelength(this.q.w);
 				this.checkTiles();
 				this.changeWavelength(0);
-			}else if(typeof query.w=="string") this.changeWavelengthByName(query.w);
+			}else if(typeof this.q.w=="string") this.changeWavelengthByName(this.q.w);
 		}else{
 			var templ = 'v';
 			for(var i=0 ; i < this.spectrum.length ; i++){
@@ -367,11 +369,10 @@ Chromoscope.prototype.reset = function(){
 // Manually define the variable to hold the Chromoscope instance.
 var chromo_active
 
-Chromoscope.prototype.activate = function(){
-	chromo_active = this;
-}
+Chromoscope.prototype.activate = function(){ chromo_active = this; }
 
-// Define the keyboard functions
+// Define the keyboard functions. These are global because we don't want the
+// user to have click in the Chromoscope before they will work
 $(document).keydown(function(e){
 	if(!chromo_active) return true;
 	if(chromo_active.ignorekeys) return true;
@@ -450,14 +451,14 @@ function allowKeyPress(){ if(chromo_active) { return !chromo_active.ignorekeys; 
 
 Array.prototype.avg = function() {
 	var av = 0;
-	var cnt = 0;
+	var n = 0;
 	var len = this.length;
 	for (var i = 0; i < len; i++) {
 		var e = +this[i];
 		if(!e && this[i] !== 0 && this[i] !== '0') e--;
-		if (this[i] == e) {av += e; cnt++;}
+		if (this[i] == e) {av += e; n++;}
 	}
-	return av/cnt;
+	return av/n;
 }
 
 // This is the main function which sets everything up.
@@ -472,10 +473,8 @@ Chromoscope.prototype.load = function(callback){
 
 			// No message holder so let's make one of those first
 			if($(".chromo_message").length == 0) $(document).append('<div class="chromo_message"></div>');
-			// Add the message
-			$(".chromo_message").append("The element <strong>"+this.container+"</strong> doesn't seem to exist.");
-			// Style it
-			$(".chromo_message").css({width:"500px","text-align":"center"}).delay(2000).fadeOut(500);
+			$(".chromo_message").css({width:"500px","text-align":"center"});
+			this.message("The element <strong>"+this.container+"</strong> doesn't seem to exist.",2000);
 			this.container = '';
 			return true;
 		}
@@ -490,7 +489,8 @@ Chromoscope.prototype.load = function(callback){
  
 	// Add any query string defined kml files
 	// Should we only do this if only one instance?
-	if(query.kml) this.kmls[this.kmls.length] = query.kml;
+	if(this.q.kml) this.kmls[this.kmls.length] = this.q.kml;
+	if(this.q.json) this.kmls[this.kmls.length] = this.q.json;
 
 	// Check for defined elements. If they don't exist let's create them
 	if($(body+" .chromo_outerDiv").length == 0) $(body).append('<div class="chromo_outerDiv"><div class="chromo_innerDiv"></div></div>');
@@ -597,10 +597,8 @@ Chromoscope.prototype.load = function(callback){
 	// For a Wii make text bigger, hide annotation layer and keyboard shortcuts
 	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall < 600))){ $(body+" .chromo_layerswitcher").css({'font-size':'1.5em'}); this.annotations = ""; $(".keyboard").css({'display':'none'}); $(".nokeyboard").css({'display':'show'}); this.wavelength_load_range = 0; this.spatial_preload = 1; }
 
-	if(query.kml){
-		$(this.container+" .chromo_message").html('Loading '+query.kml+'.<br />It may take a few seconds.').show()
-		this.centreDiv(".chromo_message");
-	}
+	if(this.q.kml) this.message('Loading '+this.q.kml+'.<br />It may take a few seconds.');
+	else if(this.q.json) this.message('Loading '+this.q.json+'.<br />It may take a few seconds.');
 	
 
 	// Set the default zoom level
@@ -608,24 +606,22 @@ Chromoscope.prototype.load = function(callback){
 
 	if(this.spectrum.length == 0){
 		$(this.container+" .chromo_message").css({width:"400px","text-align":"center"});
-		$(this.container+" .chromo_message").append("No wavelengths have been added to your HTML file so there's nothing to see. :-(");
-		this.centreDiv(".chromo_message");
-		$(this.container+" .chromo_message").show().delay(2000).fadeOut(500);
+		this.message("No wavelengths have been added to your HTML file so there's nothing to see. :-(",2000);
 	}else{
 		// Sort out wavelength order and slider bar
-		if(query.o) this.orderWavelengths(query.o.split(","));
+		if(this.q.o) this.orderWavelengths(this.q.o.split(","));
 		if(this.sliderbar) this.makeWavelengthSlider();
 
 		// Turn off the annotation layer
-		if(query.annotations == null || !query.annotations) this.toggleAnnotationsByName('l');
+		if(this.q.annotations == null || !this.q.annotations) this.toggleAnnotationsByName('l');
 
 		// Use a user suggested wavelength or default to visible
-		if(typeof query.w!="undefined"){
-			if(typeof query.w=="number"){
-				this.setWavelength(query.w);
+		if(typeof this.q.w!="undefined"){
+			if(typeof this.q.w=="number"){
+				this.setWavelength(this.q.w);
 				this.checkTiles();
 				this.changeWavelength(0);
-			}else if(typeof query.w=="string") this.changeWavelengthByName(query.w);
+			}else if(typeof this.q.w=="string") this.changeWavelengthByName(this.q.w);
 		}else if(this.lambda != 0){
 			this.setWavelength(this.lambda);
 			this.checkTiles();
@@ -660,7 +656,7 @@ Chromoscope.prototype.load = function(callback){
 	$(this.container+" .chromo_title a").bind('click', jQuery.proxy( this, "reset" ) );
 
 	// Now load a language if required
-	if(query.lang) this.getLanguage(query.lang)
+	if(this.q.lang) this.getLanguage(this.q.lang)
 	else{ this.getLanguage(this.langshort); }
 
 	// Make it sortable (if we have the jQuery/UI options available)
@@ -848,10 +844,8 @@ Chromoscope.prototype.showVideoTour = function(){
 
 	$(body+" .chromo_help").hide();
 	$(body+" .chromo_message").css({width:(w)+"px","text-align":"center"});
-	$(body+" .chromo_message").html(this.createClose()+'<object width="'+w+'" height="'+h+'"><param name="movie" value="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="'+w+'" height="'+h+'"></embed></object>');
-	$(body+" .chromo_message").show();
+	this.message(this.createClose()+'<object width="'+w+'" height="'+h+'"><param name="movie" value="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="'+w+'" height="'+h+'"></embed></object>');
 	$(body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
-	this.centreDiv(".chromo_message");
 }
 
 // Construct the splash screen
@@ -861,11 +855,9 @@ Chromoscope.prototype.buildIntro = function(delay){
 	// iPhones have wide but not very tall screens so we make the intro a bit wider if the screen height is small.
 	if(this.tall <= 640) w *= 1.2;
 	if(w > 0.8*this.wide) w = 0.8*this.wide;
-	if(this.showintro) $(body+" .chromo_message").html(this.createClose()+this.phrasebook.intro)
 	$(body+" .chromo_message").css({width:w+"px","text-align":"left"});
+	if(this.showintro) this.message(this.createClose()+this.phrasebook.intro)
 	$(body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
-	this.centreDiv(".chromo_message");
-	$(body+" .chromo_message").show();
 	if(this.showintro && delay > 0) $(body+" .chromo_message").delay(delay).fadeOut(500)
 }
 
@@ -894,21 +886,15 @@ function simulateKeyPress(character) {
 
 // Define the size and position of the main viewport
 Chromoscope.prototype.setViewport = function(){
-	var body = (!this.container) ? "body" : this.container;
-	if(this.container){
-		this.wide = $(body).width();
-		this.tall = $(body).height();
-	}else{
-		this.wide = $(window).width();
-		this.tall = $(window).height();
-	}
+	this.wide = (this.container) ? $(this.container).width() : $(window).width();
+	this.tall = (this.container) ? $(this.container).height() : $(window).height();
 	if(this.compact){
-		$(body).css("font-size","0.7em");
-		$(body+" .chromo_title").css("font-size","1em");
+		$(this.container).css("font-size","0.7em");
+		$(this.container+" .chromo_title").css("font-size","1em");
 	}
-	$(body+" .chromo_outerDiv").css('width',this.wide);
-	$(body+" .chromo_outerDiv").css('height',this.tall);
-	$(body+" .chromo_outerDiv").css({left:0,top:0});
+	$(this.container+" .chromo_outerDiv").css('width',this.wide);
+	$(this.container+" .chromo_outerDiv").css('height',this.tall);
+	$(this.container+" .chromo_outerDiv").css({left:0,top:0});
 }
 
 // Build a structure containing information about a wavelength layer.
@@ -921,6 +907,21 @@ Chromoscope.prototype.setViewport = function(){
 //	title (string) = The text that will appear in the wavelength slider
 //	attribution (string) = The text that contains the credit line. Can contain HTML links.
 function Wavelength(input){
+	return new ChromoscopeLayer(input);
+}
+
+// Build a structure containing information about an annotation layer. It has the same inputs aas Wavelength
+// Usage: chromo_active.annotations[0] = new AnnotationLayer({opacity:0.4,key:'l',name:'labels',tiles:'labels-tiles/',ext:'jpg'});
+//	opacity (number) = The opacity of this layer
+//	key (string) = A keyboard shortcut to toggle this annotation
+//	name (string) = An internal ID for this annotation. Should be unique.
+//	tiles (string) = The path to the directory containing the tiles. Can be remote.
+//	ext (string) = The file extension. Likely to be jpg if using the Google Maps Image Cutter 
+function AnnotationLayer(input){
+	return new ChromoscopeLayer(input);
+}
+
+function ChromoscopeLayer(input){
 	if(input){
 		this.useasdefault = (input.useasdefault) ? true : false;	
 		this.layer = (input.layer) ? input.layer : null;
@@ -939,33 +940,6 @@ function Wavelength(input){
 			if(typeof input.range.latitude=="object") this.range.latitude = input.range.latitude;
 			this.limitrange = true;
 		}
-	}
-}
-
-// Build a structure containing information about an annotation layer.
-// Usage: chromo_active.annotations[0] = new AnnotationLayer({opacity:0.4,key:'l',name:'labels',tiles:'labels-tiles/',ext:'jpg',title:'Labels',attribution:'This does nothing'});
-//	key (string) = A keyboard shortcut to toggle this annotation
-//	name (string) = An internal ID for this annotation. Should be unique.
-//	tiles (string) = The path to the directory containing the tiles. Can be remote.
-//	ext (string) = The file extension. Likely to be jpg if using the Google Maps Image Cutter 
-//	title (string) = Doesn't do anything. Just there for similarity with Wavelength()
-//	attribution (string) = Also doesn't do anything.
-function AnnotationLayer(input){
-	this.layer = (input.layer) ? input.layer : null;
-	this.opacity = (input.opacity) ? input.opacity : 0.0;
-	this.title = (input.title) ? input.title : '';
-	this.name = (input.name) ? input.name : '';
-	//this.attribution = (input.attribution) ? input.attribution : '';
-	this.key = (input.key) ? input.key : '';
-	this.tiles = (input.tiles) ? input.tiles : '';
-	this.ext = (input.ext) ? input.ext : 'jpg';
-	this.range = {longitude:[-180,180],latitude:[-90,90],x:[0,0],y:[0,0]};
-	this.limitrange = false;
-	this.blank = (input.blank) ? input.blank : 'blank.jpg';
-	if(typeof input.range=="object"){
-		if(typeof input.range.longitude=="object") this.range.longitude = input.range.longitude;
-		if(typeof input.range.latitude=="object") this.range.latitude = input.range.latitude;
-		this.limitrange = true;
 	}
 }
 
@@ -1125,7 +1099,7 @@ Chromoscope.prototype.toggleByID = function(event,duration){
 // A cross browser way to get the opacity of an element
 // Usage: getOpacity($("#chromo_message"))
 function getOpacity(el){
-	if(typeof kml=="string") el = $(el);
+	if(typeof el=="string") el = $(el);
 	if(jQuery.browser.msie) return (el.css("filter").replace(/[^0-9.]*/g,""))/100;
 	else return parseFloat(el.css("opacity")).toFixed(3); // Only need 3dp precision - this stops floating point errors in Chrome
 }
@@ -1133,7 +1107,7 @@ function getOpacity(el){
 // A cross browser way to set the opacity of an element
 // Usage: setOpacity($("#chromo_message"),0.4)
 function setOpacity(el,opacity){
-	if(typeof kml=="string") el = $(el);
+	if(typeof el=="string") el = $(el);
 	if(jQuery.browser.msie){
 		el.css("filter","alpha(opacity="+Math.floor(opacity*100)+")");
 		el.children().css("filter","alpha(opacity="+Math.floor(opacity*100)+")");
@@ -1146,13 +1120,13 @@ function setOpacity(el,opacity){
 // if they exist otherwise the map is centred.
 Chromoscope.prototype.positionMap = function(){
 	if(!this.moved){
-		if(query.ra && query.dec){
-			var coord = Equatorial2Galactic(query.ra, query.dec);
-			this.moveMap(coord[0],coord[1],query.z);
-		}else if(query.l || query.b){
-			if(!query.l) query.l = 0.0;
-			if(!query.b) query.b = 0.0;
-			this.moveMap(query.l,query.b,query.z);
+		if(this.q.ra && this.q.dec){
+			var coord = Equatorial2Galactic(this.q.ra, this.q.dec);
+			this.moveMap(coord[0],coord[1],this.q.z);
+		}else if(this.q.l || this.q.b){
+			if(!this.q.l) this.q.l = 0.0;
+			if(!this.q.b) this.q.b = 0.0;
+			this.moveMap(this.q.l,this.q.b,this.q.z);
 		}else if(this.ra && this.dec){
 			var coord = Equatorial2Galactic(this.ra, this.dec);
 			this.moveMap(coord[0],coord[1],this.zoom);
@@ -1161,7 +1135,7 @@ Chromoscope.prototype.positionMap = function(){
 			if(!this.b) this.b = 0.0;
 			this.moveMap(this.l,this.b,this.zoom);
 		}else{
-			if(typeof query.z=="number" && query.z!=this.zoom) this.setMagnification(query.z);
+			if(typeof this.q.z=="number" && this.q.z!=this.zoom) this.setMagnification(this.q.z);
 			this.centreMap();
 		}
 	}
@@ -1640,21 +1614,11 @@ Chromoscope.prototype.setMagnification = function(z) {
 	var minZ = this.minZoom();
 	if(this.zoom < minZ){ 
 		this.zoom = minZ;
-		if(z >= 0){
-			var el = this.container+" .chromo_message"
-			$(el).html(this.phrasebook.nozoomout).show();
-			this.centreDiv(".chromo_message");
-			hidemessage = setTimeout( function(){ $(el).hide(); }, 1000);
-		}
+		if(z >= 0) this.message(this.phrasebook.nozoomout,1000);
 	}
 	if(this.zoom > this.maxZoom){
 		this.zoom = this.maxZoom;
-		if(z >= 0){
-			var el = this.container+" .chromo_message"
-			$(el).html(this.phrasebook.nozoomin).show();
-			this.centreDiv(".chromo_message");
-			hidemessage = setTimeout( function(){ $(el).hide(); }, 1000);
-		}
+		if(z >= 0) this.message(this.phrasebook.nozoomin,1000);
 	}
 	var oldmapSize = this.mapSize;
 	this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
@@ -1669,7 +1633,6 @@ Chromoscope.prototype.setMagnification = function(z) {
 //	x (number) = The x position to zoom in/out around (optional)
 //	y (number) = The y position to zoom in/out around (optional)
 Chromoscope.prototype.changeMagnification = function(byZoom,x,y){
-
 	if(this.container){
 		// The x,y need to be corrected with the container offset.
 		// Offset() is preferable to position() to deal with CSS
@@ -1753,7 +1716,6 @@ Chromoscope.prototype.getCoords = function(offx,offy){
 // Coordinate based functions
 // Convert Ra/Dec (1950 or 2000) to Galactic coordinates
 function Equatorial2Galactic(ra, dec, epoch){
-
 	var d2r = Math.PI/180;	// degrees to radians
 	var OB = 23.4333334*d2r;
 	dec *= d2r;
@@ -1795,7 +1757,6 @@ function Equatorial2Galactic(ra, dec, epoch){
 }
 
 function Galactic2Equatorial(l, b, epoch){
-
 	var d2r = Math.PI/180;	// degrees to radians
 	var r2d = 180/Math.PI;	// degrees to radians
 	var NGP_a = (epoch && epoch == 1950) ? 27.4 : 27.13;	// The RA of the North Galactic Pole
@@ -1871,12 +1832,9 @@ Chromoscope.prototype.createLink = function(){
 	if(typeof kml=="string") url += '&kml='+kml;
 	var safeurl = window.location.protocol + "//" + window.location.host + "" + window.location.pathname+'?l='+coords.l.toFixed(4)+'%26b='+coords.b.toFixed(4)+'%26w='+this.lambda.toFixed(2)+'%26o='+w+'%26z='+this.zoom;
 	$(this.container+" .chromo_message").css({"text-align":"center"})
-	$(this.container+" .chromo_message").html(this.phrasebook.url+'<input type="text" id="chromo_createdLink" value="'+url+'" style="width:100%;" /><br /><p class="social">'+this.phrasebook.sharewith+' <a href="http://twitter.com/home/?status=Spotted+this+with+@chromoscope+'+safeurl+'"><img src="twitter.gif" title="Tweet this" /></a><a href="http://www.facebook.com/sharer.php?u='+safeurl+'"><img src="facebook.gif" title="Share with Facebook" /></a><a href="http://www.blogger.com/blog-this.g?t=&amp;n=Chromoscope&amp;u='+safeurl+'"><img src="blogger.gif" title="Add to Blogger" /></a><a href="http://del.icio.us/post?url='+safeurl+'"><img src="delicious.gif" title="Tag with del.icio.us" /></a><a href="http://slashdot.org/bookmark.pl?title=Chromoscope&amp;url='+safeurl+'"><img src="slashdot.gif" title="Slashdot this" /></a><a href="http://digg.com/submit?phase=2&url='+safeurl+'"><img src="digg.gif" title="Digg this" /></a><a href="http://www.mixx.com/submit?page_url='+safeurl+'"><img src="mixx.png" title="Add to Mixx" /></a></p>');
-	$(this.container+" .chromo_message").prepend(this.createClose());
-	$(this.container+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
 	$(this.container+" .chromo_message").css({width:400});
-	this.centreDiv(".chromo_message");
-	$(this.container+" .chromo_message").show();
+	this.message(this.createClose()+this.phrasebook.url+'<input type="text" id="chromo_createdLink" value="'+url+'" style="width:100%;" /><br /><p class="social">'+this.phrasebook.sharewith+' <a href="http://twitter.com/home/?status=Spotted+this+with+@chromoscope+'+safeurl+'"><img src="twitter.gif" title="Tweet this" /></a><a href="http://www.facebook.com/sharer.php?u='+safeurl+'"><img src="facebook.gif" title="Share with Facebook" /></a><a href="http://www.blogger.com/blog-this.g?t=&amp;n=Chromoscope&amp;u='+safeurl+'"><img src="blogger.gif" title="Add to Blogger" /></a><a href="http://del.icio.us/post?url='+safeurl+'"><img src="delicious.gif" title="Tag with del.icio.us" /></a><a href="http://slashdot.org/bookmark.pl?title=Chromoscope&amp;url='+safeurl+'"><img src="slashdot.gif" title="Slashdot this" /></a><a href="http://digg.com/submit?phase=2&url='+safeurl+'"><img src="digg.gif" title="Digg this" /></a><a href="http://www.mixx.com/submit?page_url='+safeurl+'"><img src="mixx.png" title="Add to Mixx" /></a></p>')
+	$(this.container+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
 	$(this.container+" .chromo_createdLink").focus($(this.container+" .chromo_createdLink").select());
 }
 
@@ -1892,6 +1850,12 @@ Chromoscope.prototype.createCloseOld = function(){
 	var s = this.phrasebook.close.replace('C','<span style="text-decoration:underline;">C</span>')
 	return '<div class="chromo_close" title="'+this.phrasebook.closedesc+'">'+s+'</div>';
 }
+// Make a message
+Chromoscope.prototype.message = function(html,delay){
+	if(delay) $(this.container+" .chromo_message").html(html).show().delay((typeof delay=="number") ? delay : 2000).fadeOut(500);
+	else $(this.container+" .chromo_message").html(html).show();
+	this.centreDiv(".chromo_message");
+}
 // Bind events
 Chromoscope.prototype.bind = function(ev,fn){
 	if(typeof ev!="string" || typeof fn!="function") return this;
@@ -1900,6 +1864,7 @@ Chromoscope.prototype.bind = function(ev,fn){
 	else if(ev == "slide") this.events.slide = fn;
 	else if(ev == "wcsupdate") this.events.wcsupdate = fn;
 	else if(ev == "kml") this.events.kml = fn;
+	else if(ev == "json") this.events.json = fn;
 	else if(ev == "pinopen") this.events.pinopen = fn;
 	else if(ev == "pinclose") this.events.pinclose = fn;
 	return this;
@@ -1908,7 +1873,7 @@ Chromoscope.prototype.bind = function(ev,fn){
 
 // Get a locally hosted KML file
 // Usage: readKML(kml,[overwrite],[duration],[callback])
-//	kml (string) = The location of the KML file
+//	kml (string) = The location of the KML/JSON file
 //	overwrite (boolean) = Do we overwrite any previously loaded Placemarkers?
 //	duration (number) = Number of milliseconds before reloading the KML
 //	callback (function) = A function to call after this
@@ -1929,34 +1894,44 @@ Chromoscope.prototype.readKML = function(kml){
 			var _obj = this;
 			// If the URL of the KML already has a query string, we just add to it
 			var kmlurl = (kml.indexOf('?') > 0) ? kml+'&'+Math.random() : kml+'?'+Math.random();
-			// Bug fix for reading XML file in FF3
-			$.ajaxSetup({async:false,'beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/plain"); } });
-			$.ajax({
-				type: "GET",
-				url: kmlurl,
-				dataType: ($.browser.msie) ? "text" : "xml",
-				success: function(data) {
-					var xml;
-					// IE has special requirements
-					if ( $.browser.msie ) {
-						xml = new ActiveXObject("Microsoft.XMLDOM");
-						xml.async = false;
-						xml.loadXML(data);
-					}else xml = data;
-					$(_obj.container+" .chromo_message").html('Processing '+$('Document',xml).children('name').text());
-					var total = _obj.processKML(xml,overwrite);
-					if(typeof _obj.events.kml=="function") _obj.events.kml.call(_obj,{total:total,name:$('Document',xml).children('name').text()});
+
+			if(kml.indexOf(".json") > 0){
+				var jqxhr = $.getJSON(kmlurl,function(data){
+					var total = _obj.processJSON(data,overwrite);
+					if(typeof _obj.events.json=="function") _obj.events.json.call(_obj,{total:total,name:data.name});
 					if(callback) callback.call();
-					if(duration > 0) setTimeout(function(kml,duration){ _obj.readKML(kml,duration); },duration);
-				},
-				error: function(data) {
-					$(_obj.container+" .chromo_message").html('Failed to load '+kml+'. It may not exist or be inaccessible.').show().delay(2000).fadeOut(500);
-					_obj.centreDiv(".chromo_message");
-				}
-			});
+					if(duration > 0) setTimeout(function(json,duration){ _obj.readKML(json,duration); },duration);
+				}).error(function(data) {
+					_obj.message('Failed to load '+kml+'. It may not exist or be inaccessible.',true);
+				});
+			}else{
+				// Bug fix for reading XML file in FF3
+				$.ajaxSetup({async:false,'beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/plain"); } });
+				$.ajax({
+					type: "GET",
+					url: kmlurl,
+					dataType: ($.browser.msie) ? "text" : "xml",
+					success: function(data) {
+						var xml;
+						// IE has special requirements
+						if ( $.browser.msie ) {
+							xml = new ActiveXObject("Microsoft.XMLDOM");
+							xml.async = false;
+							xml.loadXML(data);
+						}else xml = data;
+						_obj.message('Processing '+$('Document',xml).children('name').text());
+						var total = _obj.processKML(xml,overwrite);
+						if(typeof _obj.events.kml=="function") _obj.events.kml.call(_obj,{total:total,name:$('Document',xml).children('name').text()});
+						if(callback) callback.call();
+						if(duration > 0) setTimeout(function(kml,duration){ _obj.readKML(kml,duration); },duration);
+					},
+					error: function(data) {
+						_obj.message('Failed to load '+kml+'. It may not exist or be inaccessible.',true);
+					}
+				});
+			}
 		}else{
-			// Web link
-			$.getJSON('http://www.chromoscope.net/kml2json/?test');
+			this.message('Due to web browser security, I can\'t load remote files. Sorry.',true);
 		}
 	}
 }
@@ -1978,7 +1953,6 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 	setOpacity($(this.container+" .kml"),1.0);
 
 	//console.log("Time until running processKML: " + (new Date() - this.start) + "ms");
-
 	var styles = new Array();
 	this.pinstylecount = 0;
 	this.pinstyleload = 0;
@@ -2008,18 +1982,18 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 		styles[j.attr('id')].img.src = j.find('href').text();
 		if(styles[j.attr('id')].img.src) _obj.pinstylecount++;
 	});
-
+	//console.log("Time to process styles: " + (new Date() - this.start) + "ms");
 	$('Placemark',xml).each(function(i){
 		// Get the custom icon
 		var img = "";
-		var balloonstyle = false;
+		var balloonstyle = "";
 		var x, y, xunits, yunits, w, h = "";
 		var style = $(this).find("styleUrl").text();
 		style = style.substring(1);
 		var id_text = "";
 		if(typeof styles[style]=="object"){
 			img = styles[style].img;
-			ballonstyle = styles[style].balloonstyle
+			balloonstyle = styles[style].balloonstyle.find('text').text()
 			x = (typeof styles[style].x=="undefined") ? "" : parseFloat(styles[style].x);
 			y = (typeof styles[style].y=="undefined") ? "" : parseFloat(styles[style].y);
 			xu = styles[style].xunits;
@@ -2030,6 +2004,79 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 		c.addPin({id:p++,style:style,img:img,title:$(this).find("name").text(),x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:($(this).find("description").text()),ra:parseFloat($(this).find("longitude").text())+180,dec:parseFloat($(this).find("latitude").text())},true);
 		added++;
 	});
+	this.updatePins("",true);
+	this.wrapPins();
+	//console.log("Time to end of processKML: " + (new Date() - this.start) + "ms");
+	return added;
+}
+
+// Parse a loaded JSON file
+// Usage: processJSON(json,[overwrite])
+//	json = The JSON object as loaded by readKML()
+//	overwrite (boolean) = Do we overwrite any previously loaded Placemarkers?
+Chromoscope.prototype.processJSON = function(json,overwrite){
+	var overwrite = overwrite ? true : false;
+	if(overwrite){ this.pins = new Array(); }
+	this.makePinHolder();
+
+	var p = this.pins.length;
+	var c = this;	// Keep a copy of this instance for inside the Placemark loop
+	var i = 0;
+
+	// Set the opacity of all the pins (mostly for IE)
+	setOpacity($(this.container+" .kml"),1.0);
+
+	//console.log("Time until running processJSON: " + (new Date() - this.start) + "ms");
+
+	var styles = new Array();
+	this.pinstylecount = 0;
+	this.pinstyleload = 0;
+	var _obj = this;
+	var added = 0;
+
+	for(i=0 ; i< json.styles.length ; i++){
+		var j = json.styles[i];
+		styles[j.id] = {id: j.id, img:new Image(), balloonstyle:j.BalloonStyle,x:j.hotSpot.x,y:j.hotSpot.y};
+		// Preload the images. First set the onload then attach the src.
+		// We'll update the pins again once all the style images have loaded
+		styles[j.id].img.onload = function(){ 
+			if(++_obj.pinstyleload == _obj.pinstylecount){
+				_obj.updatePins(""); 
+				if(_obj.showintro) _obj.buildIntro();
+				else $(_obj.container+" .chromo_message").hide();
+			}
+		};
+		styles[j.id].img.onerror = function(){
+			if(++_obj.pinstyleload == _obj.pinstylecount){
+				_obj.updatePins("",false,true); 
+				if(_obj.showintro) _obj.buildIntro();
+				else $(_obj.container+" .chromo_message").hide();
+			}
+		}
+		if(j.icon) styles[j.id].img.src = j.icon;
+		this.pinstylecount++;
+	}
+	//console.log("Time to process styles: " + (new Date() - this.start) + "ms");
+	for(i = 0 ; i < json.placemarks.length ; i++){
+		// Get the custom icon
+		var img = "";
+		var balloonstyle = "";
+		var x, y, xunits, yunits, w, h = "";
+		var style = json.placemarks[i].style;
+		var id_text = "";
+		if(typeof styles[style]=="object"){
+			img = styles[style].img;
+			balloonstyle = styles[style].balloonstyle
+			x = (typeof styles[style].x=="undefined") ? "" : parseFloat(styles[style].x);
+			y = (typeof styles[style].y=="undefined") ? "" : parseFloat(styles[style].y);
+			xu = styles[style].xunits;
+			yu = styles[style].yunits;
+			w = (styles[style].img.width) ? styles[style].img.width : "";
+			h = (styles[style].img.height) ? styles[style].img.height : "";
+		}
+		c.addPin({id:p++,style:style,img:img,title:json.placemarks[i].name,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:json.placemarks[i].description,ra:json.placemarks[i].ra+180,dec:json.placemarks[i].dec},true);
+		added++;
+	}
 	this.updatePins("",true);
 	this.wrapPins();
 	//console.log("Time to end of processKML: " + (new Date() - this.start) + "ms");
@@ -2099,7 +2146,7 @@ function Pin(input,el,delayhtml){
 		this.input= input;
 		this.style = input.style;
 		this.info = { id:'',style:'', html:'', visible:false, width:((typeof input.width=="number") ? input.width : 0) };
-		this.info.style = (input.balloonstyle) ? input.balloonstyle : false;
+		this.info.style = (input.balloonstyle) ? input.balloonstyle : "";
 
 		if(typeof input.img=="object") this.img = input.img;
 		else{
@@ -2131,7 +2178,7 @@ function Pin(input,el,delayhtml){
 		// Deal with KML balloon styles
 		if(this.info.style){
 			// We need to replace the $[name] and $[description]
-			var text = this.info.style.find('text').text();
+			var text = this.info.style;
 			text = text.replace("$[name]",this.title)
 			contents = text.replace("$[description]",this.desc)
 		}else{
@@ -2256,8 +2303,6 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 
 // Close all open balloons, move to current pin and then show its balloon
 Chromoscope.prototype.pressPin = function(i,input){
-
-	//if(this.pins.length > 0) this.hideBalloons();
 	if(i >= 0 && i < this.pins.length){
 		var z = (input.zoom) ? input.zoom : this.minZoom();
 		this.moveMap(this.pins[i].glon,this.pins[i].glat,z)
@@ -2268,7 +2313,6 @@ Chromoscope.prototype.pressPin = function(i,input){
 
 // Go through each pin and reposition it on the map
 Chromoscope.prototype.wrapPins = function(i){
-
 	if(this.pins.length == 0) return true;
 	max = (typeof i=="number") ? i : this.pins.length;
 	i = (typeof i=="number") ? i : 0;
@@ -2291,13 +2335,10 @@ Chromoscope.prototype.wrapPins = function(i){
 // If we zoom the map, we don't have to recalculate everything, 
 // just scale the positions by the zoom factor
 Chromoscope.prototype.zoomPins = function(oldmapSize,newmapSize){
-	
 	if(!chromo_active) return true;
 	if(newmapSize != oldmapSize){
-
 		body = (this.container) ? this.container : 'body';
 		$(body+" .kml").css({width:newmapSize*2,height:newmapSize});
-
 		scale = newmapSize/oldmapSize;
 		for(var p = 0 ; p < this.pins.length ; p++){
 			this.pins[p].x *= scale;
@@ -2311,4 +2352,3 @@ Chromoscope.prototype.zoomPins = function(oldmapSize,newmapSize){
 		}
 	}
 }
-
