@@ -10,11 +10,12 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.3.3 (2011-05-22):
+ * Changes in version 1.3.3 (2011-05-26):
  *   - Added event binding
  *   - addWavelength() and addAnnotationLayer() are now chainable
  *   - Fixed <BalloonStyle> parsing from KML
  *   - Added ability to load from KML-like JSON file (.json extension)
+ *   - moveMap() can animate again
  *
  * Changes in version 1.3.2 (2011-05-14):
  *   - Resources (close.png and the language files) can exist in a
@@ -871,7 +872,7 @@ Chromoscope.prototype.showLang = function(){
 // and re-position things.
 $(window).resize(function(){
 	chromo_active.setViewport();
-	chromo_active.positionMap();
+	chromo_active.positionMap({l:chromo_active.l,b:chromo_active.b});
 	chromo_active.centreDiv(".chromo_help");
 	chromo_active.centreDiv(".chromo_message");
 });
@@ -1118,7 +1119,8 @@ function setOpacity(el,opacity){
 
 // Position the map based using query string parameters
 // if they exist otherwise the map is centred.
-Chromoscope.prototype.positionMap = function(){
+Chromoscope.prototype.positionMap = function(c){
+	if(typeof c=="object") this.moveMap(c.l,c.b,this.zoom);
 	if(!this.moved){
 		if(this.q.ra && this.q.dec){
 			var coord = Equatorial2Galactic(this.q.ra, this.q.dec);
@@ -1145,20 +1147,25 @@ Chromoscope.prototype.positionMap = function(){
 // Set the bounds to stop us going above the north
 // Galactic pole or below the south. Also allow
 // wrapping in x.
-Chromoscope.prototype.limitBounds = function(left,top){
+Chromoscope.prototype.limitBounds = function(left,top,virtual){
+	virtual = (typeof virtual=="boolean") ? virtual : false;
 	// no wrapping in x
 	//if(newleft < this.wide - this.mapSize) newleft = this.wide - this.mapSize
 	//if(newleft > 0) newleft = 0;
 	// wrapping in x
 	if(left > 0){
 		left -= this.mapSize;
-		$(this.container+" .chromo_innerDiv").css({left:left});
-		this.checkTiles();
+		if(!virtual){
+			$(this.container+" .chromo_innerDiv").css({left:left});
+			this.checkTiles();
+		}
 	}
 	if(left < -this.mapSize){
 		left += this.mapSize;
-		$(this.container+" .chromo_innerDiv").css({left:left});
-		this.checkTiles();	
+		if(!virtual){
+			$(this.container+" .chromo_innerDiv").css({left:left});
+			this.checkTiles();
+		}
 	}
 	// no wrapping in y
 	if(top < this.tall - this.mapSize*0.75) top = this.tall - this.mapSize*0.75;
@@ -1172,7 +1179,7 @@ Chromoscope.prototype.limitBounds = function(left,top){
 //	l (number) = Galactic longitude (degrees)
 //	b (number) = Galactic latitude (degrees)
 //	z (number) = Zoom level. A value of -1 should be used if you don't want to affect the zoom.
-//	(deprecated) duration (number) = The duration of the transition in milliseconds (default = 0)
+//	duration (number) = The duration of the transition in milliseconds (default = 0)
 Chromoscope.prototype.moveMap = function(l,b,z,duration){
 	z = (z && z >= 0) ? z : 5;
 	duration = (duration) ? duration : 0;
@@ -1183,19 +1190,36 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 	var newl = (l <= 180) ? -(l) : (360-l);
 	var newleft = -((newl)*this.mapSize/360)+(this.wide - this.mapSize)/2;
 	var newtop = ((b)*this.mapSize/360)+(this.tall - this.mapSize)/2;
-	var newpos = this.limitBounds(newleft,newtop);
+	var el = $(this.container+" .chromo_innerDiv");
 
-	$(this.container+" .chromo_innerDiv").css(newpos);
-	if(jQuery.browser.msie) this.changeWavelength(0);
-
-	this.checkTiles();
-	this.updateCoords();
-	if(typeof this.events.move=="function") this.events.move.call(this,{position:{l:l,b:b},zoom:z});
+	if(duration){
+		var newpos = this.limitBounds(newleft,newtop,true);
+		if(el.position().left-newpos.left > this.mapSize/2) el.css({left:el.position().left-this.mapSize});
+		var _obj = this;
+		el.animate(newpos,{
+			duration:duration,
+			step:function(now,fx){ _obj.checkTiles(); },
+			complete:function(){
+				_obj.checkTiles();
+				_obj.updateCoords();
+				if(typeof _obj.events.move=="function") _obj.events.move.call(_obj,{position:{l:l,b:b},zoom:z});			
+			}
+		});
+	}else{
+		var newpos = this.limitBounds(newleft,newtop);
+		el.css(newpos);
+		if(jQuery.browser.msie) this.changeWavelength(0);
+		this.checkTiles();
+		this.updateCoords();
+		if(typeof this.events.move=="function") this.events.move.call(this,{position:{l:l,b:b},zoom:z});
+	}
 }
 
 // Update the coordinate holder
 Chromoscope.prototype.updateCoords = function(){
 	var coords = this.getCoords();
+	this.l = coords.l;
+	this.b = coords.b;
 	if(this.coordtype == 'G') var label = ''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>'; //$(this.container+" .chromo_coords").html(''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>')
 	else{
 		radec = Galactic2Equatorial(coords.l,coords.b);

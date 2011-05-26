@@ -44,8 +44,7 @@ function getLookUPResults(jData) {
 				setOpacity($(body+' .lookupresults'),1.0);
 			}
 			chromo_active.addPin({loc:' .lookupresults',id:'lookuppin',title:target.name,desc:msg,glon:gal.lon,glat:gal.lat,msg:msg,width:330});
-			if(jQuery.browser.msie) chromo_active.moveMap(gal.lon,gal.lat,3);
-			else chromo_active.moveMap(gal.lon,gal.lat);
+			chromo_active.moveMap(gal.lon,gal.lat,chromo_active.zoom,1000);
 			chromo_active.showBalloon(chromo_active.pins[chromo_active.pins.length-1])
 			chromo_active.wrapPins();
 		}else{
@@ -100,7 +99,7 @@ Chromoscope.prototype.addSearch = function(){
 		return false;
 	})
 	// Append the check for the 's' key
-	$(document).keypress(function(e){
+	$(document).keypress({me:this},function(e){
 		if(!allowKeyPress()) return;
 		var code = e.keyCode || e.charCode || e.which || 0;
 		if(code < 37 || code > 40){
@@ -108,26 +107,26 @@ Chromoscope.prototype.addSearch = function(){
 			if(char == 's'){
 				// Stop other events happening
 				e.preventDefault()
-
-				if(chromo_active){
+				var chromo = e.data.me;
+				if(chromo){
+					chromo.showintro = false;	// Disable it just in case the user is really quick
 					// Hide message boxes
-					$(chromo_active.container+" .chromo_help").hide();
-					$(chromo_active.container+" .chromo_message").hide();
+					$(chromo.container+" .chromo_help").hide();
+					$(chromo.container+" .chromo_message").hide();
 
 					var valid = /[^A-Za-z0-9]/g;
-					var id = chromo_active.container.replace(valid,'');
+					var id = chromo.container.replace(valid,'');
 
-					$(chromo_active.container+" .chromo_search").show();
-					chromo_active.centreDiv(".chromo_search");
+					$(chromo.container+" .chromo_search").show();
+					chromo.centreDiv(".chromo_search");
 					$("#"+id+'_lookupmessages').html("");
-					if($(chromo_active.container+" .chromo_search").is(':visible')) $("#"+id+'_lookupobject').focus().select();
+					if($(chromo.container+" .chromo_search").is(':visible')) $("#"+id+'_lookupobject').focus().select();
 					else $("#"+id+'_lookupobject').blur();
 				}
 			}
 		}
 	});
-
-	if(chromo_active) chromo_active.centreDiv(".chromo_search");
+	if(this) this.centreDiv(".chromo_search");
 }
 
 function encodeURL(str){
