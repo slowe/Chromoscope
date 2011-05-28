@@ -10,55 +10,26 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.3.3 (2011-05-26):
+ * Changes in version 1.3.3 (2011-05-28):
  *   - Added event binding
  *   - addWavelength() and addAnnotationLayer() are now chainable
  *   - Fixed <BalloonStyle> parsing from KML
  *   - Added ability to load from KML-like JSON file (.json extension)
  *   - moveMap() can animate again
- *
- * Changes in version 1.3.2 (2011-05-14):
- *   - Resources (close.png and the language files) can exist in a
- *     different directory to the current one - added "dir" option.
- *   - Ability to have different tile sets and credits at different
- *     zoom levels.
- *   - Fixed floating point error in getOpacity present in Chrome
- *   - Improved KML reading code for large numbers of pins
- *   - Fixed the positioning of pins and added <hotSpot> kml option
- *   - Added speech bubble styling to the info balloons using CSS
- *   - Allow variable (within reason) width for info balloons
- * 
- * Changes in version 1.3.1 (2011-04-27):
- *   - Fixed a bug that stopped display when the mousewheel code 
- *     was missing.
- *   - In readKML() the code now checks for existence of a query
- *     string so that it doesn't contain two question marks. This
- *     helps out any server-side codes that only expect one.
- *
- * Changes in version 1.3.0 (2010-09-03):
- *   - Context menu with options for Wikisky/WWT/NED/Simbad
- *   - Added trial support for touch screen devices that don't
- *     provide click events.
- *   - Option to limit the longitude/latitude range for specific 
- *     wavelength layers. Outside this region, a placeholder image
- *     tile is used. Should help save bandwidth for surveys that 
- *     don't cover the whole sky.
- *
+ *   - Speeded up KML pin display by changing to IDs instead of classes
  */
 
 // Get the URL query string and parse it
 jQuery.query = function() {
-        var r = {};
+        var r = {length:0};
         var q = location.search;
-	r['length'] = 0;	// A dummy for the length property
 	if(q && q != '#'){
-		q = q.replace(/^\?/,''); // remove the leading ?
-		q = q.replace(/\&$/,''); // remove the trailing &
+		// remove the leading ? and trailing &
+		q = q.replace(/^\?/,'').replace(/\&$/,'');
 		jQuery.each(q.split('&'), function(){
 			var key = this.split('=')[0];
 			var val = this.split('=')[1];
-			// convert floats
-			if(/^[0-9.]+$/.test(val)) val = parseFloat(val);
+			if(/^[0-9.]+$/.test(val)) val = parseFloat(val);	// convert floats
 			r[key] = val;
 			r['length']++;
 		});
@@ -68,7 +39,7 @@ jQuery.query = function() {
 
 // Extend jQuery
 $(function(){
-	// Diable text selection thanks to http://chris-barr.com/entry/disable_text_selection_with_jquery/
+	// Disable text selection thanks to http://chris-barr.com/entry/disable_text_selection_with_jquery/
 	$.extend($.fn.disableTextSelect = function() {
 		return this.each(function(){
 			if($.browser.mozilla) $(this).css('MozUserSelect','none'); //Firefox
@@ -404,24 +375,25 @@ $(document).keydown(function(e){
 	var code = e.keyCode || e.charCode || e.which || 0;
 	if(code != 38 && code != 40 && code != 107 && code != 61 && code != 187 && code != 33){
 		var character = String.fromCharCode(code);
+		var c = chromo_active.container;
 		if(character == 'h' || character == 'H' || code == 63){
 			// 63 is question mark
 			chromo_active.toggleByID(".chromo_help");
 		}else if(character == 'i'){
-			$(chromo_active.container+" .chromo_info").toggle();
+			$(c+" .chromo_info").toggle();
 		}else if(character == 'k'){
-			$(chromo_active.container+" .chromo_layerswitcher").toggle();
+			$(c+" .chromo_layerswitcher").toggle();
 		}else if(character == 'c'){
-			$(chromo_active.container+" .chromo_help").hide();
-			$(chromo_active.container+" .chromo_message").hide();
+			$(c+" .chromo_help").hide();
+			$(c+" .chromo_message").hide();
 		}else if(character == '.'){
-			$(chromo_active.container+" h1").toggle();
-			$(chromo_active.container+" h2").toggle();
-			$(chromo_active.container+" .chromo_message").hide();
-			$(chromo_active.container+" .chromo_layerswitcher").toggle();
-			$(chromo_active.container+" .chromo_helplink").toggle();
-			$(chromo_active.container+" .chromo_help").hide();
-			$(chromo_active.container+" .chromo_info").hide();
+			$(c+" h1").toggle();
+			$(c+" h2").toggle();
+			$(c+" .chromo_message").hide();
+			$(c+" .chromo_layerswitcher").toggle();
+			$(c+" .chromo_helplink").toggle();
+			$(c+" .chromo_help").hide();
+			$(c+" .chromo_info").hide();
 		}else{
 			var match = 0;
 			for(var i=0 ; i < chromo_active.spectrum.length ; i++){
@@ -950,6 +922,12 @@ Chromoscope.prototype.addWavelength = function(input){
 	return this;
 }
 
+// Add to the annotations array
+Chromoscope.prototype.addAnnotationLayer = function(input){
+	this.annotations[this.annotations.length] = new AnnotationLayer(input);
+	return this;
+}
+
 // Rearrange the order of the wavelengths.
 // This input array can either be the keys or the 
 // IDs for the wavelengths in the slider.
@@ -968,12 +946,6 @@ Chromoscope.prototype.orderWavelengths = function(order){
 Chromoscope.prototype.cloneLayers = function(other){
 	this.spectrum = other.spectrum;
 	this.annotations = other.annotations;
-}
-
-// Add to the annotations array
-Chromoscope.prototype.addAnnotationLayer = function(input){
-	this.annotations[this.annotations.length] = new AnnotationLayer(input);
-	return this;
 }
 
 // Construct the wavelength slider and give it mouse events
@@ -1025,7 +997,6 @@ Chromoscope.prototype.makeWavelengthSlider = function(){
 	$(this.container+" .chromo_slider").addTouch();
 	this.positionSlider();
 	if(this.zoomctrl) this.makeZoomControl();
-
 }
 
 // Set the draggingSlider property
@@ -1055,7 +1026,6 @@ Chromoscope.prototype.dragIt = function(event){
 
 // Construct the wavelength slider and give it mouse events
 Chromoscope.prototype.makeZoomControl = function(){
-
 	var h = $(this.container+" .legend-"+this.spectrum[0].key).outerHeight();
 	var zoomer = "<div style=\"float:right;margin-right:-"+(h*1.25)+"px;width:"+(h*1.2)+"px;\"><div class=\"chromo_zoom chromo_zoomin\" title=\""+this.phrasebook.zoomin+"\">+</div><div class=\"chromo_zoom chromo_zoomout\" title=\""+this.phrasebook.zoomout+"\">&minus;</div></div>";
 	$(this.container+" .chromo_layerswitcher").append(zoomer);
@@ -1066,56 +1036,25 @@ Chromoscope.prototype.makeZoomControl = function(){
 
 // Process each wavelength and annotation. Build the wavelength slider and add key commands.
 Chromoscope.prototype.processLayers = function(){
-
 	for(var i=0 ; i < this.spectrum.length ; i++){
-		if(this.spectrum[i].name) $(this.container+" .chromo_innerDiv").append('<div class="map '+this.spectrum[i].name+'"></div>');
-		setOpacity($(this.container+" ."+this.spectrum[i].name),this.opacity);
+		var s = this.spectrum[i];
+		if(s.name) $(this.container+" .chromo_innerDiv").append('<div class="map '+s.name+'"></div>');
+		setOpacity($(this.container+" ."+s.name),this.opacity);
 	}
 	for(var i=0 ; i < this.annotations.length ; i++){
-		if(this.annotations[i].name) $(this.container+" .chromo_innerDiv").append('<span class="annotation '+this.annotations[i].name+'"></span>');
-		setOpacity($(this.container+" ."+this.annotations[i].name),this.annotations[i].opacity);
+		var a = this.annotations[i];
+		if(a.name) $(this.container+" .chromo_innerDiv").append('<div class="annotation '+a.name+'"></div>');
+		setOpacity($(this.container+" ."+a.name),a.opacity);
 	}
 }
-
 
 // Show or hide any element by the ID or style.
 // Usage: toggleByID("#chromo_message")
-Chromoscope.prototype.toggleByID = function(event,duration){
+Chromoscope.prototype.toggleByID = function(event){
 	var id = (typeof event=="object") ? event.data.id : event;
-	if(typeof event=="object"){
-		var duration = (event.data.duration) ? event.data.duration : "normal";
-	}else{
-		var duration = (duration) ? duration : "normal";
-	}
 	if($(this.container+" "+id).css("display") == 'none') $(this.container+" "+id).show();
 	else $(this.container+" "+id).hide();
 }
-
-
-
-// ===================================
-// Generic functions that are independent 
-// of the chromo container
-
-// A cross browser way to get the opacity of an element
-// Usage: getOpacity($("#chromo_message"))
-function getOpacity(el){
-	if(typeof el=="string") el = $(el);
-	if(jQuery.browser.msie) return (el.css("filter").replace(/[^0-9.]*/g,""))/100;
-	else return parseFloat(el.css("opacity")).toFixed(3); // Only need 3dp precision - this stops floating point errors in Chrome
-}
-
-// A cross browser way to set the opacity of an element
-// Usage: setOpacity($("#chromo_message"),0.4)
-function setOpacity(el,opacity){
-	if(typeof el=="string") el = $(el);
-	if(jQuery.browser.msie){
-		el.css("filter","alpha(opacity="+Math.floor(opacity*100)+")");
-		el.children().css("filter","alpha(opacity="+Math.floor(opacity*100)+")");
-	}else el.css("opacity",opacity);
-}
-
-// ===================================
 
 // Position the map based using query string parameters
 // if they exist otherwise the map is centred.
@@ -1737,113 +1676,6 @@ Chromoscope.prototype.getCoords = function(offx,offy){
 	return {l:l, b:b}
 }
 
-// Coordinate based functions
-// Convert Ra/Dec (1950 or 2000) to Galactic coordinates
-function Equatorial2Galactic(ra, dec, epoch){
-	var d2r = Math.PI/180;	// degrees to radians
-	var OB = 23.4333334*d2r;
-	dec *= d2r;
-	ra *= d2r;
-	var a = (epoch && epoch == 1950) ? 27.4 : 27.128251;	// The RA of the North Galactic Pole
-	var d = (epoch && epoch == 1950) ? 192.25 : 192.859481;	// The declination of the North Galactic Pole
-	var l = (epoch && epoch == 1950) ? 33.0 : 32.931918;	// The ascending node of the Galactic plane on the equator
-	var sdec = Math.sin(dec);
-	var cdec = Math.cos(dec);
-	var sa = Math.sin(a*d2r);
-	var ca = Math.cos(a*d2r)
-	
-	var GT = Math.asin(cdec*ca*Math.cos(ra-d*d2r)+sdec*sa);
-	var GL = Math.atan((sdec-Math.sin(GT)*sa)/(cdec*Math.sin(ra- d*d2r)*ca))/d2r;
-	var TP = sdec-Math.sin(GT)*sa;
-	var BT = cdec*Math.sin(ra-d*d2r)*ca;
-	if(BT<0) GL=GL+180;
-	else {
-		if (TP<0) GL=GL+360;
-	}
-	GL = GL + l;
-	if (GL>360) GL = GL - 360;
-
-	LG=Math.floor(GL);
-	LM=Math.floor((GL - Math.floor(GL)) * 60);
-	LS=((GL -Math.floor(GL)) * 60 - LM) * 60;
-	GT=GT/d2r;
-
-	D = Math.abs(GT);
-	if (GT > 0) BG=Math.floor(D);
-	else BG=(-1)*Math.floor(D);
-	BM=Math.floor((D - Math.floor(D)) * 60);
-	BS = ((D - Math.floor(D)) * 60 - BM) * 60;
-	if (GT<0) {
-		BM=-BM;
-		BS=-BS;
-	}
-	return [GL,GT];
-}
-
-function Galactic2Equatorial(l, b, epoch){
-	var d2r = Math.PI/180;	// degrees to radians
-	var r2d = 180/Math.PI;	// degrees to radians
-	var NGP_a = (epoch && epoch == 1950) ? 27.4 : 27.13;	// The RA of the North Galactic Pole
-	var NGP_d = (epoch && epoch == 1950) ? 192.25 : 192.859481;	// The declination of the North Galactic Pole
-	var AN_l = (epoch && epoch == 1950) ? 33.0 : 32.93;	// The ascending node of the Galactic plane on the equator
-
-	l *= d2r;
-	b *= d2r;
-
-	LAL_LGAL = AN_l*d2r;
-	LAL_ALPHAGAL = NGP_d*d2r;
-	LAL_DELTAGAL = NGP_a*d2r;
-
-	sDGal = Math.sin(LAL_DELTAGAL);
-	cDGal = Math.cos(LAL_DELTAGAL);
-	l = l-LAL_LGAL;
-
-	sB = Math.sin(b);
-	cB = Math.cos(b);
-	sL = Math.sin(l);
-	cL = Math.cos(l);
-
-	/* Compute components. */
-	sinD = cB*cDGal*sL + sB*sDGal;
-	sinA = cB*cL;
-	cosA = sB*cDGal - cB*sL*sDGal;
-
-	/* Compute final results. */
-	delta = Math.asin(sinD)*r2d;
-	alpha = (Math.atan2( sinA, cosA ))*r2d + NGP_d;
-
-	alpha = alpha%360.0;
-	var ra_h = parseInt(alpha/15);
-	var ra_m = parseInt((alpha/15-ra_h)*60);
-	var ra_s = ((alpha/15-ra_h-ra_m/60)*3600).toFixed(2);
-	var ra = (ra_h+ra_m/60+ra_s/3600);
-	if(ra_h < 10) ra_h = "0"+ra_h;
-	if(ra_m < 10) ra_m = "0"+ra_m;
-	if(ra_s < 10) ra_s = "0"+ra_s;
-	var dec_sign = (delta >= 0) ? 1 : -1;
-	var dec_d = parseInt(Math.abs(delta));
-	var dec_m = parseInt((Math.abs(delta)-dec_d)*60);
-	var dec_s = ((Math.abs(delta)-dec_d-dec_m/60)*3600).toFixed(1);
-	return {ra:ra,ra_h:ra_h,ra_m:ra_m,ra_s:ra_s,dec:delta,dec_d:dec_d*dec_sign,dec_m:dec_m,dec_s:dec_s};
-}
-
-// Convert from Galactic longitude/latitude to X,Y coordinates within the full sky
-// Usage: var xycoords = Galactic2XY(l,b,mapSize)
-function Galactic2XY(l,b,mapSize){
-	if(l < 180) l = -(l);
-	else l = (360-l);
-	var x = (l*mapSize/360  + mapSize/2);
-	var y = (mapSize/2 - (b*mapSize/360));
-	return [x,y];
-}
-
-// Convert from RA/Dec to X,Y coordinates within the full sky
-// Usage: var xycoords = Equatorial2XY(ra,dec)
-function Equatorial2XY(ra,dec,mapSize){
-	var coords = Equatorial2Galactic(ra, dec);
-	return Galactic2XY(coords[0],coords[1],mapSize);
-}
-
 // Create a web link to this view
 Chromoscope.prototype.createLink = function(){
 	var coords = this.getCoords();
@@ -1893,7 +1725,6 @@ Chromoscope.prototype.bind = function(ev,fn){
 	else if(ev == "pinclose") this.events.pinclose = fn;
 	return this;
 }
-
 
 // Get a locally hosted KML file
 // Usage: readKML(kml,[overwrite],[duration],[callback])
@@ -2193,8 +2024,8 @@ function Pin(input,el,delayhtml){
 		this.desc = (input.desc) ? input.desc : '';
 		this.info.id = "balloon-"+this.id;
 		this.pin = "pin-"+this.id;
-		this.html = '<div class="pin '+this.pin+'" title="'+this.title+'" id="'+chromo_active.container+'-'+this.pin+'" style="position:absolute;display:block;width:'+this.pin_w+';height:'+this.pin_h+'"><img src="'+this.img.src+'" style="width:100%;height:100%;" /></div>';
-		this.pinloc = el.container+" ."+this.pin;
+		this.pinid = el.container+"-"+this.pin;
+		this.html = '<div class="pin" title="'+this.title+'" id="'+this.pinid+'" style="position:absolute;display:block;width:'+this.pin_w+';height:'+this.pin_h+'"><img src="'+this.img.src+'" style="width:100%;height:100%;" /></div>';
 		this.isplaced = false;
 		this.isbound = false;
 		var contents = "";
@@ -2219,7 +2050,7 @@ function Pin(input,el,delayhtml){
 		}
 		if(!delayhtml){
 			$(this.loc).append(this.html);
-			this.jquery = $(el.container+" ."+this.pin);
+			this.jquery = $("#"+this.pinid);
 			this.xoff = (this.xunits=="pixels") ? this.pin_x : this.pin_w*this.pin_x;
 			this.yoff = (this.yunits=="pixels") ? this.pin_y : this.pin_h*this.pin_y;
 			this.jquery.css({left:(parseInt(this.x - this.xoff)),top:(parseInt(this.y - this.yoff))});
@@ -2247,7 +2078,7 @@ Chromoscope.prototype.updatePins = function(style,delayedhtml,finish){
 
 Chromoscope.prototype.updatePin = function(p,style,finish){
 	var pin = this.pins[p];
-	if(!pin.jquery) pin.jquery = $(pin.pinloc);
+	if(!pin.jquery) pin.jquery = $("#"+pin.pinid);
 	if(pin.dimensionguess && (pin.img.width || finish)){
 		pin.pin_h = pin.img.height ? pin.img.height : 30;
 		pin.pin_w = pin.img.width ? pin.img.width : 30;
@@ -2375,4 +2206,133 @@ Chromoscope.prototype.zoomPins = function(oldmapSize,newmapSize){
 			if(this.pins[p].info.visible) $(this.container+" ."+this.pins[p].info.id).css({'left':((this.pins[p].x)+this.pins[p].info.x),'top':((this.pins[p].y)+this.pins[p].info.y)});
 		}
 	}
+}
+
+// ===================================
+// Generic functions that are independent 
+// of the chromo container
+
+// A cross browser way to get the opacity of an element
+// Usage: getOpacity($("#chromo_message"))
+function getOpacity(el){
+	if(typeof el=="string") el = $(el);
+	if(jQuery.browser.msie) return (el.css("filter").replace(/[^0-9.]*/g,""))/100;
+	else return parseFloat(el.css("opacity")).toFixed(3); // Only need 3dp precision - this stops floating point errors in Chrome
+}
+
+// A cross browser way to set the opacity of an element
+// Usage: setOpacity($("#chromo_message"),0.4)
+function setOpacity(el,opacity){
+	if(typeof el=="string") el = $(el);
+	if(jQuery.browser.msie){
+		el.css("filter","alpha(opacity="+Math.floor(opacity*100)+")");
+		el.children().css("filter","alpha(opacity="+Math.floor(opacity*100)+")");
+	}else el.css("opacity",opacity);
+}
+
+// Coordinate based functions
+// Convert Ra/Dec (1950 or 2000) to Galactic coordinates
+function Equatorial2Galactic(ra, dec, epoch){
+	var d2r = Math.PI/180;	// degrees to radians
+	var OB = 23.4333334*d2r;
+	dec *= d2r;
+	ra *= d2r;
+	var a = (epoch && epoch == 1950) ? 27.4 : 27.128251;	// The RA of the North Galactic Pole
+	var d = (epoch && epoch == 1950) ? 192.25 : 192.859481;	// The declination of the North Galactic Pole
+	var l = (epoch && epoch == 1950) ? 33.0 : 32.931918;	// The ascending node of the Galactic plane on the equator
+	var sdec = Math.sin(dec);
+	var cdec = Math.cos(dec);
+	var sa = Math.sin(a*d2r);
+	var ca = Math.cos(a*d2r)
+	
+	var GT = Math.asin(cdec*ca*Math.cos(ra-d*d2r)+sdec*sa);
+	var GL = Math.atan((sdec-Math.sin(GT)*sa)/(cdec*Math.sin(ra- d*d2r)*ca))/d2r;
+	var TP = sdec-Math.sin(GT)*sa;
+	var BT = cdec*Math.sin(ra-d*d2r)*ca;
+	if(BT<0) GL=GL+180;
+	else {
+		if (TP<0) GL=GL+360;
+	}
+	GL = GL + l;
+	if (GL>360) GL = GL - 360;
+
+	LG=Math.floor(GL);
+	LM=Math.floor((GL - Math.floor(GL)) * 60);
+	LS=((GL -Math.floor(GL)) * 60 - LM) * 60;
+	GT=GT/d2r;
+
+	D = Math.abs(GT);
+	if (GT > 0) BG=Math.floor(D);
+	else BG=(-1)*Math.floor(D);
+	BM=Math.floor((D - Math.floor(D)) * 60);
+	BS = ((D - Math.floor(D)) * 60 - BM) * 60;
+	if (GT<0) {
+		BM=-BM;
+		BS=-BS;
+	}
+	return [GL,GT];
+}
+
+function Galactic2Equatorial(l, b, epoch){
+	var d2r = Math.PI/180;	// degrees to radians
+	var r2d = 180/Math.PI;	// degrees to radians
+	var NGP_a = (epoch && epoch == 1950) ? 27.4 : 27.13;	// The RA of the North Galactic Pole
+	var NGP_d = (epoch && epoch == 1950) ? 192.25 : 192.859481;	// The declination of the North Galactic Pole
+	var AN_l = (epoch && epoch == 1950) ? 33.0 : 32.93;	// The ascending node of the Galactic plane on the equator
+
+	l *= d2r;
+	b *= d2r;
+
+	LAL_LGAL = AN_l*d2r;
+	LAL_ALPHAGAL = NGP_d*d2r;
+	LAL_DELTAGAL = NGP_a*d2r;
+
+	sDGal = Math.sin(LAL_DELTAGAL);
+	cDGal = Math.cos(LAL_DELTAGAL);
+	l = l-LAL_LGAL;
+
+	sB = Math.sin(b);
+	cB = Math.cos(b);
+	sL = Math.sin(l);
+	cL = Math.cos(l);
+
+	/* Compute components. */
+	sinD = cB*cDGal*sL + sB*sDGal;
+	sinA = cB*cL;
+	cosA = sB*cDGal - cB*sL*sDGal;
+
+	/* Compute final results. */
+	delta = Math.asin(sinD)*r2d;
+	alpha = (Math.atan2( sinA, cosA ))*r2d + NGP_d;
+
+	alpha = alpha%360.0;
+	var ra_h = parseInt(alpha/15);
+	var ra_m = parseInt((alpha/15-ra_h)*60);
+	var ra_s = ((alpha/15-ra_h-ra_m/60)*3600).toFixed(2);
+	var ra = (ra_h+ra_m/60+ra_s/3600);
+	if(ra_h < 10) ra_h = "0"+ra_h;
+	if(ra_m < 10) ra_m = "0"+ra_m;
+	if(ra_s < 10) ra_s = "0"+ra_s;
+	var dec_sign = (delta >= 0) ? 1 : -1;
+	var dec_d = parseInt(Math.abs(delta));
+	var dec_m = parseInt((Math.abs(delta)-dec_d)*60);
+	var dec_s = ((Math.abs(delta)-dec_d-dec_m/60)*3600).toFixed(1);
+	return {ra:ra,ra_h:ra_h,ra_m:ra_m,ra_s:ra_s,dec:delta,dec_d:dec_d*dec_sign,dec_m:dec_m,dec_s:dec_s};
+}
+
+// Convert from Galactic longitude/latitude to X,Y coordinates within the full sky
+// Usage: var xycoords = Galactic2XY(l,b,mapSize)
+function Galactic2XY(l,b,mapSize){
+	if(l < 180) l = -(l);
+	else l = (360-l);
+	var x = (l*mapSize/360  + mapSize/2);
+	var y = (mapSize/2 - (b*mapSize/360));
+	return [x,y];
+}
+
+// Convert from RA/Dec to X,Y coordinates within the full sky
+// Usage: var xycoords = Equatorial2XY(ra,dec)
+function Equatorial2XY(ra,dec,mapSize){
+	var coords = Equatorial2Galactic(ra, dec);
+	return Galactic2XY(coords[0],coords[1],mapSize);
 }
