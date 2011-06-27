@@ -253,7 +253,6 @@ Chromoscope.prototype.init = function(inp){
 
 }
 
-
 function Language(inp){
 	if(!inp) inp = { code: 'en' }
 	this.code = (inp.code) ? inp.code :'en';
@@ -506,22 +505,17 @@ Chromoscope.prototype.load = function(callback){
 	})
 
 	// Define keyboard commands
-	this.registerKey(38,function(){
-		// user presses the down arrow key  (37 was left)
+	this.registerKey(38,function(){ // user presses the down arrow key  (37 was left)
 		this.changeWavelength(-this.wavelength_speed);
 		this.checkTiles();
-	}).registerKey(40,function(){
-		// user presses the up arrow key  (39 was right)
+	}).registerKey(40,function(){ // user presses the up arrow key  (39 was right)
 		this.changeWavelength(this.wavelength_speed);
 		this.checkTiles();
-	}).registerKey([107,61,187,33],function(){
-		// user presses the + (107 for Firefox, 187 for Safari, 33 for pageup)
+	}).registerKey([107,61,187,33],function(){ // user presses the + (107 for Firefox, 187 for Safari, 33 for pageup)
 		this.changeMagnification(1);
-	}).registerKey([109,189,34],function(){
-		// user presses the - (109 for Firefox, 189 for Safari, 34 for pagedown)
+	}).registerKey([109,189,34],function(){ // user presses the - (109 for Firefox, 189 for Safari, 34 for pagedown)
 		this.changeMagnification(-1);
-	}).registerKey(['h','H',63],function(){
-		// 63 is question mark
+	}).registerKey(['h','H',63],function(){ // 63 is question mark
 		this.toggleByID(".chromo_help");
 	}).registerKey('i',function(){
 		$(this.container+" .chromo_info").toggle();
@@ -539,27 +533,6 @@ Chromoscope.prototype.load = function(callback){
 		$(this.container+" .chromo_help").hide();
 		$(this.container+" .chromo_info").hide();
 	});
-/*
-	}else{
-		var match = 0;
-		for(var i=0 ; i < chromo_active.spectrum.length ; i++){
-			if(character == chromo_active.spectrum[i].key) match = 1;
-		}
-		if(match){
-			chromo_active.changeWavelengthByName(character);
-			chromo_active.checkTiles();
-		}else{
-			var match = 0
-			for(var i=0 ; i < chromo_active.annotations.length ; i++){
-				if(character == chromo_active.annotations[i].key) match = 1;
-			}
-			if(match){
-				chromo_active.toggleAnnotationsByName(character);
-				chromo_active.checkTiles(true);
-			}
-		}
-	}
-	*/
 
 	// If we have a touch screen browser, we should convert touch events into mouse events.
 	if('ontouchstart' in document.documentElement) $(body+" .chromo_outerDiv").addTouch();
