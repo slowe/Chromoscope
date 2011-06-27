@@ -2155,14 +2155,14 @@ Chromoscope.prototype.toggleBalloon = function(pin){
 Chromoscope.prototype.showBalloon = function(pin,duration){
 	var rad = 10;
 
-	if(!pin.info.visible) $(pin.loc).append(pin.info.html);
-	else {
-		$(pin.loc+" ."+pin.info.id).remove();
+	var id = pin.loc+" ."+pin.info.id;
+	//if(!pin.info.visible) $(pin.loc).append(pin.info.html);
+	//else {
+		$(id).remove();
 		pin.info.visible = false;
 		$(pin.loc).append(pin.info.html);
-	}
+	//}
 
-	var id = pin.loc+" ."+pin.info.id;
 	if(pin.info.width > 0) $(id).css({'width':pin.info.width});
 	var w = $(id).outerWidth();
 	var h = $(id).outerHeight();
@@ -2173,7 +2173,7 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 		$(id).css({'width':w});
 	}
 
-	// Remove all previous arrows
+	// Remove all previous arrows that exist
 	$(id+' .arrowtop').remove();
 	$(id+' .arrow').remove();
 	
