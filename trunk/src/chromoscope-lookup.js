@@ -73,8 +73,16 @@ Chromoscope.prototype.getLookUPResults = function(jData) {
 			var str = ra.decimal+','+dec.decimal;
 			var coord = Equatorial2Galactic(ra.decimal, dec.decimal);
 			var msg = category.avmdesc+" at:<br />"+ra.h+":"+ra.m+":"+ra.s+", "+dec.d+"&deg;:"+dec.m+"':"+dec.s+'" ('+coordsys+' '+equinox+')<br />'+gal.lon.toFixed(2)+'&deg;, '+gal.lat.toFixed(2)+'&deg; (Galactic)<br />More <a href="'+service.href+'">information via '+service.name+'</a>';
+			var extra = "";
+			avm = category.avmcode;
+			if(avm.match(/(^|;)3.1.8/)) extra = "<a href='http://supernova.galaxyzoo.org/'>Hunt for supernovae</a> with Galaxy Zoo";
+			else if(avm.match(/(^|\;)3\.1\.9\.1/)) extra = "Find out <a href='http://www.jb.man.ac.uk/research/pulsar/Education/index.html'>about pulsars</a> and even <a href='http://www.jb.man.ac.uk/research/pulsar/Education/Sounds/sounds.html'>listen to them</a>.";
+			else if(avm.match(/(^|\;)3\.2\.1/)) extra = "Find out <a href='http://www.aavso.org/variables-what-are-they-and-why-observe-them'>about variable stars</a> and <a href='http://www.aavso.org/observers'>help the AAVSO observe them</a>.";
+			else if(avm.match(/(^|\;)4\.1\.2/) || avm.match(/(^|\;)4\.1\.1/)) extra = "Help to identify star forming regions with <a href='http://www.milkywayproject.org/needyou'>The Milky Way Project</a>";
+			else if(avm.match(/(^|\;)5\.1\.7/)) extra = "Help to improve simulations of merging galaxies with <a href='http://mergers.galaxyzoo.org/'>Galaxy Zoo Mergers</a>";
+			else if(avm.match(/(^|\;)5\.1\./)) extra = "Help classify galaxies with <a href='http://www.galaxyzoo.org/'>Galaxy Zoo: Hubble</a>";
 
-
+			if(extra) msg += "<br /><br />Explore: "+extra
 			if($(body+' .lookupresults').length > 0){
 				// Remove any existing pin
 				this.removePin("lookuppin");
@@ -85,7 +93,7 @@ Chromoscope.prototype.getLookUPResults = function(jData) {
 			}
 			this.addPin({loc:' .'+holder,id:'lookuppin',title:target.name,desc:msg,glon:gal.lon,glat:gal.lat,msg:msg,width:330});
 			this.moveMap(gal.lon,gal.lat,this.zoom,1000);
-			this.showBalloon(this.pins[this.pins.length-1])
+			this.showBalloon(this.pins[this.pins.length-1]);
 			this.wrapPins();
 		}else{
 			if(message) $(body+' .lookupmessages').html(message);
