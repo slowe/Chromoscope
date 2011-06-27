@@ -1,14 +1,54 @@
-var http_request = false;
-var lookup_done = true;
-var lookup_start = 0;
+/*
+ * Chromoscope LookUP Add-on
+ * Written by Stuart Lowe using www.strudel.org.uk/lookUP/
+ *
+ * You need to add this Javascript file and then call addSearch() e.g.
+ *
+ * chromo.addSearch();
+ */
 
-function getLookUPResults(jData) {
+Chromoscope.prototype.addSearch = function(){
+	var body = (this.container) ? this.container : 'body';
+	var valid = /[^A-Za-z0-9]/g;
+	this.lookup_id = this.container.replace(valid,'');
+
+	// Create the search box if necessary
+	if($(body+" .chromo_search").length == 0) $(body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'Find an object with <a href="http://www.strudel.org.uk/lookUP/">lookUP</a>:<br /><form action="http://www.strudel.org.uk/lookUP/" method="GET" id="'+this.lookup_id+'_lookUPform" name="'+this.lookup_id+'_lookUPform"><input type="text" name="name" id="'+this.lookup_id+'_lookupobject" onFocus="disableKeys(true);" onBlur="disableKeys(false);" /><input type="submit" name="button" id="'+this.lookup_id+'_lookupsubmit" value="'+this.phrasebook.search+'" /></form><div class="lookupmessages"></div></div>');
+	$(body+" .chromo_search").hide()
+	$(body+" .chromo_controlkeys").append("<li><strong>s</strong> - "+this.phrasebook.search+"</li>");
+	$(body+" .chromo_controlbuttons").append("<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('s')\">Search</a></li>");
+	this.registerKey('s',function(){
+		this.showintro = false;	// Disable the intro just in case the user is really quick
+		var valid = /[^A-Za-z0-9]/g;
+		var id = this.container.replace(valid,'');
+
+		// Hide message boxes
+		$(this.container+" .chromo_help").hide();
+		$(this.container+" .chromo_message").hide();
+
+		$(this.container+" .chromo_search").show();
+		this.centreDiv(".chromo_search");
+		$(this.container+' .lookupmessages').html("");
+		if($(this.container+" .chromo_search").is(':visible')) $("#"+id+'_lookupobject').focus().select();
+		else $("#"+id+'_lookupobject').blur();
+	})
+
+	$(body+" .chromo_search .chromo_close").bind('click',{id:'.chromo_search',me:this,input:'#'+this.lookup_id+'_lookupobject'}, function(ev){ ev.data.me.toggleByID(ev.data.id); $(ev.data.input).blur(); } );
+	$(body+" .chromo_search").css({"width":"250px","z-index":1000});
+	$('#'+this.lookup_id+'_lookUPform').submit({chromo:this},function(e){
+		e.data.chromo.lookUP();
+		return false;
+	})
+	if(this) this.centreDiv(".chromo_search");
+}
+
+Chromoscope.prototype.getLookUPResults = function(jData) {
 
 	var valid = /[^A-Za-z0-9]/g;
-	var id = chromo_active.container.replace(valid,'');
+	var body = (this.container) ? this.container : 'body';
 
 	if(jData == null){
-		alert("There was a problem dealing with the search results. Sorry about that.");
+		this.message("There was a problem dealing with the search results. Sorry about that.");
 		return false;
 	}
 	var equinox = jData.equinox;
@@ -20,113 +60,70 @@ function getLookUPResults(jData) {
 	var category = jData.category;
 	var service = jData.service;
 	var message = jData.message;
-	lookup_done = true;
+	this.lookup_done = true;
 	if(target.suggestion){
-		$('#'+id+'_lookupmessages').html("Not found. Did you mean <a href=\"#\" onClick=\"lookUP(id,\'"+target.suggestion+"\');\">"+target.suggestion+"</a>?");
+		$(body+' .lookupmessages').html("Not found. Did you mean <a href=\"#\" onClick=\"chromo_active.lookUP(\'"+target.suggestion+"\');\">"+target.suggestion+"</a>?");
 	}else{
 		// Remove focus from the input field
-		$('#'+id+'_lookupobject').blur();
+		$('#'+this.lookup_id+'_lookupobject').blur();
 		if(ra){
-			var body = (chromo_active.container) ? chromo_active.container : 'body';
-
 			// Hide the search box
 			$(body+' .chromo_search').toggle();
 			var str = ra.decimal+','+dec.decimal;
 			var coord = Equatorial2Galactic(ra.decimal, dec.decimal);
 			var msg = category.avmdesc+" at:<br />"+ra.h+":"+ra.m+":"+ra.s+", "+dec.d+"&deg;:"+dec.m+"':"+dec.s+'" ('+coordsys+' '+equinox+')<br />'+gal.lon.toFixed(2)+'&deg;, '+gal.lat.toFixed(2)+'&deg; (Galactic)<br />More <a href="'+service.href+'">information via '+service.name+'</a>';
 
+
 			if($(body+' .lookupresults').length > 0){
 				// Remove any existing pin
-				chromo_active.removePin("lookuppin");
+				this.removePin("lookuppin");
 			}else{
 				// Build a pin holder for search results
-				chromo_active.makePinHolder('lookupresults');
-				setOpacity($(body+' .lookupresults'),1.0);
+				holder = this.makePinHolder();
+				setOpacity($(body+" ."+holder),1.0);
 			}
-			chromo_active.addPin({loc:' .lookupresults',id:'lookuppin',title:target.name,desc:msg,glon:gal.lon,glat:gal.lat,msg:msg,width:330});
-			chromo_active.moveMap(gal.lon,gal.lat,chromo_active.zoom,1000);
-			chromo_active.showBalloon(chromo_active.pins[chromo_active.pins.length-1])
-			chromo_active.wrapPins();
+			this.addPin({loc:' .'+holder,id:'lookuppin',title:target.name,desc:msg,glon:gal.lon,glat:gal.lat,msg:msg,width:330});
+			this.moveMap(gal.lon,gal.lat,this.zoom,1000);
+			this.showBalloon(this.pins[this.pins.length-1])
+			this.wrapPins();
 		}else{
-			if(message) $('#'+id+'_lookupmessages').html(message);
-			else $('#'+id+'_lookupmessages').html("Not found. Sorry.");
+			if(message) $(body+' .lookupmessages').html(message);
+			else $(body+' .lookupmessages').html("Not found. Sorry.");
 		}
 	}
 	return false;
 }
 
-function areWeWaiting(id){
+Chromoscope.prototype.areWeWaiting = function(){
 	var now = new Date();
-	if(!lookup_done){
-		if(now-lookup_start > 2000) $('#'+id+'_lookupmessages').html("Still searching...");
-		if(now-lookup_start > 10000) $('#'+id+'_lookupmessages').html("This is embarrassing. Still waiting...");
-		if(now-lookup_start > 20000) $('#'+id+'_lookupmessages').html("Not getting a response. Either you aren't connected to the internet or this object may not be recognised.");
-		var chromo_timer = setTimeout("areWeWaiting("+id+")",2000);
+	if(!this.lookup_done){
+		msg = "";
+		var t = now-this.lookup_start;
+		if(t > 2000) msg = "Still searching...";
+		if(t > 10000) msg = "This is embarrassing. Still waiting...";
+		if(t > 20000) msg = "Not getting a response. Either you aren't connected to the internet or this object may not be recognised."
+		if(msg) $(this.container+' .lookupmessages').html(msg);
+		if(t < 20000) var chromo_timer = setTimeout($.proxy(this.areWeWaiting,this),2000);
 	}
 }
 
-function lookUP(id,object) {
-	if(!object) object = $('#'+id+'_lookupobject').val()
+Chromoscope.prototype.lookUP = function(object) {
+	if(!object) object = $('#'+this.lookup_id+'_lookupobject').val()
 	if(object){
-		$('#'+id+'_lookupmessages').html("Searching...");
-		lookup_start = new Date();
-		lookup_done = false;
-		$.ajaxSetup({async:false,'beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/plain"); } });
+		$(this.container+' .lookupmessages').html("Searching...");
 		// Get the JSON results file
-		$.getJSON('http://www.strudel.org.uk/lookUP/json/?name='+encodeURL(object)+'&callback=?', getLookUPResults);
-		setTimeout("areWeWaiting("+id+")",500);
+		this.lookup_start = new Date();
+		this.lookup_done = false
+		$.ajax({
+			async: false,
+			dataType: "jsonp",
+			'beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/plain"); },
+			url:'http://www.strudel.org.uk/lookUP/json/?name='+encodeURL(object)+'&callback=?',
+			context: this,
+			success: this.getLookUPResults
+		})
+		setTimeout($.proxy(this.areWeWaiting,this),500);
 	}
-}
-
-Chromoscope.prototype.addSearch = function(){
-	var body = (this.container) ? this.container : 'body';
-
-	$(body+" .chromo_controlkeys").append("<li><strong>s</strong> - "+this.phrasebook.search+"</li>");
-	$(body+" .chromo_controlbuttons").append("<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('s')\">Search</a></li>");
-
-	var valid = /[^A-Za-z0-9]/g;
-	var id = this.container.replace(valid,'');
-
-	// Create the search box if necessary
-	if($(body+" .chromo_search").length == 0){
-		$(body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'Find an object with <a href="http://www.strudel.org.uk/lookUP/">lookUP</a>:<br /><form action="http://www.strudel.org.uk/lookUP/" method="GET" id="'+id+'_lookUPform" name="'+id+'_lookUPform"><input type="text" name="name" id="'+id+'_lookupobject" onFocus="disableKeys(true);" onBlur="disableKeys(false);" /><input type="submit" name="button" id="'+id+'_lookupsubmit" value="'+this.phrasebook.search+'" /></form><div id="'+id+'_lookupmessages"></div></div>');
-	}
-	$(body+" .chromo_search").hide()
-	$(body+" .chromo_search .chromo_close").bind('click',{id:'.chromo_search',me:this,input:'#'+id+'_lookupobject'}, function(ev){ ev.data.me.toggleByID(ev.data.id); $(ev.data.input).blur(); } );
-	$(body+" .chromo_search").css({"width":"250px","z-index":1000});
-	$('#'+id+'_lookUPform').submit(function(){
-		lookUP(id);
-		return false;
-	})
-	// Append the check for the 's' key
-	$(document).keypress({me:this},function(e){
-		if(!allowKeyPress()) return;
-		var code = e.keyCode || e.charCode || e.which || 0;
-		if(code < 37 || code > 40){
-			var char = String.fromCharCode(code);
-			if(char == 's'){
-				// Stop other events happening
-				e.preventDefault()
-				var chromo = e.data.me;
-				if(chromo){
-					chromo.showintro = false;	// Disable it just in case the user is really quick
-					// Hide message boxes
-					$(chromo.container+" .chromo_help").hide();
-					$(chromo.container+" .chromo_message").hide();
-
-					var valid = /[^A-Za-z0-9]/g;
-					var id = chromo.container.replace(valid,'');
-
-					$(chromo.container+" .chromo_search").show();
-					chromo.centreDiv(".chromo_search");
-					$("#"+id+'_lookupmessages').html("");
-					if($(chromo.container+" .chromo_search").is(':visible')) $("#"+id+'_lookupobject').focus().select();
-					else $("#"+id+'_lookupobject').blur();
-				}
-			}
-		}
-	});
-	if(this) this.centreDiv(".chromo_search");
 }
 
 function encodeURL(str){

@@ -10,7 +10,8 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.3.3 (2011-05-28):
+ * Changes in version 1.3.3 (2011-06-27):
+ *   - Added key binding
  *   - Added event binding
  *   - addWavelength() and addAnnotationLayer() are now chainable
  *   - Fixed <BalloonStyle> parsing from KML
@@ -18,6 +19,9 @@
  *   - moveMap() can animate again
  *   - Speeded up KML pin display by changing to IDs instead of classes
  */
+
+// Manually define one global variable to hold the Chromoscope instance.
+var chromo_active
 
 // Get the URL query string and parse it
 jQuery.query = function() {
@@ -36,6 +40,19 @@ jQuery.query = function() {
 	}
         return r;
 };
+
+// Define the keyboard capture
+$(document).keydown(function(e){
+	if(!chromo_active) return true;
+	if(!e) e=window.event;
+	var code = e.keyCode || e.charCode || e.which || 0;
+	chromo_active.keypress(code)
+}).keypress(function(e){
+	if(!chromo_active) return true;
+	if(!e) e=window.event;
+	var code = e.keyCode || e.charCode || e.which || 0;
+	chromo_active.keypress(code)
+});
 
 // Extend jQuery
 $(function(){
@@ -153,6 +170,7 @@ function Chromoscope(input){
 	this.moved = false;
 	this.ignorekeys = false;	// Allow/disallow keyboard control
 	this.coordtype = 'G';		// The coordinate type to display 'G' for Galactic and 'A' for equatorial
+	this.pushstate = !!(window.history && history.pushState);	// Do we update the address bar?
 	this.y = 0;
 	this.x = 0;
 	this.wide = 480;
@@ -212,6 +230,7 @@ Chromoscope.prototype.init = function(inp){
 		if(typeof inp.sliderbar=="boolean") this.sliderbar = inp.sliderbar;
 		if(typeof inp.zoomctrl=="boolean") this.zoomctrl = inp.zoomctrl;
 		if(typeof inp.compact=="boolean") this.compact = inp.compact;
+		if(typeof inp.pushstate=="boolean") this.pushstate = inp.pushstate;
 		if(typeof inp.cdn=="string") this.cdn = inp.cdn;
 		if(typeof inp.container=="string"){ this.container = inp.container; this.id = inp.container.substring(1); }
 		if(typeof inp.ra=="number") this.ra = inp.ra;
@@ -226,7 +245,14 @@ Chromoscope.prototype.init = function(inp){
 		if(typeof inp.json=="string") this.kmls[this.kmls.length] = inp.json;
 		if(typeof inp.dir=="string") this.dir = inp.dir;
 	}
+	if(this.pushstate){
+		window.onpopstate = function(event) {
+			// Can't use moveMap because it updates the state event chromo_active.moveMap(event.state.l,event.state.b,event.state.z);
+		};
+	}
+
 }
+
 
 function Language(inp){
 	if(!inp) inp = { code: 'en' }
@@ -338,89 +364,7 @@ Chromoscope.prototype.reset = function(){
 	this.wrapPins();
 }
 
-// Manually define the variable to hold the Chromoscope instance.
-var chromo_active
-
 Chromoscope.prototype.activate = function(){ chromo_active = this; }
-
-// Define the keyboard functions. These are global because we don't want the
-// user to have click in the Chromoscope before they will work
-$(document).keydown(function(e){
-	if(!chromo_active) return true;
-	if(chromo_active.ignorekeys) return true;
-	if (!e) e=window.event;
-	var code = e.keyCode || e.charCode || e.which || 0;
-	var character = String.fromCharCode(code);
-	if(code == 38){
-		// user presses the down arrow key  (37 was left)
-		chromo_active.changeWavelength(-chromo_active.wavelength_speed);
-		chromo_active.checkTiles();
-		return false;
-	}else if(code == 40){
-		// user presses the up arrow key  (39 was right)
-		chromo_active.changeWavelength(chromo_active.wavelength_speed);
-		chromo_active.checkTiles();
-		return false;
-	}else if(code == 107 || code == 61 || code == 187 || code == 33){
-		// user presses the + (107 for Firefox, 187 for Safari, 33 for pageup)
-		chromo_active.changeMagnification(1);
-	}else if(code == 109 || code == 189 || code == 34){
-		// user presses the - (109 for Firefox, 189 for Safari, 34 for pagedown)
-		chromo_active.changeMagnification(-1);
-	}
-}).keypress(function(e){
-	if(!chromo_active) return true;
-	if(chromo_active.ignorekeys) return true;
-	if (!e) e=window.event;
-	var code = e.keyCode || e.charCode || e.which || 0;
-	if(code != 38 && code != 40 && code != 107 && code != 61 && code != 187 && code != 33){
-		var character = String.fromCharCode(code);
-		var c = chromo_active.container;
-		if(character == 'h' || character == 'H' || code == 63){
-			// 63 is question mark
-			chromo_active.toggleByID(".chromo_help");
-		}else if(character == 'i'){
-			$(c+" .chromo_info").toggle();
-		}else if(character == 'k'){
-			$(c+" .chromo_layerswitcher").toggle();
-		}else if(character == 'c'){
-			$(c+" .chromo_help").hide();
-			$(c+" .chromo_message").hide();
-		}else if(character == '.'){
-			$(c+" h1").toggle();
-			$(c+" h2").toggle();
-			$(c+" .chromo_message").hide();
-			$(c+" .chromo_layerswitcher").toggle();
-			$(c+" .chromo_helplink").toggle();
-			$(c+" .chromo_help").hide();
-			$(c+" .chromo_info").hide();
-		}else{
-			var match = 0;
-			for(var i=0 ; i < chromo_active.spectrum.length ; i++){
-				if(character == chromo_active.spectrum[i].key) match = 1;
-			}
-			if(match){
-				chromo_active.changeWavelengthByName(character);
-				chromo_active.checkTiles();
-			}else{
-				var match = 0
-				for(var i=0 ; i < chromo_active.annotations.length ; i++){
-					if(character == chromo_active.annotations[i].key) match = 1;
-				}
-				if(match){
-					chromo_active.toggleAnnotationsByName(character);
-					chromo_active.checkTiles(true);
-				}
-			}
-		}
-	}
-});
-
-// Disable keyboard control
-function disableKeys(option){ if(chromo_active) chromo_active.ignorekeys = option; }
-
-// Enable keyboard control
-function allowKeyPress(){ if(chromo_active) { return !chromo_active.ignorekeys; } else { return false; } }
 
 Array.prototype.avg = function() {
 	var av = 0;
@@ -561,6 +505,62 @@ Chromoscope.prototype.load = function(callback){
 		return false;
 	})
 
+	// Define keyboard commands
+	this.registerKey(38,function(){
+		// user presses the down arrow key  (37 was left)
+		this.changeWavelength(-this.wavelength_speed);
+		this.checkTiles();
+	}).registerKey(40,function(){
+		// user presses the up arrow key  (39 was right)
+		this.changeWavelength(this.wavelength_speed);
+		this.checkTiles();
+	}).registerKey([107,61,187,33],function(){
+		// user presses the + (107 for Firefox, 187 for Safari, 33 for pageup)
+		this.changeMagnification(1);
+	}).registerKey([109,189,34],function(){
+		// user presses the - (109 for Firefox, 189 for Safari, 34 for pagedown)
+		this.changeMagnification(-1);
+	}).registerKey(['h','H',63],function(){
+		// 63 is question mark
+		this.toggleByID(".chromo_help");
+	}).registerKey('i',function(){
+		$(this.container+" .chromo_info").toggle();
+	}).registerKey('k',function(){
+		$(this.container+" .chromo_layerswitcher").toggle();
+	}).registerKey('c',function(){
+		$(this.container+" .chromo_help").hide();
+		$(this.container+" .chromo_message").hide();
+	}).registerKey('.',function(){
+		$(this.container+" h1").toggle();
+		$(this.container+" h2").toggle();
+		$(this.container+" .chromo_message").hide();
+		$(this.container+" .chromo_layerswitcher").toggle();
+		$(this.container+" .chromo_helplink").toggle();
+		$(this.container+" .chromo_help").hide();
+		$(this.container+" .chromo_info").hide();
+	});
+/*
+	}else{
+		var match = 0;
+		for(var i=0 ; i < chromo_active.spectrum.length ; i++){
+			if(character == chromo_active.spectrum[i].key) match = 1;
+		}
+		if(match){
+			chromo_active.changeWavelengthByName(character);
+			chromo_active.checkTiles();
+		}else{
+			var match = 0
+			for(var i=0 ; i < chromo_active.annotations.length ; i++){
+				if(character == chromo_active.annotations[i].key) match = 1;
+			}
+			if(match){
+				chromo_active.toggleAnnotationsByName(character);
+				chromo_active.checkTiles(true);
+			}
+		}
+	}
+	*/
+
 	// If we have a touch screen browser, we should convert touch events into mouse events.
 	if('ontouchstart' in document.documentElement) $(body+" .chromo_outerDiv").addTouch();
 
@@ -624,9 +624,17 @@ Chromoscope.prototype.load = function(callback){
 	if(this.showintro) this.buildIntro();
 	if(this.showcontext) this.buildContextMenu();
 	
+	// Disable keyboard commands on input text fields
+	$(this.container+" input[type=text]").live("focus",{sky:this},function(e){
+		if(!e.data.sky.ignorekeys) e.data.sky.ignorekeys = true;
+	}).live("blur",{sky:this},function(e){
+		if(e.data.sky.ignorekeys) e.data.sky.ignorekeys = false;
+	});
+
 	if($.browser.opera && $.browser.version == 9.3){ $(".keyboard").hide(); $(".nokeyboard").show(); }
 
 	$(this.container+" .chromo_title a").bind('click', jQuery.proxy( this, "reset" ) );
+
 
 	// Now load a language if required
 	if(this.q.lang) this.getLanguage(this.q.lang)
@@ -849,6 +857,38 @@ $(window).resize(function(){
 	chromo_active.centreDiv(".chromo_message");
 });
 
+// Register keyboard commands and associated functions
+Chromoscope.prototype.registerKey = function(charCode,fn){
+	if(typeof fn!="function") return this;
+	if(typeof charCode!="object") charCode = [charCode];
+	for(c = 0 ; c < charCode.length ; c++){
+		ch = (typeof charCode[c]=="string") ? charCode[c].charCodeAt(0) : charCode[c];
+		available = true;
+		for(i = 0 ; i < this.keys.length ; i++){
+			if(this.keys.charCode == ch) available = false;
+		}
+		if(available) this.keys.push({charCode:ch,char:String.fromCharCode(ch),fn:fn});
+	}
+	return this;
+}
+
+// Press a key
+Chromoscope.prototype.keypress = function(charCode){
+	if(this.ignorekeys) return true;
+	for(i = 0 ; i < this.keys.length ; i++){
+		if(this.keys[i].charCode == charCode){
+			this.keys[i].fn.call(this);
+			break;
+		}
+	}	
+}
+
+// Disable keyboard control
+function disableKeys(option){ if(chromo_active) chromo_active.ignorekeys = option; }
+
+// Enable keyboard control
+function allowKeyPress(){ if(chromo_active) { return !chromo_active.ignorekeys; } else { return false; } }
+
 // A fake key press. Allows us to use the 
 // functionality of the key press commands 
 // without the user pressing anything.
@@ -919,12 +959,26 @@ function ChromoscopeLayer(input){
 // Add to the wavelength array
 Chromoscope.prototype.addWavelength = function(input){
 	this.spectrum[this.spectrum.length] = new Wavelength(input);
+	if(typeof input.key=="string"){
+		var character = input.key;
+		this.registerKey(input.key,function(){
+			this.changeWavelengthByName(character);
+			this.checkTiles();
+		});
+	}
 	return this;
 }
 
 // Add to the annotations array
 Chromoscope.prototype.addAnnotationLayer = function(input){
 	this.annotations[this.annotations.length] = new AnnotationLayer(input);
+	if(typeof input.key=="string"){
+		var character = input.key;
+		this.registerKey(input.key,function(){
+			this.toggleAnnotationsByName(character);
+			this.checkTiles(true);
+		});
+	}
 	return this;
 }
 
@@ -1170,6 +1224,7 @@ Chromoscope.prototype.updateCoords = function(){
 	if(this.coordlabel != label && typeof this.events.wcsupdate=="function") this.events.wcsupdate.call(this,{position:coords,zoom:this.zoom});
 	// Store the current value of the coordinate label
 	this.coordlabel = label;
+	//if(this.pushstate) history.pushState({l:this.l,b:this.b,z:this.zoom,w:this.lambda,spec:this.spectrum},"Chromoscope ("+this.l+","+this.b+")",this.getViewURL());
 }
 
 // Centre the map
@@ -1678,20 +1733,29 @@ Chromoscope.prototype.getCoords = function(offx,offy){
 
 // Create a web link to this view
 Chromoscope.prototype.createLink = function(){
-	var coords = this.getCoords();
+	var url = this.getViewURL();
+	var safeurl = url.replace('&','%26');
+	$(this.container+" .chromo_message").css({"text-align":"center"})
+	$(this.container+" .chromo_message").css({width:400});
+	var icons = '<a href="http://twitter.com/home/?status=Spotted+this+with+@chromoscope+'+safeurl+'"><img src="twitter.gif" title="Tweet this" /></a><a href="http://www.facebook.com/sharer.php?u='+safeurl+'"><img src="facebook.gif" title="Share with Facebook" /></a><a href="http://www.blogger.com/blog-this.g?t=&amp;n=Chromoscope&amp;u='+safeurl+'"><img src="blogger.gif" title="Add to Blogger" /></a><a href="http://del.icio.us/post?url='+safeurl+'"><img src="delicious.gif" title="Tag with del.icio.us" /></a><a href="http://slashdot.org/bookmark.pl?title=Chromoscope&amp;url='+safeurl+'"><img src="slashdot.gif" title="Slashdot this" /></a><a href="http://digg.com/submit?phase=2&url='+safeurl+'"><img src="digg.gif" title="Digg this" /></a><a href="http://www.mixx.com/submit?page_url='+safeurl+'"><img src="mixx.png" title="Add to Mixx" /></a>';
+	var share = (this.phrasebook.sharewith.indexOf("__ICONS__") > 0) ? this.phrasebook.sharewith.replace("__ICONS__",icons) : this.phrasebook.sharewith+icons;
+	this.message(this.createClose()+this.phrasebook.url+'<input type="text" class="chromo_createdLink" value="'+url+'" style="width:100%;" /><br /><p class="social">'+share+' </p>')
+	$(this.container+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
+	$(this.container+" .chromo_createdLink").focus(function(){
+		$(this).select();
+	})
+}
+
+Chromoscope.prototype.getViewURL = function(){
+//	var coords = this.getCoords();
 	var w = "";
 	for(i = 0; i < this.spectrum.length; i++){
 		w += this.spectrum[i].key; 
 		w += (i == this.spectrum.length-1) ? '' : ',';
 	}
-	var url = window.location.protocol + "//" + window.location.host + "" + window.location.pathname+'?l='+coords.l.toFixed(4)+'&b='+coords.b.toFixed(4)+'&w='+this.lambda.toFixed(2)+'&o='+w+'&z='+this.zoom;
-	if(typeof kml=="string") url += '&kml='+kml;
-	var safeurl = window.location.protocol + "//" + window.location.host + "" + window.location.pathname+'?l='+coords.l.toFixed(4)+'%26b='+coords.b.toFixed(4)+'%26w='+this.lambda.toFixed(2)+'%26o='+w+'%26z='+this.zoom;
-	$(this.container+" .chromo_message").css({"text-align":"center"})
-	$(this.container+" .chromo_message").css({width:400});
-	this.message(this.createClose()+this.phrasebook.url+'<input type="text" id="chromo_createdLink" value="'+url+'" style="width:100%;" /><br /><p class="social">'+this.phrasebook.sharewith+' <a href="http://twitter.com/home/?status=Spotted+this+with+@chromoscope+'+safeurl+'"><img src="twitter.gif" title="Tweet this" /></a><a href="http://www.facebook.com/sharer.php?u='+safeurl+'"><img src="facebook.gif" title="Share with Facebook" /></a><a href="http://www.blogger.com/blog-this.g?t=&amp;n=Chromoscope&amp;u='+safeurl+'"><img src="blogger.gif" title="Add to Blogger" /></a><a href="http://del.icio.us/post?url='+safeurl+'"><img src="delicious.gif" title="Tag with del.icio.us" /></a><a href="http://slashdot.org/bookmark.pl?title=Chromoscope&amp;url='+safeurl+'"><img src="slashdot.gif" title="Slashdot this" /></a><a href="http://digg.com/submit?phase=2&url='+safeurl+'"><img src="digg.gif" title="Digg this" /></a><a href="http://www.mixx.com/submit?page_url='+safeurl+'"><img src="mixx.png" title="Add to Mixx" /></a></p>')
-	$(this.container+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
-	$(this.container+" .chromo_createdLink").focus($(this.container+" .chromo_createdLink").select());
+	var url = window.location.protocol + "//" + window.location.host + "" + window.location.pathname+'?l='+this.l.toFixed(4)+'&b='+this.b.toFixed(4)+'&w='+this.lambda.toFixed(2)+'&o='+w+'&z='+this.zoom;
+	if(typeof this.q.kml=="string") url += '&kml='+this.q.kml;
+	return url;
 }
 
 // Return the HTML for a close button
@@ -1701,6 +1765,7 @@ Chromoscope.prototype.createClose = function(type){
 	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall <= 600))) w *= 2;
 	return '<span class="chromo_close"><img src="'+this.dir+'close.png" style="width:'+w+'px;" title="'+this.phrasebook.closedesc+'" /></span>';
 }
+
 // Return the HTML for a close button
 Chromoscope.prototype.createCloseOld = function(){
 	var s = this.phrasebook.close.replace('C','<span style="text-decoration:underline;">C</span>')
@@ -1750,6 +1815,7 @@ Chromoscope.prototype.readKML = function(kml){
 			// If the URL of the KML already has a query string, we just add to it
 			var kmlurl = (kml.indexOf('?') > 0) ? kml+'&'+Math.random() : kml+'?'+Math.random();
 
+			this.message('Loading '+kml+'.',true);
 			if(kml.indexOf(".json") > 0){
 				var jqxhr = $.getJSON(kmlurl,function(data){
 					var total = _obj.processJSON(data,overwrite);
@@ -1942,9 +2008,13 @@ Chromoscope.prototype.processJSON = function(json,overwrite){
 Chromoscope.prototype.makePinHolder = function(loc) {
 	loc = (typeof loc=="string") ? loc : 'kml';
 	body = (this.container) ? this.container : 'body';
-	$(body+" .chromo_innerDiv").append('<div class="map '+loc+'" id="'+body+'-holder-'+loc+'"></div>');
-	$(body+" ."+loc).css("z-index",this.spectrum.length+this.annotations.length+1);
-	$(body+" ."+loc).css({left:0,top:0,width:this.mapSize*2,height:this.mapSize,position:'absolute'});
+	if($(body+" ."+loc).length == 0){
+		$(body+" .chromo_innerDiv").append('<span class="map '+loc+'" id="'+body+'-holder-'+loc+'"></span>');
+		holder = $(body+" ."+loc);
+		holder.css("z-index",this.spectrum.length+this.annotations.length+1);
+		holder.css({left:0,top:0,width:this.mapSize*2,height:this.mapSize,position:'absolute'});
+	}
+	return loc;
 }
 
 // Add to the pin array
