@@ -2200,6 +2200,10 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 		$(id).css({'width':w});
 	}
 
+	// Remove all previous arrows
+	$(id+' .arrowtop').remove();
+	$(id+' .arrow').remove();
+	
 	// Position the balloon relative to the pin
 	pin.info.x = -w/2;
 	if((pin.y-h-rad) < this.mapSize*0.25){

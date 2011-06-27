@@ -5,6 +5,7 @@
  * You need to add this Javascript file and then call addSearch() e.g.
  *
  * chromo.addSearch();
+ *
  */
 
 Chromoscope.prototype.addSearch = function(){
