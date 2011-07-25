@@ -20,6 +20,8 @@
  *   - moveMap() can animate again
  *   - Speeded up KML pin display by changing to IDs instead of classes
  *   - Pressing shift will show cursor coordinates
+ *   - Fixed some bugs with keyboard input
+ *   - Allow mouse interaction with info balloons (stop dragging)
  */
 
 // Manually define one global variable to hold the Chromoscope instance.
