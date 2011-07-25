@@ -10,7 +10,7 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.3.3 (2011-07-15):
+ * Changes in version 1.3.3 (2011-07-25):
  *   - Added KML title to page title if not in a container
  *   - Added key binding
  *   - Added event binding
@@ -19,6 +19,7 @@
  *   - Added ability to load from KML-like JSON file (.json extension)
  *   - moveMap() can animate again
  *   - Speeded up KML pin display by changing to IDs instead of classes
+ *   - Pressing shift will show cursor coordinates
  */
 
 // Manually define one global variable to hold the Chromoscope instance.
@@ -447,8 +448,8 @@ Chromoscope.prototype.load = function(callback){
 			return false;
 		}
 	}).mousemove({me:this},function(ev){
+		var chromo = ev.data.me;
 		if(this.dragging){
-			var chromo = ev.data.me;
 			newtop = this.y + (ev.clientY - this.dragStartTop);
 			newleft = this.x + (ev.clientX - this.dragStartLeft);
 			this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
@@ -468,6 +469,12 @@ Chromoscope.prototype.load = function(callback){
 				var coords = chromo.getCoords();
 				if(typeof chromo.events.move=="function") chromo.events.move.call(chromo,{position:coords,zoom:chromo.zoom});
 			}
+		}
+		// If the shift key is pressed we will show the cursor position
+		if(ev.shiftKey==1){
+			var offx = ($(chromo.container).length > 0) ? $(chromo.container).offset().left : 0;
+			var offy = ($(chromo.container).length > 0) ? $(chromo.container).offset().top : 0;
+			chromo.updateCoords((ev.clientX)-offx,(ev.clientY)-offy);
 		}
 	}).mouseup({me:this},function(ev){
 		var chromo = ev.data.me;
@@ -832,7 +839,7 @@ $(window).resize(function(){
 });
 
 // Register keyboard commands and associated functions
-Chromoscope.prototype.registerKey = function(charCode,fn){
+Chromoscope.prototype.registerKey = function(charCode,fn,txt){
 	if(typeof fn!="function") return this;
 	if(typeof charCode!="object") charCode = [charCode];
 	for(c = 0 ; c < charCode.length ; c++){
@@ -841,7 +848,10 @@ Chromoscope.prototype.registerKey = function(charCode,fn){
 		for(i = 0 ; i < this.keys.length ; i++){
 			if(this.keys.charCode == ch) available = false;
 		}
-		if(available) this.keys.push({charCode:ch,char:String.fromCharCode(ch),fn:fn});
+		if(available){
+			this.keys.push({charCode:ch,char:String.fromCharCode(ch),fn:fn});
+			if(txt) $(this.container+" .chromo_controlkeys").append('<li><strong>'+String.fromCharCode(ch)+'</strong> - '+txt+'</li>');
+		}
 	}
 	return this;
 }
@@ -1183,8 +1193,8 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 }
 
 // Update the coordinate holder
-Chromoscope.prototype.updateCoords = function(){
-	var coords = this.getCoords();
+Chromoscope.prototype.updateCoords = function(x,y){
+	var coords = this.getCoords(x,y);
 	this.l = coords.l;
 	this.b = coords.b;
 	if(this.coordtype == 'G') var label = ''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>'; //$(this.container+" .chromo_coords").html(''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>')
