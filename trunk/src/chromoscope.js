@@ -168,6 +168,7 @@ function Chromoscope(input){
 	this.compact = false;		// Hide parts of the interface if small
 	this.mapSize = 256;
 	this.dragging = false;
+	this.allowdrag = true;
 	this.draggingSlider = false;
 	this.moved = false;
 	this.ignorekeys = false;	// Allow/disallow keyboard control
@@ -434,8 +435,8 @@ Chromoscope.prototype.load = function(callback){
 
 	// Define the mouse events
 	$(body+" .chromo_outerDiv").mousedown({me:this},function(ev){
-		if(ev.button != 2){
-			var chromo = ev.data.me;
+		var chromo = ev.data.me;
+		if(ev.button != 2 && chromo.allowdrag){
 			// Don't do anything for a right mouse button event
 			this.dragStartLeft = ev.clientX;
 			this.dragStartTop = ev.clientY;
@@ -861,8 +862,7 @@ Chromoscope.prototype.keypress = function(charCode,event){
 	if(this.ignorekeys) return true;
 	for(i = 0 ; i < this.keys.length ; i++){
 		if(this.keys[i].charCode == charCode){
-			this.keys[i].fn.call(this);
-			event.preventDefault();
+			this.keys[i].fn.call(this,{event:event});
 			break;
 		}
 	}	
@@ -2210,6 +2210,11 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 		$(e.data.id).remove(); e.data.pin.info.visible = false;
 		if(typeof e.data.pin.el.events.pinclose=="function") e.data.pin.el.events.pinclose.call(e.data.pin.el,{pin:e.data.pin});
 	});
+	$(id).bind('mouseover',{me:this},function(e){
+		e.data.me.allowdrag = false;
+	}).bind('mouseout',{me:this},function(e){
+		e.data.me.allowdrag = true;
+	})
 	if(typeof this.events.pinopen=="function") this.events.pinopen.call(this,{pin:pin});
 }
 
