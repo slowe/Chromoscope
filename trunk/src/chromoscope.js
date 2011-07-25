@@ -170,7 +170,7 @@ function Chromoscope(input){
 	this.compact = false;		// Hide parts of the interface if small
 	this.mapSize = 256;
 	this.dragging = false;
-	this.allowdrag = true;
+	this.mouseevents = true;
 	this.draggingSlider = false;
 	this.moved = false;
 	this.ignorekeys = false;	// Allow/disallow keyboard control
@@ -438,7 +438,7 @@ Chromoscope.prototype.load = function(callback){
 	// Define the mouse events
 	$(body+" .chromo_outerDiv").mousedown({me:this},function(ev){
 		var chromo = ev.data.me;
-		if(ev.button != 2 && chromo.allowdrag){
+		if(ev.button != 2 && chromo.mouseevents){
 			// Don't do anything for a right mouse button event
 			this.dragStartLeft = ev.clientX;
 			this.dragStartTop = ev.clientY;
@@ -737,30 +737,33 @@ Chromoscope.prototype.buildLinks = function(overwrite){
 Chromoscope.prototype.buildContextMenu = function(){
 	var body = (!this.container) ? "body" : this.container;
 	$(body+' .chromo_outerDiv').bind("contextmenu",{el:this,body:body},function(e){
-		var body = e.data.body;
-		var offset = 2;
-		var offx = ($(e.data.el.container).length > 0) ? $(e.data.el.container).offset().left : 0;
-		var offy = ($(e.data.el.container).length > 0) ? $(e.data.el.container).offset().top : 0;
-		var newtop = (e.clientY)-offy;
-		var newleft = (e.clientX)-offx;
-		var coords = e.data.el.getCoords(newleft,newtop);
-		var radec = Galactic2Equatorial(coords.l,coords.b);
-		if($(body+" .chromo_context").length == 0) $(body).append('<div class="chromo_context" style="color:black;background-color:#eee;position:absolute;padding:2px;font-size:0.9em;z-index:1001;cursor:default;"></div>');
-		var output = '<ul style="margin:0px;padding:0px;font-size:0.9em;list-style:none;display:block;">'+(e.data.el.buildContextMenuItems({l:coords.l,b:coords.b,z:e.data.el.zoom,ra:radec.ra,dec:radec.dec}))+'</ul>';
-		$(body+" .chromo_context").html(output).bind('mouseleave', {el:e.data.el,body:body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; });
-		$(body+" .chromo_context li a").css({padding:'3px',display:'block',textDecoration:'none',color:'black'});
-		$(body+" .chromo_context li a").hover( function(){
-			$(this).css('background-color', '#ccc');
-		},function(){
-			$(this).css('background-color', 'transparent');
-		});
-		var w = $(body+" .chromo_context").outerWidth();
-		var h = $(body+" .chromo_context").outerHeight();
-		if(newleft+w > e.data.el.wide) newleft -= w-2*offset;
-		if(newtop+h > e.data.el.tall) newtop -= h-(2*offset);
-		$(body+" .chromo_context").css({left:(newleft-offset)+'px',top:(newtop-offset)+'px',width:'200px'}).show();
-		e.data.el.dragging = false;
-		return false;
+		var chromo = e.data.el;
+		if(chromo.mouseevents){
+			var body = e.data.body;
+			var offset = 2;
+			var offx = ($(chromo.container).length > 0) ? $(chromo.container).offset().left : 0;
+			var offy = ($(chromo.container).length > 0) ? $(chromo.container).offset().top : 0;
+			var newtop = (e.clientY)-offy;
+			var newleft = (e.clientX)-offx;
+			var coords = chromo.getCoords(newleft,newtop);
+			var radec = Galactic2Equatorial(coords.l,coords.b);
+			if($(body+" .chromo_context").length == 0) $(body).append('<div class="chromo_context" style="color:black;background-color:#eee;position:absolute;padding:2px;font-size:0.9em;z-index:1001;cursor:default;"></div>');
+			var output = '<ul style="margin:0px;padding:0px;font-size:0.9em;list-style:none;display:block;">'+(chromo.buildContextMenuItems({l:coords.l,b:coords.b,z:chromo.zoom,ra:radec.ra,dec:radec.dec}))+'</ul>';
+			$(body+" .chromo_context").html(output).bind('mouseleave', {el:chromo,body:body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; });
+			$(body+" .chromo_context li a").css({padding:'3px',display:'block',textDecoration:'none',color:'black'});
+			$(body+" .chromo_context li a").hover( function(){
+				$(this).css('background-color', '#ccc');
+			},function(){
+				$(this).css('background-color', 'transparent');
+			});
+			var w = $(body+" .chromo_context").outerWidth();
+			var h = $(body+" .chromo_context").outerHeight();
+			if(newleft+w > chromo.wide) newleft -= w-2*offset;
+			if(newtop+h > chromo.tall) newtop -= h-(2*offset);
+			$(body+" .chromo_context").css({left:(newleft-offset)+'px',top:(newtop-offset)+'px',width:'200px'}).show();
+			chromo.dragging = false;
+			return false;
+		}
 	});
 }
 
@@ -2213,9 +2216,9 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 		if(typeof e.data.pin.el.events.pinclose=="function") e.data.pin.el.events.pinclose.call(e.data.pin.el,{pin:e.data.pin});
 	});
 	$(id).bind('mouseover',{me:this},function(e){
-		e.data.me.allowdrag = false;
+		e.data.me.mouseevents = false;
 	}).bind('mouseout',{me:this},function(e){
-		e.data.me.allowdrag = true;
+		e.data.me.mouseevents = true;
 	})
 	if(typeof this.events.pinopen=="function") this.events.pinopen.call(this,{pin:pin});
 }
