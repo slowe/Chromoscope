@@ -48,12 +48,12 @@ $(document).keydown(function(e){
 	if(!chromo_active) return true;
 	if(!e) e=window.event;
 	var code = e.keyCode || e.charCode || e.which || 0;
-	chromo_active.keypress(code)
+	chromo_active.keypress(code,e)
 }).keypress(function(e){
 	if(!chromo_active) return true;
 	if(!e) e=window.event;
 	var code = e.keyCode || e.charCode || e.which || 0;
-	chromo_active.keypress(code)
+	chromo_active.keypress(code,e)
 });
 
 // Extend jQuery
@@ -857,11 +857,12 @@ Chromoscope.prototype.registerKey = function(charCode,fn,txt){
 }
 
 // Press a key
-Chromoscope.prototype.keypress = function(charCode){
+Chromoscope.prototype.keypress = function(charCode,event){
 	if(this.ignorekeys) return true;
 	for(i = 0 ; i < this.keys.length ; i++){
 		if(this.keys[i].charCode == charCode){
 			this.keys[i].fn.call(this);
+			event.preventDefault();
 			break;
 		}
 	}	

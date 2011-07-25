@@ -16,9 +16,8 @@ Chromoscope.prototype.addSearch = function(){
 	// Create the search box if necessary
 	if($(body+" .chromo_search").length == 0) $(body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'Find an object with <a href="http://www.strudel.org.uk/lookUP/">lookUP</a>:<br /><form action="http://www.strudel.org.uk/lookUP/" method="GET" id="'+this.lookup_id+'_lookUPform" name="'+this.lookup_id+'_lookUPform"><input type="text" name="name" id="'+this.lookup_id+'_lookupobject" onFocus="disableKeys(true);" onBlur="disableKeys(false);" /><input type="submit" name="button" id="'+this.lookup_id+'_lookupsubmit" value="'+this.phrasebook.search+'" /></form><div class="lookupmessages"></div></div>');
 	$(body+" .chromo_search").hide()
-	$(body+" .chromo_controlkeys").append("<li><strong>s</strong> - "+this.phrasebook.search+"</li>");
 	$(body+" .chromo_controlbuttons").append("<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('s')\">Search</a></li>");
-	this.registerKey('s',function(){
+	this.registerKey(['s','/'],function(){
 		this.showintro = false;	// Disable the intro just in case the user is really quick
 		var valid = /[^A-Za-z0-9]/g;
 		var id = this.container.replace(valid,'');
@@ -32,7 +31,7 @@ Chromoscope.prototype.addSearch = function(){
 		$(this.container+' .lookupmessages').html("");
 		if($(this.container+" .chromo_search").is(':visible')) $("#"+id+'_lookupobject').focus().select();
 		else $("#"+id+'_lookupobject').blur();
-	})
+	},this.phrasebook.search)
 
 	$(body+" .chromo_search .chromo_close").bind('click',{id:'.chromo_search',me:this,input:'#'+this.lookup_id+'_lookupobject'}, function(ev){ ev.data.me.toggleByID(ev.data.id); $(ev.data.input).blur(); } );
 	$(body+" .chromo_search").css({"width":"250px","z-index":1000});
