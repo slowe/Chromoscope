@@ -2211,7 +2211,8 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 	pin.info.visible = true;
 	
 	// Attach event
-	$(id+" .chromo_close").bind('click',{id:id,pin:pin},function(e){
+	$(id+" .chromo_close").bind('click',{me:this,id:id,pin:pin},function(e){
+		e.data.me.mouseevents = true;
 		$(e.data.id).remove(); e.data.pin.info.visible = false;
 		if(typeof e.data.pin.el.events.pinclose=="function") e.data.pin.el.events.pinclose.call(e.data.pin.el,{pin:e.data.pin});
 	});
