@@ -108,7 +108,7 @@ $(function(){
 // Declare the Chromoscope object
 function Chromoscope(input){
 
-	this.version = "1.3.3 beta";
+	this.version = "1.3.3";
 
 	this.q = $.query();
 	this.zoom = -1;
@@ -510,6 +510,7 @@ Chromoscope.prototype.load = function(callback){
 	}).bind('mousewheel',{me:this},function(ev, delta) {
 		var chromo = ev.data.me;
 		if(!chromo) return;
+		if(!chromo.mouseevents) return;
 		if(delta > 0) chromo.changeMagnification(1,ev.pageX,ev.pageY);
 		else chromo.changeMagnification(-1,ev.pageX,ev.pageY);
 		return false;
@@ -824,7 +825,7 @@ Chromoscope.prototype.buildIntro = function(delay){
 	if(this.tall <= 640) w *= 1.2;
 	if(w > 0.8*this.wide) w = 0.8*this.wide;
 	$(body+" .chromo_message").css({width:w+"px","text-align":"left"});
-	if(this.showintro) this.message(this.createClose()+this.phrasebook.intro)
+	if(this.showintro) this.message(this.createClose()+this.phrasebook.intro,false,'left')
 	$(body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
 	if(this.showintro && delay > 0) $(body+" .chromo_message").delay(delay).fadeOut(500)
 }
@@ -1762,10 +1763,12 @@ Chromoscope.prototype.createCloseOld = function(){
 	return '<div class="chromo_close" title="'+this.phrasebook.closedesc+'">'+s+'</div>';
 }
 // Make a message
-Chromoscope.prototype.message = function(html,delay){
-	if(delay) $(this.container+" .chromo_message").html(html).show().delay((typeof delay=="number") ? delay : 2000).fadeOut(500);
-	else $(this.container+" .chromo_message").html(html).show();
+Chromoscope.prototype.message = function(html,delay,align){
+	msg = $(this.container+" .chromo_message");
+	if(delay && delay > 0) msg.html(html).show().delay((typeof delay=="number") ? delay : 2000).fadeOut(500);
+	else msg.html(html).show();
 	this.centreDiv(".chromo_message");
+	msg.css('text-align',((align) ? align:'center'))
 }
 // Bind events
 Chromoscope.prototype.bind = function(ev,fn){
