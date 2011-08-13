@@ -1,5 +1,5 @@
 /*
- * Chromoscope v1.3.3
+ * Chromoscope v1.4
  * Written by Stuart Lowe for the Planck/Herschel Royal Society
  * Summer Exhibition 2009. Developed as an educational resource.
  *
@@ -10,6 +10,8 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
+ * Changes in version 1.4 (2011-08):
+ *   - 
  * Changes in version 1.3.3 (2011-07-25):
  *   - Added KML title to page title if not in a container
  *   - Added key binding
@@ -108,7 +110,7 @@ $(function(){
 // Declare the Chromoscope object
 function Chromoscope(input){
 
-	this.version = "1.3.3";
+	this.version = "1.4 beta";
 
 	this.q = $.query();
 	this.zoom = -1;
@@ -166,6 +168,7 @@ function Chromoscope(input){
 	this.showabout = true;		// Display the about link
 	this.showlangs = true;		// Display the languages link
 	this.showcoord = true;		// Display the coordinates
+	this.showsearch = true;		// Display the search link
 	this.showcontext = true;	// Display the context menu (right-click)
 	this.compact = false;		// Hide parts of the interface if small
 	this.mapSize = 256;
@@ -193,6 +196,7 @@ function Chromoscope(input){
 	this.maxlambda = this.lambda+1;
 	this.dir = "";			// The location for resources such as the close image and language files
 	this.start = new Date();
+	this.search = "";		// Allow override of default search function
 
 	this.events = {move:"",zoom:"",slide:"", wcsupdate:"",kml:"",json:"",pinopen:"",pinclose:""};	// Let's add some events
 	this.init(input);
@@ -272,7 +276,7 @@ function Language(inp){
 	this.share = (inp.share) ? inp.share :'Share';
 	this.sharewith = (inp.sharewith) ? inp.sharewith :'Share it with';
 	this.switchtext = (inp.switchtext) ? inp.switchtext : 'switch to __WAVELENGTH__ view of the sky';
-	this.search = (inp.search) ? inp.search : 'search';
+	this.search = (inp.search) ? inp.search : 'Search';
 	this.press = (inp.press) ? inp.press : 'Press __KEY__';
 	this.close = (inp.close) ? inp.close : 'Close';
 	this.closedesc = (inp.closedesc) ? inp.closedesc : 'click to close';
@@ -710,6 +714,10 @@ Chromoscope.prototype.buildLinks = function(overwrite){
 	if(!this.compact && this.showabout) str+= ' | <a href="http://blog.chromoscope.net/about/" class="chromo_about">'+this.phrasebook.about+'</a>';
 	if(!($.browser.opera && $.browser.version == 9.3)){
 		if(!this.compact && this.showshare) str += ' | <span class="chromo_linkhint chromo_link">'+this.phrasebook.share+'</span>';
+		if(!this.compact && this.showsearch){
+			str += ' | <span class="chromo_searchhint chromo_link">'+this.phrasebook.search+'</span>';
+			this.buildSearch();
+		}
 		if(this.langs.length > 1 && !this.compact && this.showlangs){
 			if(str) str += ' | ';
 			str += '<span class="chromo_langhint chromo_link">Language ('+this.langshort+')</span>';
@@ -723,7 +731,8 @@ Chromoscope.prototype.buildLinks = function(overwrite){
 	$(body+" .chromo_linkhint").bind('click', jQuery.proxy( this, "createLink" ) );
 	$(body+" .chromo_langhint").bind('click',{id:'.chromo_lang'}, jQuery.proxy( this, "toggleByID" ) );
 	$(body+" .chromo_helphint").bind('click',{id:'.chromo_help'}, jQuery.proxy( this, "toggleByID" ) );
-	$(body+" .chromo_close").bind('click',{id:'.chromo_help'}, jQuery.proxy( this, "toggleByID" ) );
+	$(body+" .chromo_searchhint").bind('click', jQuery.proxy( this, "launchSearch" ) );
+	$(body+" .chromo_close").bind('click',{id:'.chromo_help'}, jQuery.proxy( this, "hide" ) );
 	// Allow coordinates to be converted
 	$(this.container+" .chromo_coords").css({cursor:'pointer'});
 	$(body+" .chromo_coords").bind('click',{el:this},function (event){
@@ -814,7 +823,7 @@ Chromoscope.prototype.showVideoTour = function(){
 	$(body+" .chromo_help").hide();
 	$(body+" .chromo_message").css({width:(w)+"px","text-align":"center"});
 	this.message(this.createClose()+'<object width="'+w+'" height="'+h+'"><param name="movie" value="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="'+w+'" height="'+h+'"></embed></object>');
-	$(body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
+	$(body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
 }
 
 // Construct the splash screen
@@ -826,7 +835,7 @@ Chromoscope.prototype.buildIntro = function(delay){
 	if(w > 0.8*this.wide) w = 0.8*this.wide;
 	$(body+" .chromo_message").css({width:w+"px","text-align":"left"});
 	if(this.showintro) this.message(this.createClose()+this.phrasebook.intro,false,'left')
-	$(body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
+	$(body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
 	if(this.showintro && delay > 0) $(body+" .chromo_message").delay(delay).fadeOut(500)
 }
 
@@ -997,7 +1006,6 @@ Chromoscope.prototype.cloneLayers = function(other){
 Chromoscope.prototype.makeWavelengthSlider = function(){
 
 	var body = (!this.container) ? "body" : this.container;
-	$(body+" .chromo_layerswitcher span").css('margin','5px');
 
 	var layerswitch = "<div class=\"chromo_sliderbar\"><div class=\"chromo_slider\"></div></div><div class=\"chromo_keys\">";
 	for(var i=0 ; i < this.spectrum.length ; i++){
@@ -1012,15 +1020,10 @@ Chromoscope.prototype.makeWavelengthSlider = function(){
 		layerswitch += '<span id="'+this.container+'-key-'+this.spectrum[i].key+'" title="'+p+'" class="chromo_key legend-'+this.spectrum[i].key+'">'+t+'</span>';
 	}
 	layerswitch += '</div>'
-	$(body+" .chromo_layerswitcher").html(layerswitch);
-	$(body+" .chromo_layerswitcher").disableTextSelect();	//No text selection
+	$(body+" .chromo_layerswitcher").html(layerswitch).disableTextSelect();	//No text selection
 	for(var i=0 ; i < this.spectrum.length ; i++){
 		if(this.spectrum[i].key) {
-			$(body+" .legend-"+this.spectrum[i].key).bind("click",{key:this.spectrum[i].key,el:this},function(e){
-				// Extract the key from the name
-				e.data.el.changeWavelengthByName(e.data.key);
-				e.data.el.checkTiles();
-			});
+			$(body+" .legend-"+this.spectrum[i].key).bind("click",{key:this.spectrum[i].key},function(e){ simulateKeyPress(e.data.key); });
 		}
 	}
 	
@@ -1031,15 +1034,9 @@ Chromoscope.prototype.makeWavelengthSlider = function(){
 
 	// Add some padding for the wavelength slider
 	$(body+" .chromo_layerswitcher").css('padding-right',(h*2)+'px');
-	$(body+" .chromo_slider").css({height:h,width:h*1.2,"margin-left":"-"+(h*0.2)+"px"});
-	$(body+" .chromo_sliderbar").css({'margin-right':-(h)+'px',height:h_full,width:h*0.8,'margin-top':margin_t+'px'})
+	$(body+" .chromo_slider").css({height:h,width:h*1.2,"margin-left":"-"+(h*0.2)+"px"}).bind('mousedown',{state:true},jQuery.proxy( this, "draggable" ) ).bind('mouseup',{state:false},jQuery.proxy( this, "draggable" )).addTouch();
+	$(body+" .chromo_sliderbar").css({'margin-right':-(h)+'px',height:h_full,width:h*0.8,'margin-top':margin_t+'px'}).bind('mousemove',{h:h,margin_t:margin_t},jQuery.proxy( this, "dragIt" ) ).bind('mouseup',{state:false},jQuery.proxy( this, "draggable" )).addTouch();
 	
-	$(this.container+" .chromo_sliderbar").bind('mousemove',{h:h,margin_t:margin_t},jQuery.proxy( this, "dragIt" ) );
-	$(this.container+" .chromo_slider").bind('mousedown',{state:true},jQuery.proxy( this, "draggable" ) );
-	$(this.container+" .chromo_sliderbar").bind('mouseup',{state:false},jQuery.proxy( this, "draggable" ) );
-	$(this.container+" .chromo_slider").bind('mouseup',{state:false},jQuery.proxy( this, "draggable" ) );
-	$(this.container+" .chromo_sliderbar").addTouch();
-	$(this.container+" .chromo_slider").addTouch();
 	this.positionSlider();
 	if(this.zoomctrl) this.makeZoomControl();
 }
@@ -1047,14 +1044,16 @@ Chromoscope.prototype.makeWavelengthSlider = function(){
 // Set the draggingSlider property
 Chromoscope.prototype.draggable = function(event){
 	this.draggingSlider = event.data.state;
+	var cur,cur2;
 	if (this.draggingSlider){
-		var cur = ($.browser.mozilla) ? '-moz-grabbing' : 'grabbing';
-		$(this.container+" .chromo_slider").css({cursor:cur});
-		$(this.container+" .chromo_sliderbar").css({cursor:cur});
+		cur = ($.browser.mozilla) ? '-moz-grabbing' : 'grabbing';
+		cur2 = cur;
 	}else{
-		$(this.container+" .chromo_slider").css({cursor:'pointer'});
-		$(this.container+" .chromo_sliderbar").css({cursor:'default'});
+		cur = 'pointer';
+		cur2 = 'default';
 	}
+	$(this.container+" .chromo_slider").css({cursor:cur});
+	$(this.container+" .chromo_sliderbar").css({cursor:cur2});
 }
 
 // Update the wavelength slider position
@@ -1091,6 +1090,12 @@ Chromoscope.prototype.processLayers = function(){
 		if(a.name) $(this.container+" .chromo_innerDiv").append('<div class="annotation '+a.name+'"></div>');
 		setOpacity($(this.container+" ."+a.name),a.opacity);
 	}
+}
+
+// Hide any element by the ID or style.
+// Usage: hide("#chromo_message")
+Chromoscope.prototype.hide = function(event){
+	$(this.container+" "+((typeof event=="object") ? event.data.id : event)).hide();
 }
 
 // Show or hide any element by the ID or style.
@@ -1133,9 +1138,6 @@ Chromoscope.prototype.positionMap = function(c){
 // wrapping in x.
 Chromoscope.prototype.limitBounds = function(left,top,virtual){
 	virtual = (typeof virtual=="boolean") ? virtual : false;
-	// no wrapping in x
-	//if(newleft < this.wide - this.mapSize) newleft = this.wide - this.mapSize
-	//if(newleft > 0) newleft = 0;
 	// wrapping in x
 	if(left > 0){
 		left -= this.mapSize;
@@ -1151,6 +1153,7 @@ Chromoscope.prototype.limitBounds = function(left,top,virtual){
 			this.checkTiles();
 		}
 	}
+
 	// no wrapping in y
 	if(top < this.tall - this.mapSize*0.75) top = this.tall - this.mapSize*0.75;
 	if(top > -this.mapSize*0.25) top = -this.mapSize*0.25;
@@ -1722,6 +1725,81 @@ Chromoscope.prototype.getCoords = function(offx,offy){
 	return {l:l, b:b}
 }
 
+Chromoscope.prototype.buildSearch = function(){
+	var body = (this.container) ? this.container : 'body';
+
+	// Create the search box if necessary
+	if($(body+" .chromo_search").length == 0){
+		$(body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'<form action="" method="GET" id="chromo_search_form" name="chromo_search_form"><input type="text" name="name" style="width:180px;" class="chromo_search_object" onFocus="disableKeys(true);" onBlur="disableKeys(false);" /><input type="submit" name="chromo_search_submit" class="chromo_search_submit" value="'+this.phrasebook.search+'" /><div class="chromo_search_message"></div></form></div>');
+		$('#chromo_search_form').bind('submit',{chromo:this},function(e){
+			e.preventDefault();
+			if(typeof e.data.chromo.search=="function") e.data.chromo.search.call(e.data.chromo,{val:$(e.data.chromo.container+" .chromo_search_object").val()});
+			else e.data.chromo.find($(e.data.chromo.container+" .chromo_search_object").val());
+			return false;
+		});
+	}
+	$(body+" .chromo_search").css({"width":"250px","z-index":1000}).hide()
+	$(body+" .chromo_controlbuttons").append("<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('s')\">"+this.phrasebook.search+"</a></li>");
+	$(body+" .chromo_search .chromo_close").bind('click', function(ev){ $('.chromo_search').hide(); $('.chromo_search_object').blur(); } );
+	if(this) this.centreDiv(".chromo_search");
+
+	this.registerKey(['s','/'],function(e){
+		e.event.preventDefault()
+		this.launchSearch();
+	},this.phrasebook.search);
+}
+
+
+Chromoscope.prototype.find = function(query){
+	q = query.toLowerCase();
+	matched = 0;
+	i = -1;
+	for(var p = 0 ; p < this.pins.length; p++){
+		if(this.pins[p].title.toLowerCase() == q){
+			matched++;
+			i = p;
+		}
+	}
+	// If it didn't match on a title we'll check in the rest of the balloon
+	if(matched == 0){
+		for(var p = 0 ; p < this.pins.length; p++){
+			d = this.pins[p].info.html.replace(/<\S[^><]*>/g,'');
+			if(d.toLowerCase().indexOf(q) >= 0){
+				matched++;
+				i = p;
+			}
+		}
+	}
+	
+	if(matched == 0) msg = "Not found.";
+	else if(matched == 1){
+		this.moveMap(this.pins[i].glon,this.pins[i].glat,this.zoom,1000);
+		this.showBalloon(this.pins[i]);
+		this.hide('.chromo_search');
+		$(body+' .chromo_search_object').blur();
+		msg = "";
+	}else msg = "Found "+matched+" matches.";
+	
+	$(this.container+' .chromo_search_message').html(msg);
+	return false;
+}
+
+Chromoscope.prototype.launchSearch = function(){
+
+	// Disable the intro just in case the user is really quick
+	this.showintro = false;	
+
+	// Hide message boxes
+	$(this.container+" .chromo_help").hide();
+	$(this.container+" .chromo_message").hide();
+	$(this.container+" .chromo_search").show();
+
+	this.centreDiv(".chromo_search");
+
+	if($(this.container+" .chromo_search").is(':visible')) $(this.container+" .chromo_search_object").focus().select();
+	else $(this.container+" .chromo_search_object").blur();
+}
+
 // Create a web link to this view
 Chromoscope.prototype.createLink = function(){
 	var url = this.getViewURL();
@@ -1731,7 +1809,7 @@ Chromoscope.prototype.createLink = function(){
 	var icons = '<a href="http://twitter.com/home/?status=Spotted+this+with+@chromoscope+'+safeurl+'"><img src="twitter.gif" title="Tweet this" /></a><a href="http://www.facebook.com/sharer.php?u='+safeurl+'"><img src="facebook.gif" title="Share with Facebook" /></a><a href="http://www.blogger.com/blog-this.g?t=&amp;n=Chromoscope&amp;u='+safeurl+'"><img src="blogger.gif" title="Add to Blogger" /></a><a href="http://del.icio.us/post?url='+safeurl+'"><img src="delicious.gif" title="Tag with del.icio.us" /></a><a href="http://slashdot.org/bookmark.pl?title=Chromoscope&amp;url='+safeurl+'"><img src="slashdot.gif" title="Slashdot this" /></a><a href="http://digg.com/submit?phase=2&url='+safeurl+'"><img src="digg.gif" title="Digg this" /></a><a href="http://www.mixx.com/submit?page_url='+safeurl+'"><img src="mixx.png" title="Add to Mixx" /></a>';
 	var share = (this.phrasebook.sharewith.indexOf("__ICONS__") > 0) ? this.phrasebook.sharewith.replace("__ICONS__",icons) : this.phrasebook.sharewith+icons;
 	this.message(this.createClose()+this.phrasebook.url+'<input type="text" class="chromo_createdLink" value="'+url+'" style="width:100%;" /><br /><p class="social">'+share+' </p>')
-	$(this.container+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "toggleByID" ) );
+	$(this.container+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
 	$(this.container+" .chromo_createdLink").focus(function(){
 		$(this).select();
 	})
@@ -2248,9 +2326,7 @@ Chromoscope.prototype.wrapPins = function(i){
 
 	for(var p = i ; p < max ; p++){
 		//var pos = x+this.pins[p].x;
-		if(this.pins[p].x < -x-this.tileSize){
-			this.pins[p].x += this.mapSize;
-		}
+		if(this.pins[p].x < -x-this.tileSize) this.pins[p].x += this.mapSize;
 		while(this.pins[p].x > -x+this.mapSize-this.tileSize){
 			this.pins[p].x -= this.mapSize;
 		}
@@ -2279,6 +2355,7 @@ Chromoscope.prototype.zoomPins = function(oldmapSize,newmapSize){
 		}
 	}
 }
+
 
 // ===================================
 // Generic functions that are independent 
@@ -2408,3 +2485,4 @@ function Equatorial2XY(ra,dec,mapSize){
 	var coords = Equatorial2Galactic(ra, dec);
 	return Galactic2XY(coords[0],coords[1],mapSize);
 }
+
