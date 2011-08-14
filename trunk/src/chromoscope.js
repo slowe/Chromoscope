@@ -137,8 +137,8 @@ function Chromoscope(input){
 	this.annotations = new Array();	// Annotation layers
 	this.pins = new Array();	// For information pin/balloons
 	this.times = new Array(10);	// Processing times for map moving updates
-	this.keys = new Array();	// Keyboard commands
-	this.kmls = new Array();	// KML files to add to this map
+	this.keys = [];			// Keyboard commands
+	this.kmls = [];			// KML files to add to this map
 	this.tidx = 0;			// Current index of the times array
 	this.clock = 0;			// Holds the time
 
@@ -218,8 +218,8 @@ Chromoscope.prototype.init = function(inp){
 	if(this.q.zoomctrl) this.zoomctrl = (this.q.zoomctrl == "true") ? true : false;
 	if(this.q.compact) this.compact = (this.q.compact == "true") ? true : false;
 	if(this.q.title) this.title = (this.q.title == "true") ? true : false;
-	if(this.q.kml=="string") this.kmls[this.kmls.length] = this.q.kml;
-	if(this.q.json=="string") this.kmls[this.kmls.length] = this.q.json;
+	if(typeof this.q.kml=="string") this.kmls = this.q.kml.split(';');
+	if(typeof this.q.json=="string") this.kmls.push(this.q.json.split(';'));
 	if(this.q.performance) this.performance = true;
 
 	// Overwrite with variables passed to the function
@@ -251,10 +251,11 @@ Chromoscope.prototype.init = function(inp){
 		if(typeof inp.maxZoom=="number") this.maxZoom = inp.maxZoom;
 		if(typeof inp.lambda=="number") this.lambda = inp.lambda;
 		if(typeof inp.langs=="object") this.langs = inp.langs;
-		if(typeof inp.kml=="string") this.kmls[this.kmls.length] = inp.kml;
-		if(typeof inp.json=="string") this.kmls[this.kmls.length] = inp.json;
 		if(typeof inp.dir=="string") this.dir = inp.dir;
+		if(typeof inp.kml=="string") this.kmls.push(inp.kml.split(';'))
+		if(typeof inp.json=="string") this.kmls.push(inp.json.split(';'));
 	}
+
 	if(this.pushstate){
 		window.onpopstate = function(event) {
 			// Can't use moveMap because it updates the state event chromo_active.moveMap(event.state.l,event.state.b,event.state.z);
@@ -413,11 +414,6 @@ Chromoscope.prototype.load = function(callback){
 
 	}else var body = 'body';
  
-	// Add any query string defined kml files
-	// Should we only do this if only one instance?
-	if(this.q.kml) this.kmls[this.kmls.length] = this.q.kml;
-	if(this.q.json) this.kmls[this.kmls.length] = this.q.json;
-
 	// Check for defined elements. If they don't exist let's create them
 	if($(body+" .chromo_outerDiv").length == 0) $(body).append('<div class="chromo_outerDiv"><div class="chromo_innerDiv"></div></div>');
 	if(this.title && $(body+" .chromo_title").length == 0) $(body).append('<div class="chromo_title"><h1><a href="#">Chromoscope</a></h1><h2 class="chromo_version"></h2></div>');
@@ -438,7 +434,6 @@ Chromoscope.prototype.load = function(callback){
 	if(!this.title) $(body+" .chromo_title").toggle();
 	$(body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
 	$(body+" .chromo_outerDiv").append('<div id="chromo_zoomer" style="width:50px;height:50px;display:none;"><div style="position:absolute;width:10px;height:10px;left:0px;top:0px;border-top:2px solid white;border-left:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;right:0px;top:0px;border-top:2px solid white;border-right:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;right:0px;bottom:0px;border-bottom:2px solid white;border-right:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;left:0px;bottom:0px;border-bottom:2px solid white;border-left:2px solid white;"></div></div>');
-	//$(body+" .chromo_innerDiv").disableTextSelect();	//No text selection
 
 	// Define the mouse events
 	$(body+" .chromo_outerDiv").mousedown({me:this},function(ev){
