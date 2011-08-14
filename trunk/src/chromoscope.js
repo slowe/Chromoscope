@@ -11,7 +11,8 @@
  * tile sets and code.
  *
  * Changes in version 1.4 (2011-08):
- *   - 
+ *   - Added core search form to search through KML placemarkers
+ *
  * Changes in version 1.3.3 (2011-07-25):
  *   - Added KML title to page title if not in a container
  *   - Added key binding
@@ -545,6 +546,7 @@ Chromoscope.prototype.load = function(callback){
 		$(this.container+" h2").toggle();
 		$(this.container+" .chromo_message").hide();
 		$(this.container+" .chromo_layerswitcher").toggle();
+		$(this.container+" .chromo_kml_list").toggle();
 		$(this.container+" .chromo_helplink").toggle();
 		$(this.container+" .chromo_help").hide();
 		$(this.container+" .chromo_info").hide();
@@ -1889,7 +1891,7 @@ Chromoscope.prototype.readKML = function(kml){
 			this.message('Loading '+kml+'.',true);
 			if(kml.indexOf(".json") > 0){
 				var jqxhr = $.getJSON(kmlurl,function(data){
-					var total = _obj.processJSON(data,overwrite);
+					var total = _obj.processJSON(data,overwrite,kml);
 					if(typeof _obj.events.json=="function") _obj.events.json.call(_obj,{total:total,name:data.name});
 					if(callback) callback.call();
 					if(duration > 0) setTimeout(function(json,duration){ _obj.readKML(json,duration); },duration);
@@ -1914,7 +1916,7 @@ Chromoscope.prototype.readKML = function(kml){
 						var docname = $('Document',xml).children('name').text();
 						_obj.message('Processing '+docname);
 						if(!_obj.container) $('title').text(docname+' | Chromoscope');
-						var total = _obj.processKML(xml,overwrite);
+						var total = _obj.processKML(xml,overwrite,kml);
 						if(typeof _obj.events.kml=="function") _obj.events.kml.call(_obj,{total:total,name:$('Document',xml).children('name').text()});
 						if(callback) callback.call();
 						if(duration > 0) setTimeout(function(kml,duration){ _obj.readKML(kml,duration); },duration);
@@ -1934,17 +1936,19 @@ Chromoscope.prototype.readKML = function(kml){
 // Usage: processKML(xml,[overwrite])
 //	xml = The KML file as loaded by readKML()
 //	overwrite (boolean) = Do we overwrite any previously loaded Placemarkers?
-Chromoscope.prototype.processKML = function(xml,overwrite){
+Chromoscope.prototype.processKML = function(xml,overwrite,docname){
 	var overwrite = overwrite ? true : false;
+	if(!docname) docname = "KML";
 	if(overwrite){ this.pins = new Array(); }
-	this.makePinHolder();
+	holder = this.makePinHolder(docname);
+	body = (this.container) ? this.container : 'body';
 
 	var p = this.pins.length;
 	var c = this;	// Keep a copy of this instance for inside the Placemark loop
 	var i = 0;
 
 	// Set the opacity of all the pins (mostly for IE)
-	setOpacity($(this.container+" .kml"),1.0);
+	setOpacity($(body+" .kml"),1.0);
 
 	//console.log("Time until running processKML: " + (new Date() - this.start) + "ms");
 	var styles = new Array();
@@ -1979,13 +1983,20 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 	//console.log("Time to process styles: " + (new Date() - this.start) + "ms");
 	$('Placemark',xml).each(function(i){
 		// Get the custom icon
-		var img = "";
-		var balloonstyle = "";
-		var x, y, xunits, yunits, w, h = "";
-		var style = $(this).find("styleUrl").text();
-		style = style.substring(1);
+		var img = "pin.png";
+		var balloonstyle = "test";
+		var x, y, xu, yu, w, h = "";
+		var style = "";
+		if($(this).find("styleUrl").text()){
+			style = $(this).find("styleUrl").text();
+			style = style.substring(1);
+		}
+		var title = ($(this).find("name")) ? $(this).find("name").text() : "";
+		var desc = ($(this).find("description")) ? $(this).find("description").text() : "";
+		var ra = ($(this).find("longitude")) ? (parseFloat($(this).find("longitude").text())+180) : 0.0;
+		var dec = ($(this).find("latitude")) ? parseFloat($(this).find("latitude").text()) : 0.0;
 		var id_text = "";
-		if(typeof styles[style]=="object"){
+		if(typeof styles=="object" && style != "" && typeof styles[style]=="object"){
 			img = styles[style].img;
 			balloonstyle = styles[style].balloonstyle.find('text').text()
 			x = (typeof styles[style].x=="undefined") ? "" : parseFloat(styles[style].x);
@@ -1995,9 +2006,11 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 			w = (styles[style].img.width) ? styles[style].img.width : "";
 			h = (styles[style].img.height) ? styles[style].img.height : "";
 		}
-		c.addPin({id:p++,style:style,img:img,title:$(this).find("name").text(),x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:($(this).find("description").text()),ra:parseFloat($(this).find("longitude").text())+180,dec:parseFloat($(this).find("latitude").text())},true);
+		c.addPin({src:holder,id:p++,style:style,img:img,title:title,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:desc,ra:ra,dec:dec,src:docname},true);
 		added++;
 	});
+	if(added > 0) this.addKMLSwitch(holder,docname);
+	
 	this.updatePins("",true);
 	this.wrapPins();
 	//console.log("Time to end of processKML: " + (new Date() - this.start) + "ms");
@@ -2008,10 +2021,10 @@ Chromoscope.prototype.processKML = function(xml,overwrite){
 // Usage: processJSON(json,[overwrite])
 //	json = The JSON object as loaded by readKML()
 //	overwrite (boolean) = Do we overwrite any previously loaded Placemarkers?
-Chromoscope.prototype.processJSON = function(json,overwrite){
+Chromoscope.prototype.processJSON = function(json,overwrite,docname){
 	var overwrite = overwrite ? true : false;
 	if(overwrite){ this.pins = new Array(); }
-	this.makePinHolder();
+	holder = this.makePinHolder(docname);
 
 	var p = this.pins.length;
 	var c = this;	// Keep a copy of this instance for inside the Placemark loop
@@ -2068,21 +2081,33 @@ Chromoscope.prototype.processJSON = function(json,overwrite){
 			w = (styles[style].img.width) ? styles[style].img.width : "";
 			h = (styles[style].img.height) ? styles[style].img.height : "";
 		}
-		c.addPin({id:p++,style:style,img:img,title:json.placemarks[i].name,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:json.placemarks[i].description,ra:json.placemarks[i].ra+180,dec:json.placemarks[i].dec},true);
+		c.addPin({src:holder,id:p++,style:style,img:img,title:json.placemarks[i].name,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:json.placemarks[i].description,ra:json.placemarks[i].ra+180,dec:json.placemarks[i].dec},true);
 		added++;
 	}
+	if(added > 0) this.addKMLSwitch(holder,docname);
+
 	this.updatePins("",true);
 	this.wrapPins();
 	//console.log("Time to end of processKML: " + (new Date() - this.start) + "ms");
 	return added;
 }
 
+// Add a checkbox to be able to turn off this set of pins
+Chromoscope.prototype.addKMLSwitch = function(div,doc){
+	if($(body+" .chromo_kml_list").length == 0) $(body).append('<div class="chromo_kml_list"><form id="chromo_kml_list"><ul></ul></form></div>');
+	$(body+' .chromo_kml_list ul').append('<li><input type="checkbox" value="'+div+'" checked />'+doc+'</li>');
+	$(body+' .chromo_kml_list ul li:last input').change({chromo:this,name:name},function(e){
+		body = (e.data.chromo.container) ? e.data.chromo.container : 'body';
+		e.data.chromo.toggleByID('#'+body+'-holder-'+$(this).val());
+	});
+}
+
 // Create a layer to hold pins
 Chromoscope.prototype.makePinHolder = function(loc) {
-	loc = (typeof loc=="string") ? loc : 'kml';
+	loc = (typeof loc=="string") ? loc.replace(/[^0-9a-zA-Z]/g,"-") : 'kml';
 	body = (this.container) ? this.container : 'body';
 	if($(body+" ."+loc).length == 0){
-		$(body+" .chromo_innerDiv").append('<span class="map '+loc+'" id="'+body+'-holder-'+loc+'"></span>');
+		$(body+" .chromo_innerDiv").append('<span class="map kml" id="'+body+'-holder-'+loc+'"></span>');
 		holder = $(body+" ."+loc);
 		holder.css("z-index",this.spectrum.length+this.annotations.length+1);
 		holder.css({left:0,top:0,width:this.mapSize*2,height:this.mapSize,position:'absolute'});
@@ -2124,10 +2149,12 @@ Chromoscope.prototype.removePin = function(id){
 //	glat (number) = The Galactic latitude of the pin
 //	chromo_active = The element that this will attach to
 //	delayhtml = True if you want to add a lot of pins one-after-the-other. You'll need to call updatePins("",true)
+//	src = An id for the source of this pin
 function Pin(input,el,delayhtml){
 	if(input){
 		this.el = el;
 		this.id = (input.id) ? input.id : el.pins.length;
+		this.src = (typeof input.src=="string") ? input.src : "";
 		this.loc = (input.loc) ? el.container+input.loc : el.container+" .kml";
 		var kml_coord;
 		if(input.ra && input.dec){
@@ -2303,17 +2330,6 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 		e.data.me.mouseevents = true;
 	})
 	if(typeof this.events.pinopen=="function") this.events.pinopen.call(this,{pin:pin});
-}
-
-
-// Close all open balloons, move to current pin and then show its balloon
-Chromoscope.prototype.pressPin = function(i,input){
-	if(i >= 0 && i < this.pins.length){
-		var z = (input.zoom) ? input.zoom : this.minZoom();
-		this.moveMap(this.pins[i].glon,this.pins[i].glat,z)
-		this.toggleBalloon(this.pins[i]);
-		this.wrapPins();
-	}
 }
 
 // Go through each pin and reposition it on the map

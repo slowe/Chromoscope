@@ -1,5 +1,5 @@
 .abbl { position: absolute; display: block; }
-.chromoscope { overflow: hidden; }
+.chromoscope { overflow: hidden; font-family: Arial, sans-serif; }
 .chromo_link { color: #ddddff; text-decoration:underline; cursor: pointer; }
 .chromo_helplink a, .chromo_attribution a { color: #ddddff; }
 .chromo_helplink a:hover { color:#fff; }
@@ -15,7 +15,6 @@
 .chromo_title h2 { font-size: 0.6em; margin: 0px; margin-top:-3px; margin-left:5px; text-shadow: 0px 0px 8px #fff; }
 img.map { opacity: 1; }
 .chromo_layerswitcher {
-	font-family: Arial, sans-serif;
 	font-size: 0.9em;
 	font-weight: bold;
 	position: absolute;
@@ -97,7 +96,6 @@ img.map { opacity: 1; }
 	background-color:#000000;
 }
 .chromo_attribution {
-	font-family: Arial, sans-serif;
 	font-weight: bold;
 	position: absolute;
 	right: 0px;
@@ -111,7 +109,6 @@ img.map { opacity: 1; }
 	opacity: 0.8;
 }
 .chromo_helplink {
-	font-family: Arial, sans-serif;
 	font-weight: bold;
 	position: absolute;
 	left: 0px;
@@ -123,8 +120,24 @@ img.map { opacity: 1; }
 	font-size: 0.8em;
 	opacity: 1.0;
 }
+.chromo_kml_list {
+	font-weight: bold;
+	position: absolute;
+	left: 0px;
+	bottom: 1.5em!important;
+	margin:0px;
+	z-index: 10;
+	padding:0.3em;
+	color: white;
+	font-size: 0.8em;
+	opacity: 1.0;
+}
+.chromo_kml_list ul {
+	margin: 0px;
+	padding: 0px;
+	list-style: none;
+}
 .chromo_help, .chromo_message, .chromo_popup, .balloon {
-	font-family: Arial, sans-serif;
 	font-size: 0.95em;
 	position:absolute;
 	left:0px;
@@ -264,4 +277,4 @@ p.social img {
 	border:0px;
 	margin-left: 4px;
 }
-form { margin: 0px; }
+form { margin: 0px; padding: 0px; }
