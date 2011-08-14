@@ -1876,7 +1876,7 @@ Chromoscope.prototype.readKML = function(kml){
 		if(kml.indexOf('://') < 0){
 			var callback = null;
 			var duration = 0;
-			var overwrite = true;
+			var overwrite = false;
 			for (var i = 1; i < Chromoscope.prototype.readKML.arguments.length; i++){
 				var arg = Chromoscope.prototype.readKML.arguments[i];
 				callback = (typeof arg=="function") ? arg : callback;
@@ -1940,7 +1940,7 @@ Chromoscope.prototype.processKML = function(xml,overwrite,docname){
 	var overwrite = overwrite ? true : false;
 	if(!docname) docname = "KML";
 	if(overwrite){ this.pins = new Array(); }
-	holder = this.makePinHolder(docname);
+	var holder = this.makePinHolder(docname);
 	body = (this.container) ? this.container : 'body';
 
 	var p = this.pins.length;
@@ -1965,14 +1965,14 @@ Chromoscope.prototype.processKML = function(xml,overwrite,docname){
 		// We'll update the pins again once all the style images have loaded
 		styles[j.attr('id')].img.onload = function(){ 
 			if(++_obj.pinstyleload == _obj.pinstylecount){
-				_obj.updatePins(""); 
+				_obj.updatePins({}); 
 				if(_obj.showintro) _obj.buildIntro();
 				else $(_obj.container+" .chromo_message").hide();
 			}
 		};
 		styles[j.attr('id')].img.onerror = function(){
 			if(++_obj.pinstyleload == _obj.pinstylecount){
-				_obj.updatePins("",false,true); 
+				_obj.updatePins({delay:false,finish:true}); 
 				if(_obj.showintro) _obj.buildIntro();
 				else $(_obj.container+" .chromo_message").hide();
 			}
@@ -2006,13 +2006,14 @@ Chromoscope.prototype.processKML = function(xml,overwrite,docname){
 			w = (styles[style].img.width) ? styles[style].img.width : "";
 			h = (styles[style].img.height) ? styles[style].img.height : "";
 		}
-		c.addPin({src:holder,id:p++,style:style,img:img,title:title,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:desc,ra:ra,dec:dec,src:docname},true);
+		c.addPin({src:holder,id:p++,style:style,img:img,title:title,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:desc,ra:ra,dec:dec},true);
 		added++;
 	});
-	if(added > 0) this.addKMLSwitch(holder,docname);
-	
-	this.updatePins("",true);
-	this.wrapPins();
+	if(added > 0){
+		this.addKMLSwitch(holder,docname);
+		this.updatePins({delay:true,loc:holder});
+		this.wrapPins();
+	}
 	//console.log("Time to end of processKML: " + (new Date() - this.start) + "ms");
 	return added;
 }
@@ -2024,7 +2025,7 @@ Chromoscope.prototype.processKML = function(xml,overwrite,docname){
 Chromoscope.prototype.processJSON = function(json,overwrite,docname){
 	var overwrite = overwrite ? true : false;
 	if(overwrite){ this.pins = new Array(); }
-	holder = this.makePinHolder(docname);
+	var holder = this.makePinHolder(docname);
 
 	var p = this.pins.length;
 	var c = this;	// Keep a copy of this instance for inside the Placemark loop
@@ -2048,14 +2049,14 @@ Chromoscope.prototype.processJSON = function(json,overwrite,docname){
 		// We'll update the pins again once all the style images have loaded
 		styles[j.id].img.onload = function(){ 
 			if(++_obj.pinstyleload == _obj.pinstylecount){
-				_obj.updatePins(""); 
+				_obj.updatePins({}); 
 				if(_obj.showintro) _obj.buildIntro();
 				else $(_obj.container+" .chromo_message").hide();
 			}
 		};
 		styles[j.id].img.onerror = function(){
 			if(++_obj.pinstyleload == _obj.pinstylecount){
-				_obj.updatePins("",false,true); 
+				_obj.updatePins({delay:false,finish:true}); 
 				if(_obj.showintro) _obj.buildIntro();
 				else $(_obj.container+" .chromo_message").hide();
 			}
@@ -2084,10 +2085,11 @@ Chromoscope.prototype.processJSON = function(json,overwrite,docname){
 		c.addPin({src:holder,id:p++,style:style,img:img,title:json.placemarks[i].name,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:json.placemarks[i].description,ra:json.placemarks[i].ra+180,dec:json.placemarks[i].dec},true);
 		added++;
 	}
-	if(added > 0) this.addKMLSwitch(holder,docname);
-
-	this.updatePins("",true);
-	this.wrapPins();
+	if(added > 0){
+		this.addKMLSwitch(holder,docname);
+		this.updatePins({delay:true,loc:holder});
+		this.wrapPins();
+	}
 	//console.log("Time to end of processKML: " + (new Date() - this.start) + "ms");
 	return added;
 }
@@ -2104,7 +2106,7 @@ Chromoscope.prototype.addKMLSwitch = function(div,doc){
 
 // Create a layer to hold pins
 Chromoscope.prototype.makePinHolder = function(loc) {
-	loc = (typeof loc=="string") ? loc.replace(/[^0-9a-zA-Z]/g,"-") : 'kml';
+	var loc = (typeof loc=="string") ? loc.replace(/[^0-9a-zA-Z]/g,"-") : 'kml';
 	body = (this.container) ? this.container : 'body';
 	if($(body+" ."+loc).length == 0){
 		$(body+" .chromo_innerDiv").append('<span class="map kml" id="'+body+'-holder-'+loc+'"></span>');
@@ -2148,7 +2150,7 @@ Chromoscope.prototype.removePin = function(id){
 //	glon (number) = The Galactic longitude of the pin
 //	glat (number) = The Galactic latitude of the pin
 //	chromo_active = The element that this will attach to
-//	delayhtml = True if you want to add a lot of pins one-after-the-other. You'll need to call updatePins("",true)
+//	delayhtml = True if you want to add a lot of pins one-after-the-other. You'll need to call updatePins({delay:true})
 //	src = An id for the source of this pin
 function Pin(input,el,delayhtml){
 	if(input){
@@ -2194,7 +2196,7 @@ function Pin(input,el,delayhtml){
 		this.desc = (input.desc) ? input.desc : '';
 		this.info.id = "balloon-"+this.id;
 		this.pin = "pin-"+this.id;
-		this.pinid = el.container+"-"+this.pin;
+		this.pinid = this.src+"-"+this.pin;
 		this.html = '<div class="pin" title="'+this.title+'" id="'+this.pinid+'" style="position:absolute;display:block;width:'+this.pin_w+';height:'+this.pin_h+'"><img src="'+this.img.src+'" style="width:100%;height:100%;" /></div>';
 		this.isplaced = false;
 		this.isbound = false;
@@ -2234,14 +2236,22 @@ function Pin(input,el,delayhtml){
 	}
 }
 
-Chromoscope.prototype.updatePins = function(style,delayedhtml,finish){
+Chromoscope.prototype.updatePins = function(inp){
+	style = (typeof inp.style=="string") ? inp.style : "";
+	delayedhtml = (typeof inp.delay=="boolean") ? inp.delay : false;
+	finish = (inp.finish) ? inp.finish : false;
+	loc = (typeof inp.loc=="string") ? inp.loc : '';
 	max = this.pins.length;
+
 	// Construct the HTML for all the pins in one go as
 	// this is quicker than adding them one at a time
 	if(delayedhtml){
 		var html = "";
-		for(var p = 0 ; p < max ; p++) html += this.pins[p].html;
-		$(this.pins[0].loc).append(html);
+		for(var p = 0 ; p < max ; p++){
+			if(this.pins[p].src == loc) html += this.pins[p].html;
+		}
+		body = (this.container) ? this.container : 'body';
+		$('#'+body+'-holder-'+loc).append(html);
 	}
 	for(var p = 0 ; p < max ; p++) this.updatePin(p,style,finish);
 }
