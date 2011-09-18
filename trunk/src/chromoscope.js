@@ -914,7 +914,7 @@ function Wavelength(input){
 	return new ChromoscopeLayer(input);
 }
 
-// Build a structure containing information about an annotation layer. It has the same inputs aas Wavelength
+// Build a structure containing information about an annotation layer. It has the same inputs as Wavelength
 // Usage: chromo_active.annotations[0] = new AnnotationLayer({opacity:0.4,key:'l',name:'labels',tiles:'labels-tiles/',ext:'jpg'});
 //	opacity (number) = The opacity of this layer
 //	key (string) = A keyboard shortcut to toggle this annotation
@@ -1722,7 +1722,7 @@ Chromoscope.prototype.getCoords = function(offx,offy){
 Chromoscope.prototype.buildSearch = function(){
 	// Create the search box if necessary
 	if($(this.body+" .chromo_search").length == 0){
-		$(this.body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'<form action="" method="GET" id="chromo_search_form" name="chromo_search_form"><input type="text" name="name" style="width:180px;" class="chromo_search_object" onFocus="disableKeys(true);" onBlur="disableKeys(false);" /><input type="submit" name="chromo_search_submit" class="chromo_search_submit" value="'+this.phrasebook.search+'" /><div class="chromo_search_message"></div></form></div>');
+		$(this.body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'<form action="" method="GET" id="chromo_search_form" name="chromo_search_form"><div class="chromo_search_area"><input type="text" name="name" style="width:160px;" class="chromo_search_object" onFocus="disableKeys(true);" onBlur="disableKeys(false);" /><button type="submit" name="chromo_search_submit" class="chromo_search_submit">'+this.phrasebook.search+'</button></div><div class="chromo_search_message"></div></form></div>');
 		$('#chromo_search_form').bind('submit',{chromo:this},function(e){
 			e.preventDefault();
 			args = {val:$(e.data.chromo.container+" .chromo_search_object").val(),name:$(e.data.chromo.container+" .chromo_search_type:checked").val()}
@@ -1743,11 +1743,11 @@ Chromoscope.prototype.buildSearch = function(){
 		$(this.body+" .chromo_search_type").each(function(){
 			if($(this).val() == s.name) exists = true;
 		})
-		if(!exists) $(this.body+" .chromo_search_submit").after('<input type="radio" name="chromo_search_type" class="chromo_search_type" value="'+s.name+'" /> '+s.desc);
+		if(!exists) $(this.body+" .chromo_search_area").after('<input type="radio" name="chromo_search_type" class="chromo_search_type" value="'+s.name+'" /> '+s.desc);
 	}
 	$(this.body+" .chromo_search_type").first().click();
 
-	$(this.body+" .chromo_search_submit").val(this.phrasebook.search)
+	$(this.body+" .chromo_search_submit").html(this.phrasebook.search)
 	$(this.body+" .chromo_search").css({"width":"250px","z-index":1000}).hide()
 	$(this.body+" .chromo_controlbuttons").append("<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('s')\">"+this.phrasebook.search+"</a></li>");
 	$(this.body+" .chromo_search .chromo_close").bind('click', function(ev){ $('.chromo_search').hide(); $('.chromo_search_object').blur(); } );
