@@ -1881,12 +1881,12 @@ Chromoscope.prototype.addPinGroup = function(inp){
 // Add a checkbox to be able to turn off this set of pins
 Chromoscope.prototype.addPinGroupSwitches = function(){
 	
-	if($(this.body+" .chromo_pingroups").length == 0) $(this.body).append('<div class="chromo_pingroup_list"><form id="chromo_pingroup_list"><ul></ul></form></div>');
+	if($(this.body+" .chromo_pingroup_list").length == 0) $(this.body).append('<div class="chromo_pingroup_list"><form id="chromo_pingroup_list"><ul></ul></form></div>');
 	
 	for(var i = 0 ; i < this.pingroups.length ; i++){
 		var found = false;
-		$(this.body+" #chromo_pingroup_list li").each(function(){
-			if($(this).val() == i) found = true;
+		$(this.body+" #chromo_pingroup_list ul li input").each(function(){
+			if(parseInt($(this).val()) == i) found = true;
 		})
 		if(!found){
 			$(this.body+' #chromo_pingroup_list ul').append('<li><input type="checkbox" value="'+i+'" checked />'+this.pingroups[i].title+'</li>');
