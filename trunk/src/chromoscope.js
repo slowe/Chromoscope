@@ -274,7 +274,7 @@ function Language(inp){
 	this.version = (inp.version) ? inp.version :'version';
 	this.help = (inp.help) ? inp.help :'Help';
 	this.helpmenu = (inp.helpmenu) ? inp.helpmenu : inp.help;
-	this.helpdesc = (inp.helpdesc) ? inp.helpdesc : '<span class="keyboard">The keyboard controls are:<ul class="chromo_controlkeys"></ul></span><span class="nokeyboard"><ul class="chromo_controlbuttons"></ul></span> <span class="keyboard">Created by <a href="http://www.strudel.org.uk/">Stuart Lowe</a>, <a href="http://www.orbitingfrog.com/">Rob Simpson</a>, and <a href="http://www.astro.cardiff.ac.uk/contactsandpeople/?page=full&id=493">Chris North</a>.</span>';	
+	this.helpdesc = (inp.helpdesc) ? inp.helpdesc : '<span class="keyboard">The keyboard controls are:<ul class="chromo_controlkeys"></ul></span><span class="nokeyboard"><ul class="chromo_controlbuttons"></ul></span> <span class="keyboard">Created by Stuart Lowe, Rob Simpson, and Chris North.</span>';	
 	this.about = (inp.about) ? inp.about :'About';
 	this.share = (inp.share) ? inp.share :'Share';
 	this.sharewith = (inp.sharewith) ? inp.sharewith :'Share it with';
@@ -292,7 +292,7 @@ function Language(inp){
 	this.nozoomin = (inp.nozoomin) ? inp.nozoomin : 'Can\'t zoom in any more'
 	this.nozoomout = (inp.nozoomout) ? inp.nozoomout : 'Can\'t zoom out any more'
 	this.url = (inp.url) ? inp.url : 'The URL for this view is:';
-	this.intro = (inp.intro) ? inp.intro : '<p>Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in <a href="http://blog.chromoscope.net/data/">a range of wavelengths</a> from X-rays to the longest radio waves.</p><p>Change the wavelength using the <em>slider</em> in the top right of the screen and explore space using your mouse. If you get stuck, click &quot;Help&quot; in the bottom left.</p>';
+	this.intro = (inp.intro) ? inp.intro : '<p>Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy and the distant Universe in <a href="http://blog.chromoscope.net/data/">a range of wavelengths</a> from X-rays to the longest radio waves.</p></p>';
 	this.gal = (inp.gal) ? inp.gal : 'http://en.wikipedia.org/wiki/Galactic_coordinate_system';
 	this.galcoord = (inp.galcoord) ? inp.galcoord : 'Galactic Coordinates';
 	this.eq = (inp.eq) ? inp.eq : 'http://en.wikipedia.org/wiki/Equatorial_coordinate_system';
@@ -599,6 +599,19 @@ Chromoscope.prototype.load = function(callback){
 	this.buildLinks();
 	this.buildLang();
 	if(this.showintro) this.buildIntro();
+
+	// Build up the context-sensitive menu links
+	// Arguments are:
+	// 	args.l = Galactic longitude (decimal degrees)
+	// 	args.b = Galactic latitude (decimal degrees)
+	// 	args.z = zoom level
+	// 	args.ra = Right Ascension (decimal hours)
+	// 	args.dec = Declination (decimal degrees)
+	this.bind("contextmenu",function(args){ return '<a href="#" onClick="javascript:chromo_active.moveMap('+args.l+','+args.b+','+args.z+');return false;">'+(this.phrasebook.centre)+'</a>'; })
+	this.bind("contextmenu",function(args){ return '<a href="http://server1.wikisky.org/v2?ra='+args.ra+'&de='+args.dec+'&zoom='+(args.z-2)+'&img_source=DSS2">'+this.phrasebook.wikisky+'</a>'; })
+	this.bind("contextmenu",function(args){ return '<a href="http://www.worldwidetelescope.org/wwtweb/goto.aspx?object=ViewShortcut&ra='+(args.ra)+'&dec='+args.dec+'&zoom='+(0.3*60*360/Math.pow(2,args.z))+'">'+this.phrasebook.wwt+'</a>'; })
+	this.bind("contextmenu",function(args){ return '<a href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord='+args.l.toFixed(4)+'+'+args.b.toFixed(4)+'&CooFrame=Gal&CooEpoch=2000&CooEqui=2000&Radius=10">'+this.phrasebook.nearby+' (Simbad)</a>'; })
+	this.bind("contextmenu",function(args){ return '<a href="http://nedwww.ipac.caltech.edu/cgi-bin/nph-objsearch?search_type=Near+Position+Search&in_csys=Galactic&in_equinox=J2000.0&lon='+args.l+'&lat='+args.b+'&radius=10&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=20&img_stamp=YES">'+this.phrasebook.nearby+' (NED)'; })
 	if(this.showcontext) this.buildContextMenu();
 	
 	// Disable keyboard commands on input text fields
@@ -725,10 +738,9 @@ Chromoscope.prototype.buildLinks = function(overwrite){
 
 // Construct the context-sensitive menu
 Chromoscope.prototype.buildContextMenu = function(){
-	$(this.body+' .chromo_outerDiv').bind("contextmenu",{el:this,body:this.container},function(e){
+	$(this.body+' .chromo_outerDiv').bind("contextmenu",{el:this},function(e){
 		var chromo = e.data.el;
 		if(chromo.mouseevents){
-			var body = e.data.body;
 			var offset = 2;
 			var offx = ($(chromo.container).length > 0) ? $(chromo.container).offset().left : 0;
 			var offy = ($(chromo.container).length > 0) ? $(chromo.container).offset().top : 0;
@@ -736,36 +748,33 @@ Chromoscope.prototype.buildContextMenu = function(){
 			var newleft = (e.clientX)-offx;
 			var coords = chromo.getCoords(newleft,newtop);
 			var radec = Galactic2Equatorial(coords.l,coords.b);
-			if($(body+" .chromo_context").length == 0) $(body).append('<div class="chromo_context" style="color:black;background-color:#eee;position:absolute;padding:2px;font-size:0.9em;z-index:1001;cursor:default;"></div>');
-			var output = '<ul style="margin:0px;padding:0px;font-size:0.9em;list-style:none;display:block;">'+(chromo.buildContextMenuItems({l:coords.l,b:coords.b,z:chromo.zoom,ra:radec.ra,dec:radec.dec}))+'</ul>';
-			$(body+" .chromo_context").html(output).bind('mouseleave', {el:chromo,body:body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; });
-			$(body+" .chromo_context li a").css({padding:'3px',display:'block',textDecoration:'none',color:'black'});
-			$(body+" .chromo_context li a").hover( function(){
-				$(this).css('background-color', '#ccc');
-			},function(){
-				$(this).css('background-color', 'transparent');
-			});
-			var w = $(body+" .chromo_context").outerWidth();
-			var h = $(body+" .chromo_context").outerHeight();
-			if(newleft+w > chromo.wide) newleft -= w-2*offset;
-			if(newtop+h > chromo.tall) newtop -= h-(2*offset);
-			$(body+" .chromo_context").css({left:(newleft-offset)+'px',top:(newtop-offset)+'px',width:'200px'}).show();
-			chromo.dragging = false;
-			return false;
+			if($(chromo.body+" .chromo_context").length == 0) $(chromo.body).append('<div class="chromo_context" style="color:black;background-color:#eee;position:absolute;padding:2px;font-size:0.9em;z-index:1001;cursor:default;"></div>');
+
+			if(chromo.events['contextmenu']){
+				var output = '<ul style="margin:0px;padding:0px;font-size:0.9em;list-style:none;display:block;">'
+				var o = chromo.triggerEvent("contextmenu",{l:coords.l,b:coords.b,z:chromo.zoom,ra:radec.ra,dec:radec.dec});
+				for(i = 0 ; i < o.length ; i++) output += "<li>"+o[i]+"</li>";
+				output += '</ul>'
+				console.log(output);
+				$(chromo.body+" .chromo_context").html(output).bind('mouseleave', {el:chromo,body:chromo.body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; });
+				$(chromo.body+" .chromo_context li a").css({padding:'3px',display:'block',textDecoration:'none',color:'black'});
+				$(chromo.body+" .chromo_context li a").hover( function(){
+					$(this).css('background-color', '#ccc');
+				},function(){
+					$(this).css('background-color', 'transparent');
+				});
+				var w = $(chromo.body+" .chromo_context").outerWidth();
+				var h = $(chromo.body+" .chromo_context").outerHeight();
+				if(newleft+w > chromo.wide) newleft -= w-2*offset;
+				if(newtop+h > chromo.tall) newtop -= h-(2*offset);
+				$(chromo.body+" .chromo_context").css({left:(newleft-offset)+'px',top:(newtop-offset)+'px',width:'200px'}).show();
+				chromo.dragging = false;
+				return false;
+			}
 		}
 	});
 }
 
-// Function that returns <li> items for the context-sensitive menu.
-// Inputs are:
-// 	inp.l = Galactic longitude (decimal degrees)
-// 	inp.b = Galactic latitude (decimal degrees)
-// 	inp.z = zoom level
-// 	inp.ra = Right Ascension (decimal hours)
-// 	inp.dec = Declination (decimal degrees)
-Chromoscope.prototype.buildContextMenuItems = function(inp){
-	return '<li><a href="#" onClick="javascript:chromo_active.moveMap('+inp.l+','+inp.b+','+inp.z+');return false;">'+(this.phrasebook.centre)+'</a><li><a href="http://server1.wikisky.org/v2?ra='+inp.ra+'&de='+inp.dec+'&zoom='+(inp.z-2)+'&img_source=DSS2">'+this.phrasebook.wikisky+'</a></li><li><a href="http://www.worldwidetelescope.org/wwtweb/goto.aspx?object=ViewShortcut&ra='+(inp.ra)+'&dec='+inp.dec+'&zoom='+(0.3*60*360/Math.pow(2,inp.z))+'">'+this.phrasebook.wwt+'</a></li><li><a href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord='+inp.l.toFixed(4)+'+'+inp.b.toFixed(4)+'&CooFrame=Gal&CooEpoch=2000&CooEqui=2000&Radius=10">'+this.phrasebook.nearby+' (Simbad)</a></li><li><a href="http://nedwww.ipac.caltech.edu/cgi-bin/nph-objsearch?search_type=Near+Position+Search&in_csys=Galactic&in_equinox=J2000.0&lon='+inp.l+'&lat='+inp.b+'&radius=10&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=20&img_stamp=YES">'+this.phrasebook.nearby+' (NED)</li>';
-}
 
 // Construct the Language Switcher
 Chromoscope.prototype.buildLang = function(overwrite){
