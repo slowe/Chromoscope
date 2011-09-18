@@ -278,7 +278,7 @@ function Language(inp){
 	this.about = (inp.about) ? inp.about :'About';
 	this.share = (inp.share) ? inp.share :'Share';
 	this.sharewith = (inp.sharewith) ? inp.sharewith :'Share it with';
-	this.switchtext = (inp.switchtext) ? inp.switchtext : 'switch to __WAVELENGTH__ view of the sky';
+	this.switchtext = (inp.switchtext) ? inp.switchtext : 'switch to __WAVELENGTH__ view';
 	this.search = (inp.search) ? inp.search : 'Search';
 	this.press = (inp.press) ? inp.press : 'Press __KEY__';
 	this.close = (inp.close) ? inp.close : 'Close';
@@ -2040,6 +2040,8 @@ Chromoscope.prototype.updatePins = function(inp){
 	for(var p = 0 ; p < max ; p++) if(!this.pins[p].placed) this.updatePin(p,style,finish);
 	//console.log("Time to end of updatePins: " + (new Date() - this.start) + "ms");
 	this.addPinGroupSwitches();
+	this.registerSearch({name:'placemark',desc:'placemarks',fn:function(args){ this.findPin(args.val); return false; }});
+	this.buildLinks();
 }
 
 Chromoscope.prototype.updatePin = function(p,style,finish){
@@ -2153,6 +2155,41 @@ Chromoscope.prototype.wrapPins = function(i){
 		this.pins[p].jquery.css({left:(parseInt(this.pins[p].pos.x)-this.pins[p].xoff)});
 		if(this.pins[p].info.visible) $(this.body+" ."+this.pins[p].info.id).css({'left':((this.pins[p].pos.x)+this.pins[p].info.x),'top':((this.pins[p].pos.y)+this.pins[p].info.y)});
 	}
+}
+
+Chromoscope.prototype.findPin = function(query){
+	if(typeof query != "string") return false;
+	var q = query.toLowerCase();
+	var matched = 0;
+	var i = -1;
+	for(var p = 0 ; p < this.pins.length; p++){
+		if(this.pins[p].title.toLowerCase() == q){
+			matched++;
+			i = p;
+		}
+	}
+	// If it didn't match on a title we'll check in the rest of the balloon
+	if(matched == 0){
+		for(var p = 0 ; p < this.pins.length; p++){
+			d = this.pins[p].info.html.replace(/<\S[^><]*>/g,'');
+			if(d.toLowerCase().indexOf(q) >= 0){
+				matched++;
+				i = p;
+			}
+		}
+	}
+	
+	if(matched == 0) msg = "Not found.";
+	else if(matched == 1){
+		this.moveMap(this.pins[i].glon,this.pins[i].glat,this.zoom,1000);
+		this.showBalloon(this.pins[i]);
+		this.hide('.chromo_search');
+		$(this.body+' .chromo_search_object').blur();
+		msg = "";
+	}else msg = "Found "+matched+" matches.";
+	
+	$(this.container+' .chromo_search_message').html(msg);
+	return false;
 }
 
 // If we zoom the map, we don't have to recalculate everything, 
