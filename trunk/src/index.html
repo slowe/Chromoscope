@@ -8,6 +8,8 @@
 	<script src="jquery.mousewheel.min.js"></script>
 	<script src="chromoscope.js"></script>
 	<script src="chromoscope-lookup.js"></script>
+	<script src="chromoscope-kml.js"></script>
+	<script src="chromoscope-labels.js"></script>
 	<script type="text/javascript" src="ui/jquery.ui.core.min.js"></script>
 	<script type="text/javascript" src="ui/jquery.ui.widget.min.js"></script>
 	<script type="text/javascript" src="ui/jquery.ui.mouse.min.js"></script>
@@ -19,44 +21,24 @@
 
 		$(document).ready(function(){
 			// The spectral bands should be in order
-			chromo.addWavelength({key:'g',useasdefault:false,name:'gamma',tiles:'http://astrog80.astro.cf.ac.uk/Chromoscope/fermi-tiles/',ext:'jpg',title:'gamma',attribution:'<a href="http://fermi.gsfc.nasa.gov/">Fermi</a>'});
-			chromo.addWavelength({key:'x',useasdefault:false,name:'xray',tiles:'http://s3.amazonaws.com/chromoscope-RASS-tiles/',ext:'jpg',title:'xray',attribution:'<a href="http://www.mpe.mpg.de/xray/wave/rosat/index.php">ROSAT</a>'});
-			chromo.addWavelength({key:'v',useasdefault:true,name:'optical',tiles:'http://s3.amazonaws.com/chromoscope-DSS2-tiles/',ext:'jpg',title:'optical',attribution:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>'});
-			//chromo.addWavelength({key:'v',useasdefault:true,name:'optical',tiles:'../../DSS2-tiles/',ext:'jpg',title:'optical',attribution:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>',range:{latitude:[-30,30],longitude:[-90,30]},blank:'blogger.gif'});
-			chromo.addWavelength({key:'a',useasdefault:false,name:'halpha',tiles:'http://s3.amazonaws.com/chromoscope-H-alpha-tiles/',ext:'jpg',title:'halpha',attribution:'<a href="http://www.astro.wisc.edu/wham/">WHAM</a>/<a href="http://www.phys.vt.edu/~halpha/">VTSS</a>/<a href="http://amundsen.swarthmore.edu/">SHASSA</a>/<a href="http://www.cfa.harvard.edu/~dfinkbei/">Finkbeiner</a>'});
-			chromo.addWavelength({key:'f',useasdefault:false,name:'farir',tiles:'http://s3.amazonaws.com/chromoscope-IRAS-tiles/',ext:'jpg',title:'farir',attribution:'<a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html">IRAS</a>/NASA'});
-			chromo.addWavelength({key:'m',useasdefault:false,name:'microwave',tiles:'http://s3.amazonaws.com/chromoscope-Planck-FSM-tiles/',ext:'jpg',title:'microwave',attribution:'<a href="http://www.esa.int/esaCP/SEMF2FRZ5BG_index_0.html">ESA Planck</a> LFI and HFI Consortia (2010)'});
-			chromo.addWavelength({key:'r',useasdefault:false,name:'radio',tiles:'http://s3.amazonaws.com/chromoscope-Radio_vsmoothed-tiles/',ext:'jpg',title:'radio',attribution:'<a href="http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm">Haslam et al.</a>'});
+			chromo.addWavelength({key:'g',useasdefault:false,name:'gamma',tiles:'fermi-tiles/',ext:'jpg',title:'gamma',attribution:'<a href="http://fermi.gsfc.nasa.gov/">Fermi</a>'}).addWavelength({key:'x',useasdefault:false,name:'xray',tiles:'http://s3.amazonaws.com/chromoscope-RASS-tiles/',ext:'jpg',title:'xray',attribution:'<a href="http://www.mpe.mpg.de/xray/wave/rosat/index.php">ROSAT</a>'});
+			chromo.addWavelength({key:'v',useasdefault:true,name:'optical',tiles:{z:'http://s3.amazonaws.com/chromoscope-DSS2-tiles/',z3:'http://s3.amazonaws.com/chromoscope-photopic/',z4:'http://s3.amazonaws.com/chromoscope-photopic/'},ext:'jpg',title:'optical',attribution:{z:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>',z3:'Nick Risinger, <a href="http://skysurvey.org/">skysurvey.org</a>',z4:'Nick Risinger, <a href="http://skysurvey.org/">skysurvey.org</a>'}});
+			chromo.addWavelength({key:'a',useasdefault:false,name:'halpha',tiles:'H-alpha-tiles/',ext:'jpg',title:'halpha',attribution:'<a href="http://www.astro.wisc.edu/wham/">WHAM</a>/<a href="http://www.phys.vt.edu/~halpha/">VTSS</a>/<a href="http://amundsen.swarthmore.edu/">SHASSA</a>/<a href="http://www.cfa.harvard.edu/~dfinkbei/">Finkbeiner</a>'});
+			chromo.addWavelength({key:'f',useasdefault:false,name:'farir',tiles:'IRAS-tiles/',ext:'jpg',title:'farir',attribution:'<a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html">IRAS</a>/NASA'});
+			chromo.addWavelength({key:'m',useasdefault:false,name:'microwave',tiles:'Planck-FSM-tiles/',ext:'jpg',title:'microwave',attribution:'<a href="http://www.esa.int/esaCP/SEMF2FRZ5BG_index_0.html">ESA Planck</a> LFI and HFI Consortia (2010)'});
+			chromo.addWavelength({key:'r',useasdefault:false,name:'radio',tiles:'Radio_vsmoothed-tiles/',ext:'jpg',title:'radio',attribution:'<a href="http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm">Haslam et al.</a>'});
 
 			// Annotation layers will be shown at all wavelengths
-			chromo.addAnnotationLayer({opacity:0.4,key:'l',name:'labels',tiles:'http://s3.amazonaws.com/chromoscope-labelsnew/',ext:'jpg',title:'Labels',attribution:'some Labels from Chris'});
+			chromo.addAnnotationLayer({opacity:0.4,key:'l',name:'labels',tiles:'labelsnew/',ext:'jpg',title:'Labels',attribution:'some Labels from Chris'});
+
+			chromo.addSearch();
+			chromo.addKML();
 
 			// Load the map
 			chromo.load();
-			chromo.addSearch();
 
-
-
-			// Load the SVG label layer as required
-			$(document).bind('keypress',{c:chromo},function(e){
-				if(e.data.c.ignorekeys) return true;
-				if (!e) e=window.event;
-				var code = e.keyCode || e.charCode || e.which || 0;
-				if(code != 38 && code != 40 && code != 107 && code != 61 && code != 187 && code != 33){
-					var character = String.fromCharCode(code);
-					if(character == 'c' || character == 'C'){
-						if(typeof chromo_active.createBoundaries!="function"){
-							$.getScript('constellationlines.js');
-							chromo_active.createBoundaries();
-							chromo_active.updateBoundaries();
-						}else{
-							chromo_active.toggleBoundaries();
-						}
-					}
-				}
-			});
-
-
+			//g = chromo.addPinGroup({id:"mypins",title:"My custom pins"});
+			//chromo.addPin({group:g,img:"pin.png",title:"My pin",desc:"This is a description",ra:275,dec:-38});
 
 		});
 

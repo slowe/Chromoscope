@@ -10,8 +10,10 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.4 (2011-08):
+ * Changes in version 1.4 (2011-09-18):
  *   - Added core search form to search through KML placemarkers
+ *   - Allow multiple KML files using ';' separator
+ *   - Can disable/enable KML files
  *
  * Changes in version 1.3.3 (2011-07-25):
  *   - Added KML title to page title if not in a container
@@ -123,6 +125,7 @@ function Chromoscope(input){
 	this.cdn = '';			// Do we use a content distribution network to reduce bandwidth?
 	this.id = 'chromoscope';	// An internal id
 	this.container = '';		// Attach to an element rather than fullscreen
+	this.body = 'body'		// Where this chromoscope gets placed
 	this.ra;			// Set the Right Ascension via the init function
 	this.dec;			// Set the Declination via the init function
 	this.l;				// Set the Galactic longitude via the init function
@@ -135,10 +138,10 @@ function Chromoscope(input){
 	this.minOpacity = 0.0;
 	this.spectrum = new Array();	// Wavelength layers
 	this.annotations = new Array();	// Annotation layers
+	this.pingroups = new Array();	// Layers to hold pins/balloons
 	this.pins = new Array();	// For information pin/balloons
 	this.times = new Array(10);	// Processing times for map moving updates
 	this.keys = [];			// Keyboard commands
-	this.kmls = [];			// KML files to add to this map
 	this.tidx = 0;			// Current index of the times array
 	this.clock = 0;			// Holds the time
 
@@ -169,7 +172,7 @@ function Chromoscope(input){
 	this.showabout = true;		// Display the about link
 	this.showlangs = true;		// Display the languages link
 	this.showcoord = true;		// Display the coordinates
-	this.showsearch = true;		// Display the search link
+	this.showsearch = false;	// Display the search link
 	this.showcontext = true;	// Display the context menu (right-click)
 	this.compact = false;		// Hide parts of the interface if small
 	this.mapSize = 256;
@@ -197,9 +200,9 @@ function Chromoscope(input){
 	this.maxlambda = this.lambda+1;
 	this.dir = "";			// The location for resources such as the close image and language files
 	this.start = new Date();
-	this.search = "";		// Allow override of default search function
+	this.search = [];
 
-	this.events = {move:"",zoom:"",slide:"", wcsupdate:"",kml:"",json:"",pinopen:"",pinclose:""};	// Let's add some events
+	this.events = {move:"",zoom:"",slide:"", wcsupdate:""};	// Let's add some default events
 	this.init(input);
 }
 
@@ -218,9 +221,9 @@ Chromoscope.prototype.init = function(inp){
 	if(this.q.zoomctrl) this.zoomctrl = (this.q.zoomctrl == "true") ? true : false;
 	if(this.q.compact) this.compact = (this.q.compact == "true") ? true : false;
 	if(this.q.title) this.title = (this.q.title == "true") ? true : false;
-	if(typeof this.q.kml=="string") this.kmls = this.q.kml.split(';');
-	if(typeof this.q.json=="string") this.kmls.push(this.q.json.split(';'));
 	if(this.q.performance) this.performance = true;
+
+	this.args = inp	// Keep track of any input variables
 
 	// Overwrite with variables passed to the function
 	if(inp){
@@ -252,10 +255,8 @@ Chromoscope.prototype.init = function(inp){
 		if(typeof inp.lambda=="number") this.lambda = inp.lambda;
 		if(typeof inp.langs=="object") this.langs = inp.langs;
 		if(typeof inp.dir=="string") this.dir = inp.dir;
-		if(typeof inp.kml=="string") this.kmls.push(inp.kml.split(';'))
-		if(typeof inp.json=="string") this.kmls.push(inp.json.split(';'));
 	}
-
+	if(this.container) this.body = this.container;
 	if(this.pushstate){
 		window.onpopstate = function(event) {
 			// Can't use moveMap because it updates the state event chromo_active.moveMap(event.state.l,event.state.b,event.state.z);
@@ -331,8 +332,7 @@ Chromoscope.prototype.changeLanguage = function(data){
 	this.buildLang();
 	if(this.showintro) this.buildIntro();
 	this.makeWavelengthSlider();
-	var body = (!this.container) ? "body" : this.container;
-	$(body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
+	$(this.body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
 	if($.browser.opera && $.browser.version == 9.3){ $(".keyboard").hide(); $(".nokeyboard").show(); }
 }
 
@@ -344,7 +344,7 @@ Chromoscope.prototype.reset = function(){
 	
 	// Turn off the annotation layers
 	if(this.q.annotations == null || !this.q.annotations){
-		for(var i=0 ; i < this.annotations.length ; i++) setOpacity($(this.container+" ."+this.annotations[i].name),0.0);
+		for(var i=0 ; i < this.annotations.length ; i++) setOpacity($(this.body+" ."+this.annotations[i].name),0.0);
 	}
 
 	if(this.spectrum.length > 0){
@@ -397,7 +397,6 @@ Chromoscope.prototype.load = function(callback){
 	if(this.container){
 		// No container so build a message to say that
 		if($(this.container).length == 0){
-
 			// No message holder so let's make one of those first
 			if($(".chromo_message").length == 0) $(document).append('<div class="chromo_message"></div>');
 			$(".chromo_message").css({width:"500px","text-align":"center"});
@@ -405,38 +404,36 @@ Chromoscope.prototype.load = function(callback){
 			this.container = '';
 			return true;
 		}
-		var body = this.container;
-		$(this.container).bind('mouseover', {me:this}, function(e){
-			e.data.me.activate(); //ChromoscopeActivate(e.data.me)
+		$(this.body).bind('mouseover', {me:this}, function(e){
+			e.data.me.activate();
 		}).bind('mouseout', function(e){
 			chromo_active = "";
 		});
-
-	}else var body = 'body';
+	}
  
 	// Check for defined elements. If they don't exist let's create them
-	if($(body+" .chromo_outerDiv").length == 0) $(body).append('<div class="chromo_outerDiv"><div class="chromo_innerDiv"></div></div>');
-	if(this.title && $(body+" .chromo_title").length == 0) $(body).append('<div class="chromo_title"><h1><a href="#">Chromoscope</a></h1><h2 class="chromo_version"></h2></div>');
-	if($(body+" .chromo_attribution").length == 0) $(body).append('<p class="chromo_attribution"></p>');
-	if($(body+" .chromo_info").length == 0) $(body).append('<p class="chromo_info"></p>');
-	if($(body+" .chromo_message").length == 0) $(body).append('<div class="chromo_message"></div>');
-	if($(body+" .chromo_layerswitcher").length == 0) $(body).append('<div class="chromo_layerswitcher"></div>');
+	if($(this.body+" .chromo_outerDiv").length == 0) $(this.body).append('<div class="chromo_outerDiv"><div class="chromo_innerDiv"></div></div>');
+	if(this.title && $(this.body+" .chromo_title").length == 0) $(this.body).append('<div class="chromo_title"><h1><a href="#">Chromoscope</a></h1><h2 class="chromo_version"></h2></div>');
+	if($(this.body+" .chromo_attribution").length == 0) $(this.body).append('<p class="chromo_attribution"></p>');
+	if($(this.body+" .chromo_info").length == 0) $(this.body).append('<p class="chromo_info"></p>');
+	if($(this.body+" .chromo_message").length == 0) $(this.body).append('<div class="chromo_message"></div>');
+	if($(this.body+" .chromo_layerswitcher").length == 0) $(this.body).append('<div class="chromo_layerswitcher"></div>');
 	
 	this.processLayers();
 
 	// Make sure the container is absolutely positioned.
-	if(this.container) $(this.container).css('position','relative');
-	else $(body+" .chromo_outerDiv").css({position:'absolute',height:'0px'});
+	if(this.container) $(this.body).css('position','relative');
+	else $(this.body+" .chromo_outerDiv").css({position:'absolute',height:'0px'});
 
 	// Opera 10.10 doesn't like transparency and for some reason jQuery sometimes thinks it is version 9.8
 	if($.browser.opera && $.browser.version < 10.3){ this.annotations = ""; this.wavelength_load_range = 0; this.spatial_preload = 1; }
 
-	if(!this.title) $(body+" .chromo_title").toggle();
-	$(body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
-	$(body+" .chromo_outerDiv").append('<div id="chromo_zoomer" style="width:50px;height:50px;display:none;"><div style="position:absolute;width:10px;height:10px;left:0px;top:0px;border-top:2px solid white;border-left:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;right:0px;top:0px;border-top:2px solid white;border-right:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;right:0px;bottom:0px;border-bottom:2px solid white;border-right:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;left:0px;bottom:0px;border-bottom:2px solid white;border-left:2px solid white;"></div></div>');
+	if(!this.title) $(this.body+" .chromo_title").toggle();
+	$(this.body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
+	$(this.body+" .chromo_outerDiv").append('<div id="chromo_zoomer" style="width:50px;height:50px;display:none;"><div style="position:absolute;width:10px;height:10px;left:0px;top:0px;border-top:2px solid white;border-left:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;right:0px;top:0px;border-top:2px solid white;border-right:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;right:0px;bottom:0px;border-bottom:2px solid white;border-right:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;left:0px;bottom:0px;border-bottom:2px solid white;border-left:2px solid white;"></div></div>');
 
 	// Define the mouse events
-	$(body+" .chromo_outerDiv").mousedown({me:this},function(ev){
+	$(this.body+" .chromo_outerDiv").mousedown({me:this},function(ev){
 		var chromo = ev.data.me;
 		if(ev.button != 2 && chromo.mouseevents){
 			// Don't do anything for a right mouse button event
@@ -470,7 +467,7 @@ Chromoscope.prototype.load = function(callback){
 				chromo.checkTiles();
 				this.clock = tempclock;
 				var coords = chromo.getCoords();
-				if(typeof chromo.events.move=="function") chromo.events.move.call(chromo,{position:coords,zoom:chromo.zoom});
+				chromo.triggerEvent("move",{position:coords,zoom:chromo.zoom});
 			}
 		}
 		// If the shift key is pressed we will show the cursor position
@@ -530,41 +527,35 @@ Chromoscope.prototype.load = function(callback){
 	}).registerKey(['h','?'],function(){ // 63 is question mark
 		this.toggleByID(".chromo_help");
 	}).registerKey('i',function(){
-		$(this.container+" .chromo_info").toggle();
-	}).registerKey('k',function(){
-		$(this.container+" .chromo_layerswitcher").toggle();
+		$(this.body+" .chromo_info").toggle();
 	}).registerKey('c',function(){
-		$(this.container+" .chromo_help").hide();
-		$(this.container+" .chromo_message").hide();
+		$(this.body+" .chromo_help").hide();
+		$(this.body+" .chromo_message").hide();
 	}).registerKey('.',function(){
-		$(this.container+" h1").toggle();
-		$(this.container+" h2").toggle();
-		$(this.container+" .chromo_message").hide();
-		$(this.container+" .chromo_layerswitcher").toggle();
-		$(this.container+" .chromo_kml_list").toggle();
-		$(this.container+" .chromo_helplink").toggle();
-		$(this.container+" .chromo_help").hide();
-		$(this.container+" .chromo_info").hide();
+		$(this.body+" h1").toggle();
+		$(this.body+" h2").toggle();
+		$(this.body+" .chromo_message").hide();
+		$(this.body+" .chromo_layerswitcher").toggle();
+		$(this.body+" .chromo_helplink").toggle();
+		$(this.body+" .chromo_help").hide();
+		$(this.body+" .chromo_info").hide();
+		$(this.body+" .chromo_pingroups_list").toggle();
 	});
 
 	// If we have a touch screen browser, we should convert touch events into mouse events.
-	if('ontouchstart' in document.documentElement) $(body+" .chromo_outerDiv").addTouch();
+	if('ontouchstart' in document.documentElement) $(this.body+" .chromo_outerDiv").addTouch();
 
-	this.activate(); //ChromoscopeActivate(this)
+	this.activate();
 	this.setViewport();
 
 	// For a Wii make text bigger, hide annotation layer and keyboard shortcuts
-	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall < 600))){ $(body+" .chromo_layerswitcher").css({'font-size':'1.5em'}); this.annotations = ""; $(".keyboard").css({'display':'none'}); $(".nokeyboard").css({'display':'show'}); this.wavelength_load_range = 0; this.spatial_preload = 1; }
-
-	if(this.q.kml) this.message('Loading '+this.q.kml+'.<br />It may take a few seconds.');
-	else if(this.q.json) this.message('Loading '+this.q.json+'.<br />It may take a few seconds.');
-	
+	if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall < 600))){ $(this.body+" .chromo_layerswitcher").css({'font-size':'1.5em'}); this.annotations = ""; $(".keyboard").css({'display':'none'}); $(".nokeyboard").css({'display':'show'}); this.wavelength_load_range = 0; this.spatial_preload = 1; }
 
 	// Set the default zoom level
 	this.setMagnification(this.zoom);
 
 	if(this.spectrum.length == 0){
-		$(this.container+" .chromo_message").css({width:"400px","text-align":"center"});
+		$(this.body+" .chromo_message").css({width:"400px","text-align":"center"});
 		this.message("No wavelengths have been added to your HTML file so there's nothing to see. :-(",2000);
 	}else{
 		// Sort out wavelength order and slider bar
@@ -611,7 +602,7 @@ Chromoscope.prototype.load = function(callback){
 	if(this.showcontext) this.buildContextMenu();
 	
 	// Disable keyboard commands on input text fields
-	$(this.container+" input[type=text]").live("focus",{sky:this},function(e){
+	$(this.body+" input[type=text]").live("focus",{sky:this},function(e){
 		if(!e.data.sky.ignorekeys) e.data.sky.ignorekeys = true;
 	}).live("blur",{sky:this},function(e){
 		if(e.data.sky.ignorekeys) e.data.sky.ignorekeys = false;
@@ -619,7 +610,7 @@ Chromoscope.prototype.load = function(callback){
 
 	if($.browser.opera && $.browser.version == 9.3){ $(".keyboard").hide(); $(".nokeyboard").show(); }
 
-	$(this.container+" .chromo_title a").bind('click', jQuery.proxy( this, "reset" ) );
+	$(this.body+" .chromo_title a").bind('click', jQuery.proxy( this, "reset" ) );
 
 
 	// Now load a language if required
@@ -629,31 +620,26 @@ Chromoscope.prototype.load = function(callback){
 	// Make it sortable (if we have the jQuery/UI options available)
 	if(typeof $().sortable=="function"){
 		var cur = ($.browser.mozilla) ? 'move' : 'grabbing'; 
-		$(this.container+" .chromo_keys").sortable({containment:'parent',forcePlaceHolderSize:true,placeholder:'chromo_key_highlight',cursor:cur});
-		$(this.container+" .chromo_keys").bind('sortupdate',{el:this},function (event,ui){ event.data.el.orderWavelengths($(this).sortable('toArray')); });
+		$(this.body+" .chromo_keys").sortable({containment:'parent',forcePlaceHolderSize:true,placeholder:'chromo_key_highlight',cursor:cur});
+		$(this.body+" .chromo_keys").bind('sortupdate',{el:this},function (event,ui){ event.data.el.orderWavelengths($(this).sortable('toArray')); });
 	}
 
-	// If kml is defined as a string load it up
-	// We need to send the callback function into it
-	// because we don't want to execute the callback
-	// until the AJAX XML request comes back.
-	for (var k = 0; k < this.kmls.length; k++) { this.readKML(this.kmls[k],callback,30000); $(this.container+" .chromo_info").append("KML "+this.kmls[k]+"<br />"); }
+	this.triggerEvent("load");
 
-	// If we haven't done any XML loading, we should
-	// now execute the callback function
-	if(this.kmls.length == 0 && typeof callback=="function") callback.call();
-	$(this.container+" .chromo_info").html("Took " + (new Date() - this.start) + "ms to load.")
+	// We should now execute the callback function
+	if(typeof callback=="function") callback.call();
+
+	$(this.body+" .chromo_info").html("Took " + (new Date() - this.start) + "ms to load.")
 }
 
 // Construct the Help box
 Chromoscope.prototype.buildHelp = function(overwrite){
-	var body = (!this.container) ? "body" : this.container;
 
 	// Construct the help box
 	var txt = this.phrasebook.helpdesc;
 	if(this.phrasebook.translator) txt += '<br /><br />'+this.phrasebook.name+': '+this.phrasebook.translator;
-	if($(body+" .chromo_help").length == 0) $(body).append('<div class="chromo_help">'+txt+'</div>');
-	else{ if(overwrite) $(body+' .chromo_help').html(txt); }
+	if($(this.body+" .chromo_help").length == 0) $(this.body).append('<div class="chromo_help">'+txt+'</div>');
+	else{ if(overwrite) $(this.body+' .chromo_help').html(txt); }
 	var buttons = "<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('k')\">Hide/show the wavelength slider</a></li>";
 	buttons += "<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('+')\">Zoom in</a></li>";
 	buttons += "<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('-')\">Zoom out</a></li>";
@@ -683,27 +669,24 @@ Chromoscope.prototype.buildHelp = function(overwrite){
 	keys += "<li><strong>&darr;</strong> - "+this.phrasebook.down+"</li>";
 	keys += "<li><strong>+</strong> - "+this.phrasebook.zoomin+"</li>";
 	keys += "<li><strong>&minus;</strong> - "+this.phrasebook.zoomout+"</li>";
-	$(body+" .chromo_controlbuttons").html(buttons);
-	$(body+" .chromo_controlkeys").html(keys);
+	$(this.body+" .chromo_controlbuttons").html(buttons);
+	$(this.body+" .chromo_controlkeys").html(keys);
 
 	if(!this.ignorekeys || !this.container){
-		$(body+" .chromo_help").prepend(this.createClose());
+		$(this.body+" .chromo_help").prepend(this.createClose());
 		var w = (this.wide > 600) ? 600 : this.wide;
-		$(body+" .chromo_help").css("width",(w-50)+"px");
-		this.centreDiv(".chromo_help");
+		$(this.body+" .chromo_help").css("width",(w-50)+"px");
 	}
 
 	// Construct the help link
-	if($(body+" .chromo_helplink").length == 0) $(body).append('<p class="chromo_helplink"></p>');
+	if($(this.body+" .chromo_helplink").length == 0) $(this.body).append('<p class="chromo_helplink"></p>');
 
 	this.centreDiv(".chromo_help");
 }
 
 // Construct the links
 Chromoscope.prototype.buildLinks = function(overwrite){
-	var body = (!this.container) ? "body" : this.container;
-
-	if($(body+" .chromo_helplink").length == 0) $(body).append('<p class="chromo_helplink"></p>');
+	if($(this.body+" .chromo_helplink").length == 0) $(this.body).append('<p class="chromo_helplink"></p>');
 
 	// Construct the Make a Link
 	var str = "";
@@ -724,15 +707,15 @@ Chromoscope.prototype.buildLinks = function(overwrite){
 			str += '<span class="chromo_coords"></span>';
 		}
 	}
-	$(body+" .chromo_helplink").html(str);
-	$(body+" .chromo_linkhint").bind('click', jQuery.proxy( this, "createLink" ) );
-	$(body+" .chromo_langhint").bind('click',{id:'.chromo_lang'}, jQuery.proxy( this, "toggleByID" ) );
-	$(body+" .chromo_helphint").bind('click',{id:'.chromo_help'}, jQuery.proxy( this, "toggleByID" ) );
-	$(body+" .chromo_searchhint").bind('click', jQuery.proxy( this, "launchSearch" ) );
-	$(body+" .chromo_close").bind('click',{id:'.chromo_help'}, jQuery.proxy( this, "hide" ) );
+	$(this.body+" .chromo_helplink").html(str);
+	$(this.body+" .chromo_linkhint").bind('click', jQuery.proxy( this, "createLink" ) );
+	$(this.body+" .chromo_langhint").bind('click',{id:'.chromo_lang'}, jQuery.proxy( this, "toggleByID" ) );
+	$(this.body+" .chromo_helphint").bind('click',{id:'.chromo_help'}, jQuery.proxy( this, "toggleByID" ) );
+	$(this.body+" .chromo_searchhint").bind('click', jQuery.proxy( this, "launchSearch" ) );
+	$(this.body+" .chromo_close").bind('click',{id:'.chromo_help'}, jQuery.proxy( this, "hide" ) );
 	// Allow coordinates to be converted
-	$(this.container+" .chromo_coords").css({cursor:'pointer'});
-	$(body+" .chromo_coords").bind('click',{el:this},function (event){
+	$(this.body+" .chromo_coords").css({cursor:'pointer'});
+	$(this.body+" .chromo_coords").bind('click',{el:this},function (event){
 		event.data.el.coordtype = (event.data.el.coordtype == "G") ? "A" : "G";
 		event.data.el.updateCoords(); 
 	});
@@ -742,8 +725,7 @@ Chromoscope.prototype.buildLinks = function(overwrite){
 
 // Construct the context-sensitive menu
 Chromoscope.prototype.buildContextMenu = function(){
-	var body = (!this.container) ? "body" : this.container;
-	$(body+' .chromo_outerDiv').bind("contextmenu",{el:this,body:body},function(e){
+	$(this.body+' .chromo_outerDiv').bind("contextmenu",{el:this,body:this.container},function(e){
 		var chromo = e.data.el;
 		if(chromo.mouseevents){
 			var body = e.data.body;
@@ -787,58 +769,53 @@ Chromoscope.prototype.buildContextMenuItems = function(inp){
 
 // Construct the Language Switcher
 Chromoscope.prototype.buildLang = function(overwrite){
-	var body = (!this.container) ? "body" : this.container;
-	
 	var lang = '<ul>';
 	for(l = 0; l < this.langs.length ; l++) if(this.langs[l].code != this.langshort) lang += '<li><a href="?lang='+this.langs[l].code+'" onClick="javascript:chromo_active.getLanguage(\''+this.langs[l].code+'\');return false;">'+this.langs[l].name+' ('+this.langs[l].code+')</a></li>'; else this.langlong = this.langs[l].name;
 	lang += '</ul>';
-	if($(body+" .chromo_lang").length == 0) $(body).append('<div class="chromo_lang chromo_popup">'+lang+'</div>');
-	else $(body+" .chromo_lang").html(lang);
+	if($(this.body+" .chromo_lang").length == 0) $(this.body).append('<div class="chromo_lang chromo_popup">'+lang+'</div>');
+	else $(this.body+" .chromo_lang").html(lang);
 	var w = (this.wide > 160) ? 160 : this.wide;
-	$(body+" .chromo_lang").css("width",(w)+"px");
+	$(this.body+" .chromo_lang").css("width",(w)+"px");
 
-	var p = $(body+" .chromo_langhint").position();
-	var h = $(body+" .chromo_helplink").position();
+	var p = $(this.body+" .chromo_langhint").position();
+	var h = $(this.body+" .chromo_helplink").position();
 	if(p){
-		var l = (h.left+p.left-$(body+" .chromo_lang").outerWidth()/2+$(body+" .chromo_langhint").outerHeight()/2);
+		var l = (h.left+p.left-$(this.body+" .chromo_lang").outerWidth()/2+$(this.body+" .chromo_langhint").outerHeight()/2);
 		if(l < 10) l = 10;
-		var t = (h.top-$(body+" .chromo_lang").outerHeight()-10);
-		$(body+" .chromo_lang").css({position:'absolute',left:l+'px',top:t+'px'});
+		var t = (h.top-$(this.body+" .chromo_lang").outerHeight()-10);
+		$(this.body+" .chromo_lang").css({position:'absolute',left:l+'px',top:t+'px'});
 	}
-	$(body+" .chromo_lang").hide();
+	$(this.body+" .chromo_lang").hide();
 }
 
 // Construct the Language Switcher
 Chromoscope.prototype.showVideoTour = function(){
-	var body = (!this.container) ? "body" : this.container;
 	var w = 560;
 	var h = 340;
 	var scale = 1;
 	if(w > this.wide*0.8) w = this.wide*0.8; h = w*0.6;
 	if(h > this.tall*0.75) h = this.tall*0.75; w = h*1.6;
 
-	$(body+" .chromo_help").hide();
-	$(body+" .chromo_message").css({width:(w)+"px","text-align":"center"});
+	$(this.body+" .chromo_help").hide();
+	$(this.body+" .chromo_message").css({width:(w)+"px","text-align":"center"});
 	this.message(this.createClose()+'<object width="'+w+'" height="'+h+'"><param name="movie" value="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="'+w+'" height="'+h+'"></embed></object>');
-	$(body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
+	$(this.body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
 }
 
 // Construct the splash screen
 Chromoscope.prototype.buildIntro = function(delay){
-	var body = (!this.container) ? "body" : this.container;
 	var w = 600;
 	// iPhones have wide but not very tall screens so we make the intro a bit wider if the screen height is small.
 	if(this.tall <= 640) w *= 1.2;
 	if(w > 0.8*this.wide) w = 0.8*this.wide;
-	$(body+" .chromo_message").css({width:w+"px","text-align":"left"});
+	$(this.body+" .chromo_message").css({width:w+"px","text-align":"left"});
 	if(this.showintro) this.message(this.createClose()+this.phrasebook.intro,false,'left')
-	$(body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
-	if(this.showintro && delay > 0) $(body+" .chromo_message").delay(delay).fadeOut(500)
+	$(this.body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
+	if(this.showintro && delay > 0) $(this.body+" .chromo_message").delay(delay).fadeOut(500)
 }
 
 Chromoscope.prototype.showLang = function(){
-	var body = (!this.container) ? "body" : this.container;
-	$(body+" .chromo_lang").show();
+	$(this.body+" .chromo_lang").show();
 }
 
 // If the window resizes (e.g. going fullscreen)
@@ -862,11 +839,19 @@ Chromoscope.prototype.registerKey = function(charCode,fn,txt){
 			if(this.keys.charCode == ch) available = false;
 		}
 		if(available){
-			this.keys.push({charCode:ch,char:String.fromCharCode(ch),fn:fn});
-			if(txt) $(this.container+" .chromo_controlkeys").append('<li><strong>'+String.fromCharCode(ch)+'</strong> - '+txt+'</li>');
+			this.keys.push({charCode:ch,char:String.fromCharCode(ch),fn:fn,txt:txt});
+			if(txt) $(this.body+" .chromo_controlkeys").append('<li><strong>'+String.fromCharCode(ch)+'</strong> - '+txt+'</li>');
 		}
 	}
 	return this;
+}
+
+Chromoscope.prototype.registeredKey = function(ch){
+	if(typeof ch == "string") ch = ch.charCodeAt(0);
+	for(var i = 0 ; i < this.keys.length ; i++){
+		if(this.keys[i].charCode == ch) return true;
+	}
+	return false;
 }
 
 // Press a key
@@ -896,15 +881,15 @@ function simulateKeyPress(character) {
 
 // Define the size and position of the main viewport
 Chromoscope.prototype.setViewport = function(){
-	this.wide = (this.container) ? $(this.container).width() : $(window).width();
-	this.tall = (this.container) ? $(this.container).height() : $(window).height();
+	this.wide = (this.container) ? $(this.body).width() : $(window).width();
+	this.tall = (this.container) ? $(this.body).height() : $(window).height();
 	if(this.compact){
-		$(this.container).css("font-size","0.7em");
-		$(this.container+" .chromo_title").css("font-size","1em");
+		$(this.body).css("font-size","0.7em");
+		$(this.body+" .chromo_title").css("font-size","1em");
 	}
-	$(this.container+" .chromo_outerDiv").css('width',this.wide);
-	$(this.container+" .chromo_outerDiv").css('height',this.tall);
-	$(this.container+" .chromo_outerDiv").css({left:0,top:0});
+	$(this.body+" .chromo_outerDiv").css('width',this.wide);
+	$(this.body+" .chromo_outerDiv").css('height',this.tall);
+	$(this.body+" .chromo_outerDiv").css({left:0,top:0});
 }
 
 // Build a structure containing information about a wavelength layer.
@@ -1002,8 +987,6 @@ Chromoscope.prototype.cloneLayers = function(other){
 // Construct the wavelength slider and give it mouse events
 Chromoscope.prototype.makeWavelengthSlider = function(){
 
-	var body = (!this.container) ? "body" : this.container;
-
 	var layerswitch = "<div class=\"chromo_sliderbar\"><div class=\"chromo_slider\"></div></div><div class=\"chromo_keys\">";
 	for(var i=0 ; i < this.spectrum.length ; i++){
 		if(typeof this.spectrum[i].title=="object"){
@@ -1017,22 +1000,22 @@ Chromoscope.prototype.makeWavelengthSlider = function(){
 		layerswitch += '<span id="'+this.container+'-key-'+this.spectrum[i].key+'" title="'+p+'" class="chromo_key legend-'+this.spectrum[i].key+'">'+t+'</span>';
 	}
 	layerswitch += '</div>'
-	$(body+" .chromo_layerswitcher").html(layerswitch).disableTextSelect();	//No text selection
+	$(this.body+" .chromo_layerswitcher").html(layerswitch).disableTextSelect();	//No text selection
 	for(var i=0 ; i < this.spectrum.length ; i++){
 		if(this.spectrum[i].key) {
-			$(body+" .legend-"+this.spectrum[i].key).bind("click",{key:this.spectrum[i].key},function(e){ simulateKeyPress(e.data.key); });
+			$(this.body+" .legend-"+this.spectrum[i].key).bind("click",{key:this.spectrum[i].key},function(e){ simulateKeyPress(e.data.key); });
 		}
 	}
 	
-	var margin_t = parseInt($(body+" .legend-"+this.spectrum[0].key).css('margin-top'));
-	var h_full = parseInt($(body+" .legend-"+this.spectrum[this.spectrum.length-1].key).position().top + $(body+" .legend-"+this.spectrum[this.spectrum.length-1].key).outerHeight());
-	var h = $(body+" .legend-"+this.spectrum[0].key).outerHeight();
-	var w = $(body+" .chromo_sliderbar").outerWidth() - parseInt($(body+" .chromo_sliderbar").css('margin-right'));
+	var margin_t = parseInt($(this.body+" .legend-"+this.spectrum[0].key).css('margin-top'));
+	var h_full = parseInt($(this.body+" .legend-"+this.spectrum[this.spectrum.length-1].key).position().top + $(this.body+" .legend-"+this.spectrum[this.spectrum.length-1].key).outerHeight());
+	var h = $(this.body+" .legend-"+this.spectrum[0].key).outerHeight();
+	var w = $(this.body+" .chromo_sliderbar").outerWidth() - parseInt($(this.body+" .chromo_sliderbar").css('margin-right'));
 
 	// Add some padding for the wavelength slider
-	$(body+" .chromo_layerswitcher").css('padding-right',(h*2)+'px');
-	$(body+" .chromo_slider").css({height:h,width:h*1.2,"margin-left":"-"+(h*0.2)+"px"}).bind('mousedown',{state:true},jQuery.proxy( this, "draggable" ) ).bind('mouseup',{state:false},jQuery.proxy( this, "draggable" )).addTouch();
-	$(body+" .chromo_sliderbar").css({'margin-right':-(h)+'px',height:h_full,width:h*0.8,'margin-top':margin_t+'px'}).bind('mousemove',{h:h,margin_t:margin_t},jQuery.proxy( this, "dragIt" ) ).bind('mouseup',{state:false},jQuery.proxy( this, "draggable" )).addTouch();
+	$(this.body+" .chromo_layerswitcher").css('padding-right',(h*2)+'px');
+	$(this.body+" .chromo_slider").css({height:h,width:h*1.2,"margin-left":"-"+(h*0.2)+"px"}).bind('mousedown',{state:true},jQuery.proxy( this, "draggable" ) ).bind('mouseup',{state:false},jQuery.proxy( this, "draggable" )).addTouch();
+	$(this.body+" .chromo_sliderbar").css({'margin-right':-(h)+'px',height:h_full,width:h*0.8,'margin-top':margin_t+'px'}).bind('mousemove',{h:h,margin_t:margin_t},jQuery.proxy( this, "dragIt" ) ).bind('mouseup',{state:false},jQuery.proxy( this, "draggable" )).addTouch();
 	
 	this.positionSlider();
 	if(this.zoomctrl) this.makeZoomControl();
@@ -1049,15 +1032,15 @@ Chromoscope.prototype.draggable = function(event){
 		cur = 'pointer';
 		cur2 = 'default';
 	}
-	$(this.container+" .chromo_slider").css({cursor:cur});
-	$(this.container+" .chromo_sliderbar").css({cursor:cur2});
+	$(this.body+" .chromo_slider").css({cursor:cur});
+	$(this.body+" .chromo_sliderbar").css({cursor:cur2});
 }
 
 // Update the wavelength slider position
 Chromoscope.prototype.dragIt = function(event){
 	if (this.draggingSlider){
-		var yheight = $(this.container+" .chromo_sliderbar").height() - (event.data.h);
-		if(this.container) var yoff = $(this.container+" .chromo_layerswitcher").position().top + event.data.margin_t + (event.data.h)/2 + $(this.container).offset().top;
+		var yheight = $(this.body+" .chromo_sliderbar").height() - (event.data.h);
+		if(this.container) var yoff = $(this.body+" .chromo_layerswitcher").position().top + event.data.margin_t + (event.data.h)/2 + $(this.body).offset().top;
 		else var yoff = $(".chromo_layerswitcher").position().top + event.data.margin_t + (event.data.h)/2;
 		var fract = ((event.pageY)-yoff)/(yheight);
 		this.changeWavelength(fract*(this.spectrum.length-1) - this.lambda);
@@ -1067,40 +1050,42 @@ Chromoscope.prototype.dragIt = function(event){
 
 // Construct the wavelength slider and give it mouse events
 Chromoscope.prototype.makeZoomControl = function(){
-	var h = $(this.container+" .legend-"+this.spectrum[0].key).outerHeight();
+	var h = $(this.body+" .legend-"+this.spectrum[0].key).outerHeight();
 	var zoomer = "<div style=\"float:right;margin-right:-"+(h*1.25)+"px;width:"+(h*1.2)+"px;\"><div class=\"chromo_zoom chromo_zoomin\" title=\""+this.phrasebook.zoomin+"\">+</div><div class=\"chromo_zoom chromo_zoomout\" title=\""+this.phrasebook.zoomout+"\">&minus;</div></div>";
-	$(this.container+" .chromo_layerswitcher").append(zoomer);
-	$(this.container+" .chromo_zoom").css({cursor:"pointer",padding:"0px",width:h+"px",height:"1.2em","text-align":"center","margin-bottom":"5px"});
-	$(this.container+" .chromo_zoomin").bind('click', jQuery.proxy( this, "zoomIn" ) );
-	$(this.container+" .chromo_zoomout").bind('click', jQuery.proxy( this, "zoomOut" ) );
+	$(this.body+" .chromo_layerswitcher").append(zoomer);
+	$(this.body+" .chromo_zoom").css({cursor:"pointer",padding:"0px",width:h+"px",height:"1.2em","text-align":"center","margin-bottom":"5px"});
+	$(this.body+" .chromo_zoomin").bind('click', jQuery.proxy( this, "zoomIn" ) );
+	$(this.body+" .chromo_zoomout").bind('click', jQuery.proxy( this, "zoomOut" ) );
 }
 
 // Process each wavelength and annotation. Build the wavelength slider and add key commands.
 Chromoscope.prototype.processLayers = function(){
 	for(var i=0 ; i < this.spectrum.length ; i++){
 		var s = this.spectrum[i];
-		if(s.name) $(this.container+" .chromo_innerDiv").append('<div class="map '+s.name+'"></div>');
-		setOpacity($(this.container+" ."+s.name),this.opacity);
+		if(s.name) $(this.body+" .chromo_innerDiv").append('<div class="map '+s.name+'"></div>');
+		setOpacity($(this.body+" ."+s.name),this.opacity);
 	}
 	for(var i=0 ; i < this.annotations.length ; i++){
 		var a = this.annotations[i];
-		if(a.name) $(this.container+" .chromo_innerDiv").append('<div class="annotation '+a.name+'"></div>');
-		setOpacity($(this.container+" ."+a.name),a.opacity);
+		if(a.name) $(this.body+" .chromo_innerDiv").append('<div class="annotation '+a.name+'"></div>');
+		setOpacity($(this.body+" ."+a.name),a.opacity);
 	}
+	$(this.body+" .chromo_innerDiv").append('<span class="map kml pinholder"></span>');
+	$(this.body+" .pinholder").css({"z-index":this.spectrum.length+this.annotations.length+1,left:0,top:0,width:this.mapSize*2,height:this.mapSize,position:'absolute'});
 }
 
 // Hide any element by the ID or style.
 // Usage: hide("#chromo_message")
 Chromoscope.prototype.hide = function(event){
-	$(this.container+" "+((typeof event=="object") ? event.data.id : event)).hide();
+	$(this.body+" "+((typeof event=="object") ? event.data.id : event)).hide();
 }
 
 // Show or hide any element by the ID or style.
 // Usage: toggleByID("#chromo_message")
 Chromoscope.prototype.toggleByID = function(event){
 	var id = (typeof event=="object") ? event.data.id : event;
-	if($(this.container+" "+id).css("display") == 'none') $(this.container+" "+id).show();
-	else $(this.container+" "+id).hide();
+	if($(this.body+" "+id).css("display") == 'none') $(this.body+" "+id).show();
+	else $(this.body+" "+id).hide();
 }
 
 // Position the map based using query string parameters
@@ -1139,14 +1124,14 @@ Chromoscope.prototype.limitBounds = function(left,top,virtual){
 	if(left > 0){
 		left -= this.mapSize;
 		if(!virtual){
-			$(this.container+" .chromo_innerDiv").css({left:left});
+			$(this.body+" .chromo_innerDiv").css({left:left});
 			this.checkTiles();
 		}
 	}
 	if(left < -this.mapSize){
 		left += this.mapSize;
 		if(!virtual){
-			$(this.container+" .chromo_innerDiv").css({left:left});
+			$(this.body+" .chromo_innerDiv").css({left:left});
 			this.checkTiles();
 		}
 	}
@@ -1174,7 +1159,7 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 	var newl = (l <= 180) ? -(l) : (360-l);
 	var newleft = -((newl)*this.mapSize/360)+(this.wide - this.mapSize)/2;
 	var newtop = ((b)*this.mapSize/360)+(this.tall - this.mapSize)/2;
-	var el = $(this.container+" .chromo_innerDiv");
+	var el = $(this.body+" .chromo_innerDiv");
 
 	if(duration){
 		var newpos = this.limitBounds(newleft,newtop,true);
@@ -1186,7 +1171,7 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 			complete:function(){
 				_obj.checkTiles();
 				_obj.updateCoords();
-				if(typeof _obj.events.move=="function") _obj.events.move.call(_obj,{position:{l:l,b:b},zoom:z});			
+				_obj.triggerEvent("move",{position:{l:l,b:b},zoom:z});
 			}
 		});
 	}else{
@@ -1195,7 +1180,7 @@ Chromoscope.prototype.moveMap = function(l,b,z,duration){
 		if(jQuery.browser.msie) this.changeWavelength(0);
 		this.checkTiles();
 		this.updateCoords();
-		if(typeof this.events.move=="function") this.events.move.call(this,{position:{l:l,b:b},zoom:z});
+		this.triggerEvent("move",{position:{l:l,b:b},zoom:z});
 	}
 }
 
@@ -1204,15 +1189,17 @@ Chromoscope.prototype.updateCoords = function(x,y){
 	var coords = this.getCoords(x,y);
 	this.l = coords.l;
 	this.b = coords.b;
-	if(this.coordtype == 'G') var label = ''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>'; //$(this.container+" .chromo_coords").html(''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>')
+	if(this.coordtype == 'G') var label = ''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>'; //$(this.body+" .chromo_coords").html(''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>')
 	else{
 		radec = Galactic2Equatorial(coords.l,coords.b);
 		var label = ''+radec.ra_h+'h'+radec.ra_m+'m'+radec.ra_s+'s, '+radec.dec_d+'&deg;'+radec.dec_m+'&prime;'+radec.dec_s+'&Prime; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>';
-		//$(this.container+" .chromo_coords").html(''+radec[0].toFixed(2)+'&deg;, '+radec[1].toFixed(2)+'&deg; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
+		//$(this.body+" .chromo_coords").html(''+radec[0].toFixed(2)+'&deg;, '+radec[1].toFixed(2)+'&deg; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
 	}
-	if(this.showcoord){ $(this.container+" .chromo_coords").html(label); }
+	if(this.showcoord){ $(this.body+" .chromo_coords").html(label); }
+
 	// Call an attached event
-	if(this.coordlabel != label && typeof this.events.wcsupdate=="function") this.events.wcsupdate.call(this,{position:coords,zoom:this.zoom});
+	if(this.coordlabel != label) this.triggerEvent("wcsupdate",{position:coords,zoom:this.zoom});
+
 	// Store the current value of the coordinate label
 	this.coordlabel = label;
 	//if(this.pushstate) history.pushState({l:this.l,b:this.b,z:this.zoom,w:this.lambda,spec:this.spectrum},"Chromoscope ("+this.l+","+this.b+")",this.getViewURL());
@@ -1221,7 +1208,7 @@ Chromoscope.prototype.updateCoords = function(x,y){
 // Centre the map
 Chromoscope.prototype.centreMap = function(){
 	this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
-	$(this.container+" .chromo_innerDiv").css({top:(this.tall - this.mapSize)/2,left:(this.wide - this.mapSize)/2});
+	$(this.body+" .chromo_innerDiv").css({top:(this.tall - this.mapSize)/2,left:(this.wide - this.mapSize)/2});
 	this.checkTiles();
 }
 
@@ -1229,7 +1216,7 @@ Chromoscope.prototype.centreMap = function(){
 // within the current container
 // Usage: this.centreDiv(".chromo_help")
 Chromoscope.prototype.centreDiv = function(el){
-	$(this.container+' '+el).css({left:(this.wide-$(this.container+' '+el).outerWidth())/2,top:(this.tall-$(this.container+' '+el).outerHeight())/2});
+	$(this.body+' '+el).css({left:(this.wide-$(this.body+' '+el).outerWidth())/2,top:(this.tall-$(this.body+' '+el).outerHeight())/2});
 }
 
 // Check which tiles should be visible in the innerDiv
@@ -1245,7 +1232,7 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 
 		// If the zoom level has changed, we should 
 		// remove all tiles instantly
-		if(changeZ) $(this.container+' .tile').remove();
+		if(changeZ) $(this.body+' .tile').remove();
 		
 
 		if(this.performance) var stime = new Date();
@@ -1277,7 +1264,7 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 		}
 		// Now add the annotation layers
 		for(var a=0 ; a < this.annotations.length ; a++){
-			if( getOpacity($(this.container+" ."+this.annotations[a].name)) > 0) layers[l++] = -(a+1);
+			if( getOpacity($(this.body+" ."+this.annotations[a].name)) > 0) layers[l++] = -(a+1);
 		}
 
 		this.visibleTilesMap = new Array(visibleTiles.length*layers.length);
@@ -1344,11 +1331,11 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 				}
 			}
 			// Write the layer
-			if(idx >= 0) $(this.container+" ."+this.spectrum[idx].name).append(output);
-			else $(this.container+" ."+this.annotations[-(idx+1)].name).append(output);
+			if(idx >= 0) $(this.body+" ."+this.spectrum[idx].name).append(output);
+			else $(this.body+" ."+this.annotations[-(idx+1)].name).append(output);
 		}
 		// Set all the tiles sizes
-		$(this.container+' .tile').css({width:this.tileSize,height:this.tileSize});
+		$(this.body+' .tile').css({width:this.tileSize,height:this.tileSize});
 		
 		if(!changeZ || changeForced){
 			for (p = 0; p < this.previousTilesMap.length; p++) {
@@ -1362,7 +1349,7 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 					}
 				}
 				// No longer exists so can be removed
-				if(!match) $(this.container+" ."+this.previousTilesMap[p]).remove();
+				if(!match) $(this.body+" ."+this.previousTilesMap[p]).remove();
 			}
 		}
 
@@ -1383,11 +1370,11 @@ Chromoscope.prototype.checkTiles = function(changeForced){
 			this.times[this.tidx] = (etime-stime)
 			this.tidx = (this.tidx == this.times.length-1) ? 0 : this.tidx+1;
 			// Average previously stored times to reduce noise
-			$(this.container+" .chromo_info").html('checkTiles took '+parseInt((etime-stime))+'ms (avg='+parseInt(this.times.avg())+')').show()
+			$(this.body+" .chromo_info").html('checkTiles took '+parseInt((etime-stime))+'ms (avg='+parseInt(this.times.avg())+')').show()
 		}
 
 	}
-	// If we've loaded any KML we need to position the pins and 
+	// If we've added any pins we need to position them and their
 	// balloons here. It wouldn't be necessary but because their 
 	// content might take a little while to load, we can't trust
 	// their initial positions.
@@ -1399,9 +1386,9 @@ Chromoscope.prototype.getVisibleRange = function(coordtype){
 
 	if(coordtype){
 		// Work out the X,Y coordinates
-		var l = -$(this.container+" .chromo_innerDiv").position().left;
+		var l = -$(this.body+" .chromo_innerDiv").position().left;
 		var r = l+this.wide;
-		var t = -$(this.container+" .chromo_innerDiv").position().top;
+		var t = -$(this.body+" .chromo_innerDiv").position().top;
 		var b = t+this.tall;
 		if(coordtype == "G"){
 			// Convert to normalized Galactic coordinates
@@ -1412,13 +1399,13 @@ Chromoscope.prototype.getVisibleRange = function(coordtype){
 		}
 		return { left: l, right: r, top: t, bottom: b }
 	}else{
-		var startX = Math.abs(Math.floor($(this.container+" .chromo_innerDiv").position().left / this.tileSize)) - this.spatial_preload;
+		var startX = Math.abs(Math.floor($(this.body+" .chromo_innerDiv").position().left / this.tileSize)) - this.spatial_preload;
 		//startX = (startX < 0) ? 0 : startX;
-		var startY = Math.abs(Math.floor($(this.container+" .chromo_innerDiv").position().top / this.tileSize)) - this.spatial_preload;
+		var startY = Math.abs(Math.floor($(this.body+" .chromo_innerDiv").position().top / this.tileSize)) - this.spatial_preload;
 		startY = (startY < 0) ? 0 : startY;
 		var spatialpre2 = (2*this.spatial_preload);
-		var tilesX = Math.ceil($(this.container+" .chromo_outerDiv").width() / this.tileSize) + spatialpre2;
-		var tilesY = Math.ceil($(this.container+" .chromo_outerDiv").height() / this.tileSize) + spatialpre2;
+		var tilesX = Math.ceil($(this.body+" .chromo_outerDiv").width() / this.tileSize) + spatialpre2;
+		var tilesY = Math.ceil($(this.body+" .chromo_outerDiv").height() / this.tileSize) + spatialpre2;
 		var visibleIndices = {	xstart:startX,
 					xend:(tilesX + startX),
 					ystart:startY,
@@ -1506,7 +1493,7 @@ Chromoscope.prototype.setWavelength = function(l){
 	}
 	this.updateCredit();
 	this.positionSlider();
-	if(typeof this.events.slide=="function") this.events.slide.call(this,{lambda:this.lambda});
+	this.triggerEvent("slide",{lambda:this.lambda});
 }
 
 Chromoscope.prototype.updateCredit = function(){
@@ -1516,11 +1503,11 @@ Chromoscope.prototype.updateCredit = function(){
 	var c1 = this.spectrum[l].attribution;
 	c1 = (typeof c1=="string") ? c1 : (typeof c1["z"+z]=="string") ? c1["z"+z] : c1.z;
 
-	if(h == l) $(this.container+" .chromo_attribution").html(c1);
+	if(h == l) $(this.body+" .chromo_attribution").html(c1);
 	else{
 		var c2 = this.spectrum[h].attribution;
 		c2 = (typeof c2=="string") ? c2 : (typeof c2["z"+z]=="string") ? c2["z"+z] : c2.z;
-		$(this.container+" .chromo_attribution").html(''+c1+' &amp; '+c2+'');
+		$(this.body+" .chromo_attribution").html(''+c1+' &amp; '+c2+'');
 	}
 }
 
@@ -1532,13 +1519,13 @@ Chromoscope.prototype.positionSlider = function(low,high){
 		var low = Math.floor(this.lambda);
 		var high = Math.ceil(this.lambda);
 		var y = 0;
-		if(low == high) y = $(this.container+" .legend-"+this.spectrum[low].key).position().top;
+		if(low == high) y = $(this.body+" .legend-"+this.spectrum[low].key).position().top;
 		else {
-			ylow = $(this.container+" .legend-"+this.spectrum[low].key).position().top;
-			yhigh = $(this.container+" .legend-"+this.spectrum[high].key).position().top;
+			ylow = $(this.body+" .legend-"+this.spectrum[low].key).position().top;
+			yhigh = $(this.body+" .legend-"+this.spectrum[high].key).position().top;
 			y = ylow + (yhigh-ylow)*(this.lambda-low);
 		}
-		$(this.container+" .chromo_slider").css('margin-top',y);
+		$(this.body+" .chromo_slider").css('margin-top',y);
 	}	
 }
 
@@ -1555,13 +1542,13 @@ Chromoscope.prototype.changeWavelength = function(byWavelength){
 	for(var idx=0 ; idx < this.spectrum.length ; idx++){
 			if(idx < low || idx > high){
 				this.spectrum[idx].opacity = 0;
-				setOpacity($(this.container+" ."+this.spectrum[idx].name),0);
+				setOpacity($(this.body+" ."+this.spectrum[idx].name),0);
 			}
 			if(idx == low || idx == high){
 				newOpacity = (idx == low) ? (1-(this.lambda-low)).toFixed(2) : (1+(this.lambda-high)).toFixed(2);
 				newOpacity = Math.min(this.maxOpacity,Math.max(this.minOpacity, newOpacity));
 				this.spectrum[idx].opacity = newOpacity;
-				setOpacity($(this.container+" ."+this.spectrum[idx].name),newOpacity);
+				setOpacity($(this.body+" ."+this.spectrum[idx].name),newOpacity);
 			}
 	}
 }
@@ -1576,17 +1563,17 @@ Chromoscope.prototype.changeWavelengthByName = function(character){
 		if(character == this.spectrum[i].key){
 			this.setWavelength(i);
 			this.spectrum[i].opacity = this.maxOpacity;
-			setOpacity($(this.container+" ."+this.spectrum[i].name),this.spectrum[i].opacity);
+			setOpacity($(this.body+" ."+this.spectrum[i].name),this.spectrum[i].opacity);
 			matched = 1;
 		}else{
 			this.spectrum[i].opacity = 0;
-			setOpacity($(this.container+" ."+this.spectrum[i].name),0);
+			setOpacity($(this.body+" ."+this.spectrum[i].name),0);
 		}
 	}
 	if(!matched){
 		this.setWavelength(backup);
 		this.spectrum[backup].opacity = this.maxOpacity;
-		setOpacity($(this.container+" ."+this.spectrum[backup].name),this.spectrum[backup].opacity);
+		setOpacity($(this.body+" ."+this.spectrum[backup].name),this.spectrum[backup].opacity);
 	}
 }
 
@@ -1596,8 +1583,8 @@ Chromoscope.prototype.toggleAnnotationsByName = function(character){
 	if(!character) return;
 	for(var i=0 ; i < this.annotations.length ; i++){
 		if(character == this.annotations[i].key){
-			if(getOpacity($(this.container+" ."+this.annotations[i].name)) == this.annotations[i].opacity) setOpacity($(this.container+" ."+this.annotations[i].name),0);
-			else setOpacity($(this.container+" ."+this.annotations[i].name),this.annotations[i].opacity);
+			if(getOpacity($(this.body+" ."+this.annotations[i].name)) == this.annotations[i].opacity) setOpacity($(this.body+" ."+this.annotations[i].name),0);
+			else setOpacity($(this.body+" ."+this.annotations[i].name),this.annotations[i].opacity);
 		}
 	}
 }
@@ -1631,9 +1618,10 @@ Chromoscope.prototype.setMagnification = function(z) {
 	}
 	var oldmapSize = this.mapSize;
 	this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
-	this.zoomPins(oldmapSize,this.mapSize);
+	var scale = this.mapSize/oldmapSize
+	this.zoomPins(scale);
 	this.updateCredit();
-	if(typeof this.events.zoom=="function") this.events.zoom.call(this,{zoom:this.zoom});
+	this.triggerEvent("zoom",{zoom:this.zoom,scaling:scale});
 }
 
 // Alter the magnification
@@ -1646,8 +1634,8 @@ Chromoscope.prototype.changeMagnification = function(byZoom,x,y){
 		// The x,y need to be corrected with the container offset.
 		// Offset() is preferable to position() to deal with CSS
 		// nesting issues.
-		x -= Math.round($(this.container).offset().left);
-		y -= Math.round($(this.container).offset().top);
+		x -= Math.round($(this.body).offset().left);
+		y -= Math.round($(this.body).offset().top);
 	}
 	originalzoom = this.zoom;
 	
@@ -1655,8 +1643,8 @@ Chromoscope.prototype.changeMagnification = function(byZoom,x,y){
 	if(this.zoom == originalzoom) return;
 
 	// Store the position of the map relative to the map holder
-	this.y = $(this.container+" .chromo_innerDiv").position().top;
-	this.x = $(this.container+" .chromo_innerDiv").position().left;
+	this.y = $(this.body+" .chromo_innerDiv").position().top;
+	this.x = $(this.body+" .chromo_innerDiv").position().left;
 
 	// Get the position
 	pos = this.getNewPosition(this.x,this.y,byZoom);
@@ -1669,7 +1657,7 @@ Chromoscope.prototype.changeMagnification = function(byZoom,x,y){
 	}
 
 	var newpos = this.limitBounds(pos.left + xoff,pos.top + yoff);
-	$(this.container+" .chromo_innerDiv").css(newpos);
+	$(this.body+" .chromo_innerDiv").css(newpos);
 
 	this.checkTiles();
 }
@@ -1711,10 +1699,10 @@ Chromoscope.prototype.getNewPosition = function(templeft,temptop,z){
 
 // Get the Galactic coordinates for the current map centre
 Chromoscope.prototype.getCoords = function(offx,offy){
-	if(!offx) var offx = $(this.container+" .chromo_outerDiv").width()*0.5;
-	if(!offy) var offy = $(this.container+" .chromo_outerDiv").height()*0.5;
+	if(!offx) var offx = $(this.body+" .chromo_outerDiv").width()*0.5;
+	if(!offy) var offy = $(this.body+" .chromo_outerDiv").height()*0.5;
 	var scale = 360/this.mapSize;
-	var p = $(this.container+" .chromo_innerDiv").position();
+	var p = $(this.body+" .chromo_innerDiv").position();
 	var l = (offx-p.left)*scale;
 	var b = (p.top+this.mapSize*0.5-offy)*scale;
 	l = l % 360;
@@ -1723,62 +1711,39 @@ Chromoscope.prototype.getCoords = function(offx,offy){
 }
 
 Chromoscope.prototype.buildSearch = function(){
-	var body = (this.container) ? this.container : 'body';
-
 	// Create the search box if necessary
-	if($(body+" .chromo_search").length == 0){
-		$(body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'<form action="" method="GET" id="chromo_search_form" name="chromo_search_form"><input type="text" name="name" style="width:180px;" class="chromo_search_object" onFocus="disableKeys(true);" onBlur="disableKeys(false);" /><input type="submit" name="chromo_search_submit" class="chromo_search_submit" value="'+this.phrasebook.search+'" /><div class="chromo_search_message"></div></form></div>');
+	if($(this.body+" .chromo_search").length == 0){
+		$(this.body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'<form action="" method="GET" id="chromo_search_form" name="chromo_search_form"><input type="text" name="name" style="width:180px;" class="chromo_search_object" onFocus="disableKeys(true);" onBlur="disableKeys(false);" /><input type="submit" name="chromo_search_submit" class="chromo_search_submit" value="'+this.phrasebook.search+'" /><div class="chromo_search_message"></div></form></div>');
 		$('#chromo_search_form').bind('submit',{chromo:this},function(e){
 			e.preventDefault();
-			if(typeof e.data.chromo.search=="function") e.data.chromo.search.call(e.data.chromo,{val:$(e.data.chromo.container+" .chromo_search_object").val()});
-			else e.data.chromo.find($(e.data.chromo.container+" .chromo_search_object").val());
+			args = {val:$(e.data.chromo.container+" .chromo_search_object").val(),name:$(e.data.chromo.container+" .chromo_search_type:checked").val()}
+			var exists = -1;
+			for(i = 0; i < e.data.chromo.search.length ; i++){
+				if(e.data.chromo.search[i].name == args.name) exists = i
+			}
+			if(exists >= 0) e.data.chromo.search[exists].fn.call(e.data.chromo,args) //e.data.chromo.triggerEvent("search",args);
 			return false;
 		});
+
+		this.triggerEvent("buildSearch");
 	}
-	$(body+" .chromo_search").css({"width":"250px","z-index":1000}).hide()
-	$(body+" .chromo_controlbuttons").append("<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('s')\">"+this.phrasebook.search+"</a></li>");
-	$(body+" .chromo_search .chromo_close").bind('click', function(ev){ $('.chromo_search').hide(); $('.chromo_search_object').blur(); } );
+	var exists, s;
+	for(i = 0; i < this.search.length ; i++){
+		exists = false;
+		s = this.search[i];
+		$(this.body+" .chromo_search_type").each(function(){
+			if($(this).val() == s.name) exists = true;
+		})
+		if(!exists) $(this.body+" .chromo_search_submit").after('<input type="radio" name="chromo_search_type" class="chromo_search_type" value="'+s.name+'" /> '+s.desc);
+	}
+	$(this.body+" .chromo_search_type").first().click();
+
+	$(this.body+" .chromo_search_submit").val(this.phrasebook.search)
+	$(this.body+" .chromo_search").css({"width":"250px","z-index":1000}).hide()
+	$(this.body+" .chromo_controlbuttons").append("<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('s')\">"+this.phrasebook.search+"</a></li>");
+	$(this.body+" .chromo_search .chromo_close").bind('click', function(ev){ $('.chromo_search').hide(); $('.chromo_search_object').blur(); } );
 	if(this) this.centreDiv(".chromo_search");
 
-	this.registerKey(['s','/'],function(e){
-		e.event.preventDefault()
-		this.launchSearch();
-	},this.phrasebook.search);
-}
-
-
-Chromoscope.prototype.find = function(query){
-	q = query.toLowerCase();
-	matched = 0;
-	i = -1;
-	for(var p = 0 ; p < this.pins.length; p++){
-		if(this.pins[p].title.toLowerCase() == q){
-			matched++;
-			i = p;
-		}
-	}
-	// If it didn't match on a title we'll check in the rest of the balloon
-	if(matched == 0){
-		for(var p = 0 ; p < this.pins.length; p++){
-			d = this.pins[p].info.html.replace(/<\S[^><]*>/g,'');
-			if(d.toLowerCase().indexOf(q) >= 0){
-				matched++;
-				i = p;
-			}
-		}
-	}
-	
-	if(matched == 0) msg = "Not found.";
-	else if(matched == 1){
-		this.moveMap(this.pins[i].glon,this.pins[i].glat,this.zoom,1000);
-		this.showBalloon(this.pins[i]);
-		this.hide('.chromo_search');
-		$(body+' .chromo_search_object').blur();
-		msg = "";
-	}else msg = "Found "+matched+" matches.";
-	
-	$(this.container+' .chromo_search_message').html(msg);
-	return false;
 }
 
 Chromoscope.prototype.launchSearch = function(){
@@ -1787,40 +1752,63 @@ Chromoscope.prototype.launchSearch = function(){
 	this.showintro = false;	
 
 	// Hide message boxes
-	$(this.container+" .chromo_help").hide();
-	$(this.container+" .chromo_message").hide();
-	$(this.container+" .chromo_search").show();
+	$(this.body+" .chromo_help").hide();
+	$(this.body+" .chromo_message").hide();
+	$(this.body+" .chromo_search").show();
 
 	this.centreDiv(".chromo_search");
 
-	if($(this.container+" .chromo_search").is(':visible')) $(this.container+" .chromo_search_object").focus().select();
-	else $(this.container+" .chromo_search_object").blur();
+	if($(this.body+" .chromo_search").is(':visible')) $(this.body+" .chromo_search_object").focus().select();
+	else $(this.body+" .chromo_search_object").blur();
+}
+
+Chromoscope.prototype.registerSearch = function(args){
+	if(!args.name || !args.desc || typeof args.fn!="function") return this;
+	
+	var exists = false;
+	for(var i = 0 ; i < this.search.length ; i++){
+		if(this.search[i].name == args.name) exists = true;
+	}
+	if(!exists) this.search.push(args)
+
+	this.showsearch = true;
+	
+	// If we have the ability to search we will register the key
+	if(!this.registeredKey('s')){
+		this.registerKey(['s','/'],function(e){
+			e.event.preventDefault()
+			this.launchSearch();
+		},this.phrasebook.search);
+	}
+	return this;
 }
 
 // Create a web link to this view
 Chromoscope.prototype.createLink = function(){
 	var url = this.getViewURL();
 	var safeurl = url.replace('&','%26');
-	$(this.container+" .chromo_message").css({"text-align":"center"})
-	$(this.container+" .chromo_message").css({width:400});
+	$(this.body+" .chromo_message").css({"text-align":"center"})
+	$(this.body+" .chromo_message").css({width:400});
 	var icons = '<a href="http://twitter.com/home/?status=Spotted+this+with+@chromoscope+'+safeurl+'"><img src="twitter.gif" title="Tweet this" /></a><a href="http://www.facebook.com/sharer.php?u='+safeurl+'"><img src="facebook.gif" title="Share with Facebook" /></a><a href="http://www.blogger.com/blog-this.g?t=&amp;n=Chromoscope&amp;u='+safeurl+'"><img src="blogger.gif" title="Add to Blogger" /></a><a href="http://del.icio.us/post?url='+safeurl+'"><img src="delicious.gif" title="Tag with del.icio.us" /></a><a href="http://slashdot.org/bookmark.pl?title=Chromoscope&amp;url='+safeurl+'"><img src="slashdot.gif" title="Slashdot this" /></a><a href="http://digg.com/submit?phase=2&url='+safeurl+'"><img src="digg.gif" title="Digg this" /></a><a href="http://www.mixx.com/submit?page_url='+safeurl+'"><img src="mixx.png" title="Add to Mixx" /></a>';
 	var share = (this.phrasebook.sharewith.indexOf("__ICONS__") > 0) ? this.phrasebook.sharewith.replace("__ICONS__",icons) : this.phrasebook.sharewith+icons;
 	this.message(this.createClose()+this.phrasebook.url+'<input type="text" class="chromo_createdLink" value="'+url+'" style="width:100%;" /><br /><p class="social">'+share+' </p>')
-	$(this.container+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
-	$(this.container+" .chromo_createdLink").focus(function(){
+	$(this.body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
+	$(this.body+" .chromo_createdLink").focus(function(){
 		$(this).select();
 	})
 }
 
 Chromoscope.prototype.getViewURL = function(){
-//	var coords = this.getCoords();
 	var w = "";
 	for(i = 0; i < this.spectrum.length; i++){
 		w += this.spectrum[i].key; 
 		w += (i == this.spectrum.length-1) ? '' : ',';
 	}
 	var url = window.location.protocol + "//" + window.location.host + "" + window.location.pathname+'?l='+this.l.toFixed(4)+'&b='+this.b.toFixed(4)+'&w='+this.lambda.toFixed(2)+'&o='+w+'&z='+this.zoom;
-	if(typeof this.q.kml=="string") url += '&kml='+this.q.kml;
+	if(this.events['getViewURL']){
+		var o = this.triggerEvent("getViewURL",{'url':url})
+		for(i = 0 ; i < o.length ; i++) url += o
+	}
 	return url;
 }
 
@@ -1839,7 +1827,7 @@ Chromoscope.prototype.createCloseOld = function(){
 }
 // Make a message
 Chromoscope.prototype.message = function(html,delay,align){
-	msg = $(this.container+" .chromo_message");
+	msg = $(this.body+" .chromo_message");
 	if(delay && delay > 0) msg.html(html).show().delay((typeof delay=="number") ? delay : 2000).fadeOut(500);
 	else msg.html(html).show();
 	this.centreDiv(".chromo_message");
@@ -1848,292 +1836,87 @@ Chromoscope.prototype.message = function(html,delay,align){
 // Bind events
 Chromoscope.prototype.bind = function(ev,fn){
 	if(typeof ev!="string" || typeof fn!="function") return this;
-	if(ev == "move") this.events.move = fn;
-	else if(ev == "zoom") this.events.zoom = fn;
-	else if(ev == "slide") this.events.slide = fn;
-	else if(ev == "wcsupdate") this.events.wcsupdate = fn;
-	else if(ev == "kml") this.events.kml = fn;
-	else if(ev == "json") this.events.json = fn;
-	else if(ev == "pinopen") this.events.pinopen = fn;
-	else if(ev == "pinclose") this.events.pinclose = fn;
+	if(this.events[ev]) this.events[ev].push(fn);
+	else this.events[ev] = [fn];
 	return this;
 }
-
-// Get a locally hosted KML file
-// Usage: readKML(kml,[overwrite],[duration],[callback])
-//	kml (string) = The location of the KML/JSON file
-//	overwrite (boolean) = Do we overwrite any previously loaded Placemarkers?
-//	duration (number) = Number of milliseconds before reloading the KML
-//	callback (function) = A function to call after this
-Chromoscope.prototype.readKML = function(kml){
-	if(typeof kml=="string"){
-		// Relative link shouldn't have a protocol
-		if(kml.indexOf('://') < 0){
-			var callback = null;
-			var duration = 0;
-			var overwrite = false;
-			for (var i = 1; i < Chromoscope.prototype.readKML.arguments.length; i++){
-				var arg = Chromoscope.prototype.readKML.arguments[i];
-				callback = (typeof arg=="function") ? arg : callback;
-				duration = (typeof arg=="number") ? arg : duration;
-				overwrite = (typeof arg=="boolean") ? arg : overwrite;
-			}
-			// Keep a copy of this chromoscope for use in the AJAX callback
-			var _obj = this;
-			// If the URL of the KML already has a query string, we just add to it
-			var kmlurl = (kml.indexOf('?') > 0) ? kml+'&'+Math.random() : kml+'?'+Math.random();
-
-			this.message('Loading '+kml+'.',true);
-			if(kml.indexOf(".json") > 0){
-				var jqxhr = $.getJSON(kmlurl,function(data){
-					var total = _obj.processJSON(data,overwrite,kml);
-					if(typeof _obj.events.json=="function") _obj.events.json.call(_obj,{total:total,name:data.name});
-					if(callback) callback.call();
-					if(duration > 0) setTimeout(function(json,duration){ _obj.readKML(json,duration); },duration);
-				}).error(function(data) {
-					_obj.message('Failed to load '+kml+'. It may not exist or be inaccessible.',true);
-				});
-			}else{
-				// Bug fix for reading XML file in FF3
-				$.ajaxSetup({async:false,'beforeSend': function(xhr){ if (xhr.overrideMimeType) xhr.overrideMimeType("text/plain"); } });
-				$.ajax({
-					type: "GET",
-					url: kmlurl,
-					dataType: ($.browser.msie) ? "text" : "xml",
-					success: function(data) {
-						var xml;
-						// IE has special requirements
-						if ( $.browser.msie ) {
-							xml = new ActiveXObject("Microsoft.XMLDOM");
-							xml.async = false;
-							xml.loadXML(data);
-						}else xml = data;
-						var docname = $('Document',xml).children('name').text();
-						_obj.message('Processing '+docname);
-						if(!_obj.container) $('title').text(docname+' | Chromoscope');
-						var total = _obj.processKML(xml,overwrite,kml);
-						if(typeof _obj.events.kml=="function") _obj.events.kml.call(_obj,{total:total,name:$('Document',xml).children('name').text()});
-						if(callback) callback.call();
-						if(duration > 0) setTimeout(function(kml,duration){ _obj.readKML(kml,duration); },duration);
-					},
-					error: function(data) {
-						_obj.message('Failed to load '+kml+'. It may not exist or be inaccessible.',true);
-					}
-				});
-			}
-		}else{
-			this.message('Due to web browser security, I can\'t load remote files. Sorry.',true);
+// Trigger a defined event with arguments. This is meant for internal use to be 
+// sure to include the correct arguments for a particular event
+// chromo.triggerEvent("zoom",args)
+Chromoscope.prototype.triggerEvent = function(ev,args){
+	if(typeof ev != "string") return;
+	if(typeof args != "object") args = {};
+	var o = [];
+	var _obj = this;
+	if(typeof this.events[ev]=="object"){
+		for(i = 0 ; i < this.events[ev].length ; i++){
+			if(typeof this.events[ev][i] == "function") o.push(this.events[ev][i].call(_obj,args));
 		}
 	}
+	if(o.length > 0) return o
 }
 
-// Parse a loaded KML file
-// Usage: processKML(xml,[overwrite])
-//	xml = The KML file as loaded by readKML()
-//	overwrite (boolean) = Do we overwrite any previously loaded Placemarkers?
-Chromoscope.prototype.processKML = function(xml,overwrite,docname){
-	var overwrite = overwrite ? true : false;
-	if(!docname) docname = "KML";
-	if(overwrite){ this.pins = new Array(); }
-	var holder = this.makePinHolder(docname);
-	body = (this.container) ? this.container : 'body';
-
-	var p = this.pins.length;
-	var c = this;	// Keep a copy of this instance for inside the Placemark loop
-	var i = 0;
-
-	// Set the opacity of all the pins (mostly for IE)
-	setOpacity($(body+" .kml"),1.0);
-
-	//console.log("Time until running processKML: " + (new Date() - this.start) + "ms");
-	var styles = new Array();
-	this.pinstylecount = 0;
-	this.pinstyleload = 0;
-	var _obj = this;
-	var added = 0;
-	$('Style',xml).each(function(i){
-		var j = $(this);
-		// We currently use the <href> and <hotSpot> variables as defined in:
-		// http://code.google.com/apis/kml/documentation/kmlreference.html#icon
-		styles[j.attr('id')] = {id: j.attr('id'),img:new Image(),balloonstyle:j.find('BalloonStyle'),x:j.find('hotSpot').attr('x'),y:j.find('hotSpot').attr('y')};
-		// Preload the images. First set the onload then attach the src.
-		// We'll update the pins again once all the style images have loaded
-		styles[j.attr('id')].img.onload = function(){ 
-			if(++_obj.pinstyleload == _obj.pinstylecount){
-				_obj.updatePins({}); 
-				if(_obj.showintro) _obj.buildIntro();
-				else $(_obj.container+" .chromo_message").hide();
-			}
+Chromoscope.prototype.addPinGroup = function(inp){
+	var len = this.pingroups.length
+	for(var i = 0 ; i < len ; i++) if(this.pingroups[i].id == inp.id) break;
+	if(i == len){
+		inp.id = (typeof inp.id=="string") ? inp.id.replace(/[^0-9a-zA-Z]/g,"-") : "pingroup-"+len;
+		this.pingroups[len] = {
+			id: inp.id,
+			title: inp.title
 		};
-		styles[j.attr('id')].img.onerror = function(){
-			if(++_obj.pinstyleload == _obj.pinstylecount){
-				_obj.updatePins({delay:false,finish:true}); 
-				if(_obj.showintro) _obj.buildIntro();
-				else $(_obj.container+" .chromo_message").hide();
-			}
-		}
-		styles[j.attr('id')].img.src = j.find('href').text();
-		if(styles[j.attr('id')].img.src) _obj.pinstylecount++;
-	});
-	//console.log("Time to process styles: " + (new Date() - this.start) + "ms");
-	$('Placemark',xml).each(function(i){
-		// Get the custom icon
-		var img = "pin.png";
-		var balloonstyle = "test";
-		var x, y, xu, yu, w, h = "";
-		var style = "";
-		if($(this).find("styleUrl").text()){
-			style = $(this).find("styleUrl").text();
-			style = style.substring(1);
-		}
-		var title = ($(this).find("name")) ? $(this).find("name").text() : "";
-		var desc = ($(this).find("description")) ? $(this).find("description").text() : "";
-		var ra = ($(this).find("longitude")) ? (parseFloat($(this).find("longitude").text())+180) : 0.0;
-		var dec = ($(this).find("latitude")) ? parseFloat($(this).find("latitude").text()) : 0.0;
-		var id_text = "";
-		if(typeof styles=="object" && style != "" && typeof styles[style]=="object"){
-			img = styles[style].img;
-			balloonstyle = styles[style].balloonstyle.find('text').text()
-			x = (typeof styles[style].x=="undefined") ? "" : parseFloat(styles[style].x);
-			y = (typeof styles[style].y=="undefined") ? "" : parseFloat(styles[style].y);
-			xu = styles[style].xunits;
-			yu = styles[style].yunits;
-			w = (styles[style].img.width) ? styles[style].img.width : "";
-			h = (styles[style].img.height) ? styles[style].img.height : "";
-		}
-		c.addPin({src:holder,id:p++,style:style,img:img,title:title,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:desc,ra:ra,dec:dec},true);
-		added++;
-	});
-	if(added > 0){
-		this.addKMLSwitch(holder,docname);
-		this.updatePins({delay:true,loc:holder});
-		this.wrapPins();
 	}
-	//console.log("Time to end of processKML: " + (new Date() - this.start) + "ms");
-	return added;
-}
-
-// Parse a loaded JSON file
-// Usage: processJSON(json,[overwrite])
-//	json = The JSON object as loaded by readKML()
-//	overwrite (boolean) = Do we overwrite any previously loaded Placemarkers?
-Chromoscope.prototype.processJSON = function(json,overwrite,docname){
-	var overwrite = overwrite ? true : false;
-	if(overwrite){ this.pins = new Array(); }
-	var holder = this.makePinHolder(docname);
-
-	var p = this.pins.length;
-	var c = this;	// Keep a copy of this instance for inside the Placemark loop
-	var i = 0;
-
-	// Set the opacity of all the pins (mostly for IE)
-	setOpacity($(this.container+" .kml"),1.0);
-
-	//console.log("Time until running processJSON: " + (new Date() - this.start) + "ms");
-
-	var styles = new Array();
-	this.pinstylecount = 0;
-	this.pinstyleload = 0;
-	var _obj = this;
-	var added = 0;
-
-	for(i=0 ; i< json.styles.length ; i++){
-		var j = json.styles[i];
-		styles[j.id] = {id: j.id, img:new Image(), balloonstyle:j.BalloonStyle,x:j.hotSpot.x,y:j.hotSpot.y};
-		// Preload the images. First set the onload then attach the src.
-		// We'll update the pins again once all the style images have loaded
-		styles[j.id].img.onload = function(){ 
-			if(++_obj.pinstyleload == _obj.pinstylecount){
-				_obj.updatePins({}); 
-				if(_obj.showintro) _obj.buildIntro();
-				else $(_obj.container+" .chromo_message").hide();
-			}
-		};
-		styles[j.id].img.onerror = function(){
-			if(++_obj.pinstyleload == _obj.pinstylecount){
-				_obj.updatePins({delay:false,finish:true}); 
-				if(_obj.showintro) _obj.buildIntro();
-				else $(_obj.container+" .chromo_message").hide();
-			}
-		}
-		if(j.icon) styles[j.id].img.src = j.icon;
-		this.pinstylecount++;
-	}
-	//console.log("Time to process styles: " + (new Date() - this.start) + "ms");
-	for(i = 0 ; i < json.placemarks.length ; i++){
-		// Get the custom icon
-		var img = "";
-		var balloonstyle = "";
-		var x, y, xunits, yunits, w, h = "";
-		var style = json.placemarks[i].style;
-		var id_text = "";
-		if(typeof styles[style]=="object"){
-			img = styles[style].img;
-			balloonstyle = styles[style].balloonstyle
-			x = (typeof styles[style].x=="undefined") ? "" : parseFloat(styles[style].x);
-			y = (typeof styles[style].y=="undefined") ? "" : parseFloat(styles[style].y);
-			xu = styles[style].xunits;
-			yu = styles[style].yunits;
-			w = (styles[style].img.width) ? styles[style].img.width : "";
-			h = (styles[style].img.height) ? styles[style].img.height : "";
-		}
-		c.addPin({src:holder,id:p++,style:style,img:img,title:json.placemarks[i].name,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:json.placemarks[i].description,ra:json.placemarks[i].ra+180,dec:json.placemarks[i].dec},true);
-		added++;
-	}
-	if(added > 0){
-		this.addKMLSwitch(holder,docname);
-		this.updatePins({delay:true,loc:holder});
-		this.wrapPins();
-	}
-	//console.log("Time to end of processKML: " + (new Date() - this.start) + "ms");
-	return added;
+	return len;
 }
 
 // Add a checkbox to be able to turn off this set of pins
-Chromoscope.prototype.addKMLSwitch = function(div,doc){
-	if($(body+" .chromo_kml_list").length == 0) $(body).append('<div class="chromo_kml_list"><form id="chromo_kml_list"><ul></ul></form></div>');
-	$(body+' .chromo_kml_list ul').append('<li><input type="checkbox" value="'+div+'" checked />'+doc+'</li>');
-	$(body+' .chromo_kml_list ul li:last input').change({chromo:this,name:name},function(e){
-		body = (e.data.chromo.container) ? e.data.chromo.container : 'body';
-		e.data.chromo.toggleByID('#'+body+'-holder-'+$(this).val());
-	});
+Chromoscope.prototype.addPinGroupSwitches = function(){
+	
+	if($(this.body+" .chromo_pingroups").length == 0) $(this.body).append('<div class="chromo_pingroup_list"><form id="chromo_pingroup_list"><ul></ul></form></div>');
+	
+	for(var i = 0 ; i < this.pingroups.length ; i++){
+		var found = false;
+		$(this.body+" #chromo_pingroup_list li").each(function(){
+			if($(this).val() == i) found = true;
+		})
+		if(!found){
+			$(this.body+' #chromo_pingroup_list ul').append('<li><input type="checkbox" value="'+i+'" checked />'+this.pingroups[i].title+'</li>');
+			$(this.body+' .chromo_pingroup_list ul li:last input').change({chromo:this,id:this.pingroups[i].id},function(e){
+				e.data.chromo.toggleByID('.'+e.data.id);
+			});
+		}
+	}
 }
 
-// Create a layer to hold pins
-Chromoscope.prototype.makePinHolder = function(loc) {
-	var loc = (typeof loc=="string") ? loc.replace(/[^0-9a-zA-Z]/g,"-") : 'kml';
-	body = (this.container) ? this.container : 'body';
-	if($(body+" ."+loc).length == 0){
-		$(body+" .chromo_innerDiv").append('<span class="map kml" id="'+body+'-holder-'+loc+'"></span>');
-		holder = $(body+" ."+loc);
-		holder.css("z-index",this.spectrum.length+this.annotations.length+1);
-		holder.css({left:0,top:0,width:this.mapSize*2,height:this.mapSize,position:'absolute'});
+Chromoscope.prototype.removePin = function(id){
+	for(var p = 0 ; p < this.pins.length; p++){
+		if(this.pins[p].id == id){
+			//$('#'+this.pins[p].pinid).remove();
+			//$('#'+this.pins[p].info.id).remove();
+			q = this.pins.splice(p,1);
+		}
 	}
-	return loc;
 }
 
 // Add to the pin array
 Chromoscope.prototype.addPin = function(input,delayhtml){
-	if(typeof delayhtml=="undefined") delayhtml = false;
-	this.pins[this.pins.length] = new Pin(input,this,delayhtml);
-}
+	// Define which group this pin is a member of
+	if(typeof input.group!="number") input.group = 0;
+	if(input.group >= this.pingroups.length) this.addPinGroup({id:'main',title:'Group of markers'});
 
-Chromoscope.prototype.removePin = function(id){
-	var body = (this.container) ? this.container : 'body';
-	$(body+' .balloon-'+id).remove();
-	$(body+' .pin-'+id).remove();
-	
-	for(var p = 0 ; p < this.pins.length; p++){
-		if(this.pins[p].id == id) this.pins.pop();
-	}
+	if(!input.id) input.id = "pin-"+this.pins.length;
+	if(typeof delayhtml=="undefined") delayhtml = false;
+
+	this.pins.push(new Pin(input,this,delayhtml));
 }
 
 // Define a pin
-// Usage: chromo_active.pins[p] = new Pin({id:1,img:'something.png',title:'Title',desc:'A description',glon:120.0,glat:5.2},chromo_active,delayhtml)
+// Usage: chromolayer.pins[p] = new Pin({id:1,img:'something.png',title:'Title',desc:'A description',glon:120.0,glat:5.2},chromo_active,delayhtml)
 //	id = The unique ID which will refer to this pin
+//	group = The ID of the pin group
 //	img (string) = The location of an image file to use as a pin. Can be remote.
-//	x (number) = The x position of the pin
-//	y (number) = The y position of the pin
+//	x (number) = The x position of the pin image relative to the point
+//	y (number) = The y position of the pin image relative to the point
 //	xunits (string) = pixels/fraction
 //	yunits (string) = pixels/fraction
 //	w (number) = The width of the pin
@@ -2147,140 +1930,148 @@ Chromoscope.prototype.removePin = function(id){
 //	chromo_active = The element that this will attach to
 //	delayhtml = True if you want to add a lot of pins one-after-the-other. You'll need to call updatePins({delay:true})
 //	src = An id for the source of this pin
-function Pin(input,el,delayhtml){
-	if(input){
+function Pin(inp,el,delayhtml){
+	if(inp){
 		this.el = el;
-		this.id = (input.id) ? input.id : el.pins.length;
-		this.src = (typeof input.src=="string") ? input.src : "";
-		this.loc = (input.loc) ? el.container+input.loc : el.container+" .kml";
-		var kml_coord;
-		if(input.ra && input.dec){
-			this.ra = (input.ra) ? input.ra : 0.0;
-			this.dec = (input.dec) ? input.dec : 0.0;
+		
+		this.group = (inp.group) ? inp.group : 0;
+		this.id = inp.id;
+		this.loc = el.container+' .pinholder';
+		this.style = inp.style;
+		this.info = { id:'',style:'', html:'', visible:false, width:((typeof inp.width=="number") ? inp.width : 0) };
+		this.info.style = (inp.balloonstyle) ? inp.balloonstyle : "";
+		if(typeof inp.img=="object") this.img = inp.img;
+		else{
+			this.img = new Image();
+			this.img.src = (typeof inp.img=="string" && inp.img.length > 0) ? inp.img : 'pin.png';
+		}
+		this.title = (inp.title) ? inp.title : '';
+		this.desc = (inp.desc) ? inp.desc : '';
+
+
+		// Coordinates
+		if(inp.ra && inp.dec){
+			this.ra = (inp.ra) ? inp.ra : 0.0;
+			this.dec = (inp.dec) ? inp.dec : 0.0;
 			kml_coord = Equatorial2Galactic(this.ra, this.dec);
 			this.glon = kml_coord[0];
 			this.glat = kml_coord[1];
 		}else{
-			this.glon = (input.glon) ? input.glon : 0.0;
-			this.glat = (input.glat) ? input.glat : 0.0;
+			this.glon = (inp.glon) ? inp.glon : 0.0;
+			this.glat = (inp.glat) ? inp.glat : 0.0;
 		}
 		kml_coord = Galactic2XY(this.glon,this.glat,el.mapSize);
-		this.input= input;
-		this.style = input.style;
-		this.info = { id:'',style:'', html:'', visible:false, width:((typeof input.width=="number") ? input.width : 0) };
-		this.info.style = (input.balloonstyle) ? input.balloonstyle : "";
+		this.pos = { x: kml_coord[0], y: kml_coord[1] };
 
-		if(typeof input.img=="object") this.img = input.img;
-		else{
-			this.img = new Image();
-			this.img.src = (typeof input.img=="string" && input.img.length > 0) ? input.img : 'pin.png';
-		}
-
-		this.pin_h = (typeof input.h=="number") ? input.h : (this.img.height) ? this.img.height : 30;
-		this.pin_w = (typeof input.w=="number") ? input.w : (this.img.width) ? this.img.width : 30;
+		// Dimensions and positioning
+		this.h = (typeof inp.h=="number") ? inp.h : (this.img.height) ? this.img.height : 30;
+		this.w = (typeof inp.w=="number") ? inp.w : (this.img.width) ? this.img.width : 30;
 		// Have we guessed the dimensions?
 		this.dimensionguess = (this.pin_h==30 && this.pin_w==30) ? true : false;
-		this.pin_x = (typeof input.x=="number") ? input.x : 0.5;
-		this.pin_y = (typeof input.y=="number") ? input.y : 1;
-		this.xunits = (typeof input.xunits=="string") ? input.xunits : "fraction";
-		this.yunits = (typeof input.yunits=="string") ? input.yunits : "fraction";
+		this.x = (typeof inp.x=="number") ? inp.x : 0.5;
+		this.y = (typeof inp.y=="number") ? inp.y : 1;
+		this.xunits = (typeof inp.xunits=="string") ? inp.xunits : "fraction";
+		this.yunits = (typeof inp.yunits=="string") ? inp.yunits : "fraction";
 
-		this.x = kml_coord[0];
-		this.y = kml_coord[1];
-		this.title = (input.title) ? input.title : '';
-		this.desc = (input.desc) ? input.desc : '';
 		this.info.id = "balloon-"+this.id;
-		this.pin = "pin-"+this.id;
-		this.pinid = this.src+"-"+this.pin;
-		this.html = '<div class="pin" title="'+this.title+'" id="'+this.pinid+'" style="position:absolute;display:block;width:'+this.pin_w+';height:'+this.pin_h+'"><img src="'+this.img.src+'" style="width:100%;height:100%;" /></div>';
-		this.isplaced = false;
-		this.isbound = false;
-		var contents = "";
-
-		// Deal with KML balloon styles
-		if(this.info.style){
-			// We need to replace the $[name] and $[description]
-			var text = this.info.style;
-			text = text.replace("$[name]",this.title)
-			contents = text.replace("$[description]",this.desc)
-		}else{
-			// There is no user-provided styling so apply a basic style
-			contents = (input.msg) ? input.msg : '<h3>'+this.title+'</h3><p>'+this.desc+'</p>';
-		}
-		// Make the <div> to hold the contents of the balloon
-		this.info.html = '<div class="balloon '+this.info.id+'" style="position:absolute;">'+contents+el.createCloseOld()+'</div>';
+		this.html = '<div class="pin '+el.pingroups[this.group].id+'" title="'+this.title+'" id="'+this.id+'" style="position:absolute;display:block;width:'+this.pin_w+';height:'+this.pin_h+'"><img src="'+this.img.src+'" style="width:100%;height:100%;" /></div>';
+		this.placed = false;
+		this.bound = false;
 
 		if(!this.dimensionguess){
-			// Position the pin and add the event to it
-			this.xoff = (this.xunits=="pixels") ? this.pin_x : this.pin_w*this.pin_x;
-			this.yoff = (this.yunits=="pixels") ? this.pin_y : this.pin_h*this.pin_y;
+			// Position the pin
+			this.xoff = (this.xunits=="pixels") ? this.x : this.w*this.x;
+			this.yoff = (this.yunits=="pixels") ? this.y : this.h*this.y;
 		}
+		this.info.html = el.buildBalloon(this)
+
 		if(!delayhtml){
 			$(this.loc).append(this.html);
-			this.jquery = $("#"+this.pinid);
-			this.xoff = (this.xunits=="pixels") ? this.pin_x : this.pin_w*this.pin_x;
-			this.yoff = (this.yunits=="pixels") ? this.pin_y : this.pin_h*this.pin_y;
-			this.jquery.css({left:(parseInt(this.x - this.xoff)),top:(parseInt(this.y - this.yoff))});
+			this.jquery = $("#"+this.id);
+			this.xoff = (this.xunits=="pixels") ? this.x : this.w*this.x;
+			this.yoff = (this.yunits=="pixels") ? this.y : this.h*this.y;
+			this.jquery.css({left:(parseInt(this.pos.x - this.xoff)),top:(parseInt(this.pos.y - this.yoff))});
 			this.jquery.bind('click',{p:this,el:el},function(e){
 				e.data.el.toggleBalloon(e.data.p);
 	 		});
 	 		this.jquery.show();
-			this.isplaced = true;
-	 		this.isbound = true;
+			this.placed = true;
+	 		this.bound = true;
 		}
 	}
 }
+
+
+Chromoscope.prototype.buildBalloon = function(pin){
+	var contents = "";
+	// Deal with KML balloon styles
+	if(pin.info.style){
+		// We need to replace the $[name] and $[description]
+		var text = pin.info.style;
+		text = text.replace("$[name]",pin.title)
+		contents = text.replace("$[description]",pin.desc)
+	}else{
+		// There is no user-provided styling so apply a basic style
+		contents = (pin.msg) ? pin.msg : '<h3>'+pin.title+'</h3><p>'+pin.desc+'</p>';
+	}
+	// Make the <div> to hold the contents of the balloon
+	return '<div class="balloon '+pin.info.id+'" style="position:absolute;">'+contents+this.createCloseOld()+'</div>';
+}
+
 
 Chromoscope.prototype.updatePins = function(inp){
 	style = (typeof inp.style=="string") ? inp.style : "";
 	delayedhtml = (typeof inp.delay=="boolean") ? inp.delay : false;
 	finish = (inp.finish) ? inp.finish : false;
-	loc = (typeof inp.loc=="string") ? inp.loc : '';
 	max = this.pins.length;
+	//console.log("Time to start of updatePins: " + (new Date() - this.start) + "ms");
 
 	// Construct the HTML for all the pins in one go as
 	// this is quicker than adding them one at a time
 	if(delayedhtml){
 		var html = "";
 		for(var p = 0 ; p < max ; p++){
-			if(this.pins[p].src == loc) html += this.pins[p].html;
+			if(!this.pins[p].placed) html += this.pins[p].html;
 		}
-		body = (this.container) ? this.container : 'body';
-		$('#'+body+'-holder-'+loc).append(html);
+		//console.log("part 2: " + (new Date() - this.start) + "ms");
+		$(this.body+' .pinholder').append(html);
+		//console.log("part 3: " + (new Date() - this.start) + "ms");
 	}
-	for(var p = 0 ; p < max ; p++) this.updatePin(p,style,finish);
+	for(var p = 0 ; p < max ; p++) if(!this.pins[p].placed) this.updatePin(p,style,finish);
+	//console.log("Time to end of updatePins: " + (new Date() - this.start) + "ms");
+	this.addPinGroupSwitches();
 }
 
 Chromoscope.prototype.updatePin = function(p,style,finish){
 	var pin = this.pins[p];
-	if(!pin.jquery) pin.jquery = $("#"+pin.pinid);
+	if(!pin.jquery) pin.jquery = $("#"+pin.id);
 	if(pin.dimensionguess && (pin.img.width || finish)){
-		pin.pin_h = pin.img.height ? pin.img.height : 30;
-		pin.pin_w = pin.img.width ? pin.img.width : 30;
+		pin.h = pin.img.height ? pin.img.height : 30;
+		pin.w = pin.img.width ? pin.img.width : 30;
 		pin.dimensionguess = false;
-		pin.xoff = (pin.xunits=="pixels") ? pin.pin_x : pin.pin_w*pin.pin_x;
-		pin.yoff = (pin.yunits=="pixels") ? pin.pin_y : pin.pin_h*pin.pin_y;
-		pin.jquery.css({left:(parseInt(pin.x - pin.xoff)),top:(parseInt(pin.y - pin.yoff)),width:pin.pin_w,height:pin.pin_h});
-		pin.isplaced = true;
+		pin.xoff = (pin.xunits=="pixels") ? pin.x : pin.w*pin.x;
+		pin.yoff = (pin.yunits=="pixels") ? pin.y : pin.h*pin.y;
+		pin.jquery.css({left:(parseInt(pin.pos.x - pin.xoff)),top:(parseInt(pin.pos.y - pin.yoff)),width:pin.w,height:pin.h});
+		pin.placed = true;
 	}else{
-		if(!pin.isplaced){
-			pin.jquery.css({left:(parseInt(pin.x - pin.xoff)),top:(parseInt(pin.y - pin.yoff))});
-			pin.isplaced = true;
+		if(!pin.placed){
+			pin.jquery.css({left:(parseInt(pin.pos.x - pin.xoff)),top:(parseInt(pin.pos.y - pin.yoff))});
+			pin.placed = true;
 		}
 	}
-	if(style && pin.style != style) pin.jquery.hide();
-	else pin.jquery.show();
-	if(!pin.isbound){
-		pin.jquery.bind('click',{p:pin,el:pin.el},function(e){ e.data.el.toggleBalloon(e.data.p); });
-		pin.isbound = true;
+//	if(style && pin.style != style) pin.jquery.hide();
+//	else pin.jquery.show();
+	if(!pin.bound){
+		pin.jquery.bind('click',{p:pin,el:this},function(e){ e.data.el.toggleBalloon(e.data.p); });
+		pin.bound = true;
 	}
 }
 
 Chromoscope.prototype.toggleBalloon = function(pin){
 	if(pin.info.visible){
-		$(pin.loc+" ."+pin.info.id).remove();
+		$(this.body+" ."+pin.info.id).remove();
 		pin.info.visible = false;
-		if(typeof this.events.pinclose=="function") this.events.pinclose.call(this,{pin:pin});
+		this.triggerEvent("pinclose",{pin:pin});
 	}else this.showBalloon(pin);
 }
 
@@ -2288,18 +2079,25 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 	var rad = 10;
 
 	var id = pin.loc+" ."+pin.info.id;
-	$(id).remove();
-	pin.info.visible = false;
+
+	if($(id).length > 0){
+		$(id).remove();
+		pin.info.visible = false;
+	}
+	
+	if(!pin.info.html) pin.info.html = this.buildBalloon(pin)
 	$(pin.loc).append(pin.info.html);
 
-	if(pin.info.width > 0) $(id).css({'width':pin.info.width});
-	var w = $(id).outerWidth();
-	var h = $(id).outerHeight();
+	el = $(id);
+	
+	if(pin.info.width > 0) el.css({'width':pin.info.width});
+	var w = el.outerWidth();
+	var h = el.outerHeight();
 
 	// Correction for (e.g. IE < 9) where the width goes crazy
 	if(w > this.wide){
 		w = (w > 500) ? 330 : w/2;
-		$(id).css({'width':w});
+		el.css({'width':w});
 	}
 
 	// Remove all previous arrows that exist
@@ -2308,33 +2106,34 @@ Chromoscope.prototype.showBalloon = function(pin,duration){
 	
 	// Position the balloon relative to the pin
 	pin.info.x = -w/2;
-	if((pin.y-h-rad) < this.mapSize*0.25){
-		pin.info.y = pin.pin_h*0.25;
-		$(id).prepend('<div class="arrowtop"></div>');
+	if((pin.pos.y-h-rad) < this.mapSize*0.25){
+		pin.info.y = pin.h*0.25;
+		el.prepend('<div class="arrowtop"></div>');
 		$(id+" .arrowtop").css({'left':((parseInt(w/2)-rad))});
 	}else{
 		pin.info.y = -h-rad;
-		$(id).append('<div class="arrow"></div>');
+		el.append('<div class="arrow"></div>');
 		$(id+" .arrow").css({'left':((parseInt(w/2)-rad))});
 	}
-	$(id).css({'left':parseInt(pin.x+pin.info.x),'top':(pin.y+pin.info.y)});
+	el.css({'left':parseInt(pin.pos.x+pin.info.x),'top':(pin.pos.y+pin.info.y)});
 
-	if(duration && duration > 0) $(id).fadeIn(duration);
-	else $(id).show();
+	if(duration && duration > 0) el.fadeIn(duration);
+	else el.show();
 	pin.info.visible = true;
 	
 	// Attach event
 	$(id+" .chromo_close").bind('click',{me:this,id:id,pin:pin},function(e){
 		e.data.me.mouseevents = true;
-		$(e.data.id).remove(); e.data.pin.info.visible = false;
-		if(typeof e.data.pin.el.events.pinclose=="function") e.data.pin.el.events.pinclose.call(e.data.pin.el,{pin:e.data.pin});
+		$(e.data.id).remove();
+		e.data.pin.info.visible = false;
+		e.data.me.triggerEvent("pinclose",{pin:e.data.pin});
 	});
-	$(id).bind('mouseover',{me:this},function(e){
+	el.bind('mouseover',{me:this},function(e){
 		e.data.me.mouseevents = false;
 	}).bind('mouseout',{me:this},function(e){
 		e.data.me.mouseevents = true;
 	})
-	if(typeof this.events.pinopen=="function") this.events.pinopen.call(this,{pin:pin});
+	this.triggerEvent("pinopen",{pin:pin});
 }
 
 // Go through each pin and reposition it on the map
@@ -2342,37 +2141,34 @@ Chromoscope.prototype.wrapPins = function(i){
 	if(this.pins.length == 0) return true;
 	max = (typeof i=="number") ? i : this.pins.length;
 	i = (typeof i=="number") ? i : 0;
-	var x = $(this.container+" .chromo_innerDiv").position().left;
-	var y = $(this.container+" .chromo_innerDiv").position().top;
+	var x = $(this.body+" .chromo_innerDiv").position().left;
+	var y = $(this.body+" .chromo_innerDiv").position().top;
 
 	for(var p = i ; p < max ; p++){
 		//var pos = x+this.pins[p].x;
-		if(this.pins[p].x < -x-this.tileSize) this.pins[p].x += this.mapSize;
-		while(this.pins[p].x > -x+this.mapSize-this.tileSize){
-			this.pins[p].x -= this.mapSize;
+		if(this.pins[p].pos.x < -x-this.tileSize) this.pins[p].pos.x += this.mapSize;
+		while(this.pins[p].pos.x > -x+this.mapSize-this.tileSize){
+			this.pins[p].pos.x -= this.mapSize;
 		}
-		this.pins[p].jquery.css({left:(parseInt(this.pins[p].x)-this.pins[p].xoff)});
-		if(this.pins[p].info.visible) $(this.container+" ."+this.pins[p].info.id).css({'left':((this.pins[p].x)+this.pins[p].info.x),'top':((this.pins[p].y)+this.pins[p].info.y)});
+		this.pins[p].jquery.css({left:(parseInt(this.pins[p].pos.x)-this.pins[p].xoff)});
+		if(this.pins[p].info.visible) $(this.body+" ."+this.pins[p].info.id).css({'left':((this.pins[p].pos.x)+this.pins[p].info.x),'top':((this.pins[p].pos.y)+this.pins[p].info.y)});
 	}
 }
 
 // If we zoom the map, we don't have to recalculate everything, 
 // just scale the positions by the zoom factor
-Chromoscope.prototype.zoomPins = function(oldmapSize,newmapSize){
-	if(!chromo_active) return true;
-	if(newmapSize != oldmapSize){
-		body = (this.container) ? this.container : 'body';
-		$(body+" .kml").css({width:newmapSize*2,height:newmapSize});
-		scale = newmapSize/oldmapSize;
+Chromoscope.prototype.zoomPins = function(scale){
+	if(scale != 1){
+		$(this.body+" .kml").css({width:this.mapSize*2,height:this.mapSize});
 		for(var p = 0 ; p < this.pins.length ; p++){
-			this.pins[p].x *= scale;
-			this.pins[p].y *= scale;
+			this.pins[p].pos.x *= scale;
+			this.pins[p].pos.y *= scale;
 			// Update the pin position
-			this.pins[p].jquery.css({left:((this.pins[p].x) - this.pins[p].xoff),top:((this.pins[p].y) - this.pins[p].yoff)});
+			this.pins[p].jquery.css({left:((this.pins[p].pos.x) - this.pins[p].xoff),top:((this.pins[p].pos.y) - this.pins[p].yoff)});
 		}
 		// If the info balloon is visible, update its position too
 		for(var p = 0 ; p < this.pins.length ; p++){
-			if(this.pins[p].info.visible) $(this.container+" ."+this.pins[p].info.id).css({'left':((this.pins[p].x)+this.pins[p].info.x),'top':((this.pins[p].y)+this.pins[p].info.y)});
+			if(this.pins[p].info.visible) $(this.body+" ."+this.pins[p].info.id).css({'left':((this.pins[p].pos.x)+this.pins[p].info.x),'top':((this.pins[p].pos.y)+this.pins[p].info.y)});
 		}
 	}
 }

@@ -9,31 +9,15 @@
  */
 
 Chromoscope.prototype.addSearch = function(){
-	var body = (this.container) ? this.container : 'body';
+	this.showsearch = true;
 
-	// If we have pins we should keep searching the pins as the default search
-	if(this.pins.length > 0){
-		$(body+" .chromo_search_submit").after('<input type="radio" name="chromo_search_type" class="chromo_search_type" value="lookUP" checked="checked"> web (lookUP) <input type="radio" name="chromo_search_type" class="chromo_search_type" value="placemark" /> placemarks');
-		$(body+" .chromo_search_type").change({chromo:this},function(e){
-			if($(this).val() == 'lookUP'){
-				e.data.chromo.search = function(e){
-					this.lookUP(e.val);
-					return false;
-				}	
-			}else e.data.chromo.search = '';
-		});
-		$(body+" .chromo_search_type").last().click();
-	}else{
-		this.search = function(e){
-			this.lookUP(e.val);
-			return false;
-		}
-	}
+	this.registerSearch({name:'lookUP',desc:'web (lookUP)',fn:function(args){
+		this.lookUP(args.val);
+		return false;
+	}});
 }
 
 Chromoscope.prototype.getLookUPResults = function(jData) {
-
-	var body = (this.container) ? this.container : 'body';
 
 	if(jData == null){
 		this.message("There was a problem dealing with the search results. Sorry about that.");
@@ -50,14 +34,14 @@ Chromoscope.prototype.getLookUPResults = function(jData) {
 	var message = jData.message;
 	this.lookup_done = true;
 	if(target.suggestion){
-		$(body+' .chromo_search_message').html("Not found. Did you mean <a href=\"#\" onClick=\"chromo_active.lookUP(\'"+target.suggestion+"\');\">"+target.suggestion+"</a>?");
+		$(this.body+' .chromo_search_message').html("Not found. Did you mean <a href=\"#\" onClick=\"chromo_active.lookUP(\'"+target.suggestion+"\');\">"+target.suggestion+"</a>?");
 	}else{
 		// Remove focus from the input field
 		$('.chromo_search_object').blur();
 		if(ra){
 			// Hide the search box
-			$(body+' .chromo_search').toggle();
-			$(body+' .chromo_search_message').html('');
+			$(this.body+' .chromo_search').toggle();
+			$(this.body+' .chromo_search_message').html('');
 			var str = ra.decimal+','+dec.decimal;
 			var coord = Equatorial2Galactic(ra.decimal, dec.decimal);
 			var msg = category.avmdesc+" at:<br />"+ra.h+":"+ra.m+":"+ra.s+", "+dec.d+"&deg;:"+dec.m+"':"+dec.s+'" ('+coordsys+' '+equinox+')<br />'+gal.lon.toFixed(2)+'&deg;, '+gal.lat.toFixed(2)+'&deg; (Galactic)<br />More <a href="'+service.href+'">information via '+service.name+'</a>';
@@ -71,21 +55,21 @@ Chromoscope.prototype.getLookUPResults = function(jData) {
 			else if(avm.match(/(^|\;)5\.1\./)) extra = "Help classify galaxies with <a href='http://www.galaxyzoo.org/'>Galaxy Zoo: Hubble</a>";
 
 			if(extra) msg += "<br /><br />Explore: "+extra
-			if($(body+' .lookupresults').length > 0){
-				// Remove any existing pin
-				this.removePin("lookuppin");
-			}else{
-				// Build a pin holder for search results
-				holder = this.makePinHolder();
-				setOpacity($(body+" ."+holder),1.0);
-			}
-			this.addPin({loc:' .'+holder,id:'lookuppin',title:target.name,desc:msg,glon:gal.lon,glat:gal.lat,msg:msg,width:330});
+
+
+			// Build a pin holder for search results
+			group = this.addPinGroup({id:'lookupresults',title:'Search results'});
+
+			pid = "lookuppin";
+			this.removePin(pid);
+			this.addPin({group:group,id:pid,title:target.name,desc:msg,glon:gal.lon,glat:gal.lat,msg:msg,width:330});
+
 			this.moveMap(gal.lon,gal.lat,this.zoom,1000);
 			this.showBalloon(this.pins[this.pins.length-1]);
 			this.wrapPins();
 		}else{
-			if(message) $(body+' .chromo_search_message').html(message);
-			else $(body+' .chromo_search_message').html("Not found. Sorry.");
+			if(message) $(this.body+' .chromo_search_message').html(message);
+			else $(this.body+' .chromo_search_message').html("Not found. Sorry.");
 		}
 	}
 	return false;
@@ -99,7 +83,7 @@ Chromoscope.prototype.areWeWaiting = function(){
 		if(t > 2000) msg = "Still searching...";
 		if(t > 10000) msg = "This is embarrassing. Still waiting...";
 		if(t > 20000) msg = "Not getting a response. Either you aren't connected to the internet or this object may not be recognised."
-		if(msg) $(this.container+' .chromo_search_message').html(msg);
+		if(msg) $(this.body+' .chromo_search_message').html(msg);
 		if(t < 20000) var chromo_timer = setTimeout($.proxy(this.areWeWaiting,this),2000);
 	}
 }
@@ -107,7 +91,7 @@ Chromoscope.prototype.areWeWaiting = function(){
 Chromoscope.prototype.lookUP = function(object) {
 	if(!object) object = $('#'+this.lookup_id+'_lookupobject').val()
 	if(object){
-		$(this.container+' .chromo_search_message').html("Searching...");
+		$(this.body+' .chromo_search_message').html("Searching...");
 		// Get the JSON results file
 		this.lookup_start = new Date();
 		this.lookup_done = false
@@ -126,3 +110,5 @@ Chromoscope.prototype.lookUP = function(object) {
 		setTimeout($.proxy(this.areWeWaiting,this),500);
 	}
 }
+
+

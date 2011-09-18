@@ -14,6 +14,10 @@
 .chromo_title h1 a { text-decoration: none; color: white; }
 .chromo_title h2 { font-size: 0.6em; margin: 0px; margin-top:-3px; margin-left:5px; text-shadow: 0px 0px 8px #fff; }
 img.map { opacity: 1; }
+.chromo_controlkeys {
+	max-height: 200px;
+	overflow: auto;
+}
 .chromo_layerswitcher {
 	font-size: 0.9em;
 	font-weight: bold;
@@ -120,7 +124,7 @@ img.map { opacity: 1; }
 	font-size: 0.8em;
 	opacity: 1.0;
 }
-.chromo_kml_list {
+.chromo_pingroup_list {
 	font-weight: bold;
 	position: absolute;
 	left: 0px;
@@ -132,7 +136,7 @@ img.map { opacity: 1; }
 	font-size: 0.8em;
 	opacity: 1.0;
 }
-.chromo_kml_list ul {
+.chromo_pingroup_list ul {
 	margin: 0px;
 	padding: 0px;
 	list-style: none;
@@ -194,7 +198,7 @@ img.map { opacity: 1; }
 	width:0;
 	padding:0px;
 	position:absolute;
-	bottom:-19px;
+	bottom:-18px;
 }
 /* IE6 */
 .balloon .arrow {
