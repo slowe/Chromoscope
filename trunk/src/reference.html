@@ -91,23 +91,27 @@
 	</ul>
 	<h3>Usage</h3>
 	<pre class="code">
-	<span class="c">// Set up the Chromoscope</span>
-	<b>var</b> chromo <span class="s">=</span> new Chromoscope();
+	$(document).ready(<b>function</b>(){
 
-	<span class="c">// Set up the Chromoscope to show Italian and no introductory message</span>
-	<b>var</b> chromo <span class="s">=</span> new Chromoscope({lang:<i>'en'</i>, showintro:<span class="d">false</span>});
+		<span class="c">// Set up the Chromoscope</span>
+		<b>var</b> chromo <span class="s">=</span> $.chromoscope();
 
-	<span class="c">// Attach to the element with the ID chromoscopeholder2 and in compact mode</span>
-	<b>var</b> chromo <span class="s">=</span> new Chromoscope({container:<i>'#chromoscopeholder2'</i>, compact:<span class="d">true</span>});
+		<span class="c">// Set up the Chromoscope to show Italian and no introductory message</span>
+		<b>var</b> chromo <span class="s">=</span> $.chromoscope({lang:<i>'en'</i>, showintro:<span class="d">false</span>});
 
-	<span class="c">// Don't show the introductory message, the "share" link, or the "about" link </span>
-	<b>var</b> chromo <span class="s">=</span> new Chromoscope({showintro:<span class="d">false</span>, showshare:<span class="d">false</span>, showabout:<span class="d">false</span>});
+		<span class="c">// Attach to the element with the ID chromoscopeholder2 and in compact mode</span>
+		<b>var</b> chromo <span class="s">=</span> $.chromoscope(<i>'#chromoscopeholder2'</i>,{compact:<span class="d">true</span>});
 
-	<span class="c">// Start with the view centred on Galactic coordinates 205.5, -17.4, a zoom level of 5 and at a psuedo-wavelength of 2.6</span>
-	<b>var</b> chromo <span class="s">=</span> new Chromoscope({l:<span class="d">205.5</span>, b:<span class="d">-17.4</span>, zoom:<span class="d">5</span>, lambda:<span class="d">2.6</span>});
+		<span class="c">// Don't show the introductory message, the "share" link, or the "about" link </span>
+		<b>var</b> chromo <span class="s">=</span> $.chromoscope({showintro:<span class="d">false</span>, showshare:<span class="d">false</span>, showabout:<span class="d">false</span>});
 
-	<span class="c">// Use the specified KML file to add map pins</span>
-	<b>var</b> chromo <span class="s">=</span> new Chromoscope({kml:<i>'telescopes.kml'</i>});
+		<span class="c">// Start with the view centred on Galactic coordinates 205.5, -17.4, a zoom level of 5 and at a psuedo-wavelength of 2.6</span>
+		<b>var</b> chromo <span class="s">=</span> $.chromoscope({l:<span class="d">205.5</span>, b:<span class="d">-17.4</span>, zoom:<span class="d">5</span>, lambda:<span class="d">2.6</span>});
+
+		<span class="c">// Use the specified KML file to add map pins</span>
+		<b>var</b> chromo <span class="s">=</span> $.chromoscope({kml:<i>'telescopes.kml'</i>});
+
+	}
 	</pre>
 
 
@@ -146,7 +150,6 @@
 		<span class="c">// Add an annotation layer. This uses tiles like the wavelength layers but will be toggled on/off</span>
 		chromo.addAnnotationLayer({opacity:<span class="d">0.4</span>,key:<i>'l'</i>,name:<i>'labels'</i>,tiles:<i>'../../labels-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'Labels'</i>,attribution:<i>'some Labels from Chris'</i>});
 
-
 	}
 	</pre>
 
@@ -173,9 +176,9 @@
 
 	<a name="events"></a>
 	<h2><a href="#events" class="menu">Events</a></h2>
-		<p>As of version 1.3.3 there is experimental code to allow you to bind your own functions to Chromoscope-specific events. The aim is to make it behave in a way similar to jQuery's <b>bind()</b> function and the <b>this</b> context will be the Chromoscope object. The current event names are experimental and they may change.
+		<p>As of version 1.4 you can bind your own functions to Chromoscope-specific events. The aim is to make it behave in a way similar to jQuery's <b>bind()</b> function and the <b>this</b> context will be the Chromoscope object.
 		<ul>
-			<li><b>event</b> <i>string</i> the event to bind to: "zoom" (whenever the view zooms), "move" (fired whenever the view moves and during map dragging), "wcsupdate" (whenever the coordinate label updates), "slide" (whenever the wavelength slider changes), "kml" (when a KML file is processed), "pinopen" (when a pin is opened), "pinclose" (when a pin is closed).</li>
+			<li><b>event</b> <i>string</i> the event to bind to: "zoom" (whenever the view zooms), "move" (fired whenever the view moves and during map dragging), "wcsupdate" (whenever the coordinate label updates), "slide" (whenever the wavelength slider changes), "kml" (when a KML file is processed), "pinopen" (when a pin is opened), "pinclose" (when a pin is closed), "load" (when Chromoscope loads - useful for plugins), "getViewURL" (useful for plugins).</li>
 			<li><b>myfunction</b> <i>function</i> an optional function that will be called when the specified event happens</li>
 			<li><b>ev</b> <i>structure</i> contains some variables relevant to the event eg. ev.position.l, ev.position.b, ev.zoom, ev.lambda</li>
 		</ul>
@@ -204,8 +207,6 @@
 		}).bind(<i>'wcsupdate'</i>,<b>function</b>(<b>ev</b>){
 			<span class="c">// Display an alert with the Galactic coordinates for the view centre</span>
 			alert(<i>'l,b = '</i>+ev.position.l+<i>','</i>+ev.position.b);
-		}).bind(<i>'kml'</i>,function(ev){
-			alert(ev.name+<i>' contains '</i>+ev.total+<i>' placemarkers'</i>);
 		}).bind(<i>'pinopen'</i>,function(ev){
 			alert(<i>'Opened pin '</i>+ev.pin.id);
 		});

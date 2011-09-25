@@ -4,7 +4,7 @@
 	<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.chromoscope.net/favicon.ico" />
 	<link rel="stylesheet" href="style.css" type="text/css" />
 	<!--[if IE 6]><link rel="stylesheet" href="style-ie.css" type="text/css" /><![endif]-->
-	<script src="jquery-1.4.2.min.js"></script>
+	<script src="jquery-1.6.min.js"></script>
 	<script src="jquery.mousewheel.min.js"></script>
 	<script src="chromoscope.js"></script>
 	<script src="chromoscope-lookup.js"></script>
@@ -15,17 +15,18 @@
 	<script type="text/javascript">
 	<!--
 
-		// Set up the Chromoscope
-		var chromo = new Array();
-		var i = 0
-		chromo[i++] = new Chromoscope({container:'#chromoscopeholder1'});
-		chromo[i++] = new Chromoscope({container:'#chromoscopeholder2',compact:true});
-		chromo[i++] = new Chromoscope({container:'#chromoscopeholder3'});
-		chromo[i++] = new Chromoscope({container:'#chromoscopeholder4',showintro:false,showshare:false,showabout:false});
-		chromo[i++] = new Chromoscope({container:'#chromoscopeholder5',showintro:false,l:205.5,b:-17.4,zoom:5,lambda:2.6});
-		chromo[i++] = new Chromoscope({container:'#chromoscopeholder6',showintro:false,kml:'telescopes.kml',lambda:5.0});
-
 		$(document).ready(function(){
+
+			// Set up the Chromoscope
+			var chromo = new Array();
+			var i = 0
+			chromo[i++] = $.chromoscope('#chromoscopeholder1');
+			chromo[i++] = $.chromoscope('#chromoscopeholder2',{compact:true});
+			chromo[i++] = $.chromoscope('#chromoscopeholder3');
+			chromo[i++] = $.chromoscope('#chromoscopeholder4',{showintro:false,showshare:false,showabout:false});
+			chromo[i++] = $.chromoscope('#chromoscopeholder5',{showintro:false,l:205.5,b:-17.4,zoom:5,lambda:2.6});
+			chromo[i++] = $.chromoscope('#chromoscopeholder6',{showintro:false,kml:'telescopes.kml',lambda:5.0});
+
 			// The spectral bands should be in order
 			chromo[0].addWavelength({useasdefault:false,key:'x',name:'xray',tiles:'../RASS-tiles/',ext:'jpg',title:'xray',attribution:'<a href="http://www.mpe.mpg.de/xray/wave/rosat/index.php">ROSAT</a>'});
 			chromo[0].addWavelength({useasdefault:true,key:'v',name:'optical',tiles:'../DSS2-tiles/',ext:'jpg',title:'optical',attribution:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>'});
@@ -48,12 +49,6 @@
 			chromo[4].load();		// Load the map
 			chromo[5].load();		// Load the map
 
-			chromo[0].addSearch();	// Add the ability to use LookUP
-			chromo[1].addSearch();	// Add the ability to use LookUP
-			chromo[2].addSearch();	// Add the ability to use LookUP
-			chromo[3].addSearch();	// Add the ability to use LookUP
-			chromo[4].addSearch();	// Add the ability to use LookUP
-			chromo[5].addSearch();	// Add the ability to use LookUP
 
 			//$.getJSON('test.js');
 
@@ -70,7 +65,7 @@
 
 	<h1>Chromoscope Embed Examples</h1>
 	<p>This page shows you how to embed <a href="http://www.chromoscope.net/">Chromoscope</a> in a webpage and assumes some basic knowledge of HTML, CSS and Javascript.</p>
-
+<!--
 	<h2>iframe Method</h2>
 	<p>If you can include &lt;iframe&gt; tags in your page, will have access to the internet when using it, and just want to use the standard Chromoscope features, this may be the simplest method:</p>
 	<pre>&lt;iframe src="http://www.chromoscope.net/?w=2.6&l=205.5&b=-17.4&z=5" style="width:800px;height:500px;"&gt;&lt;/iframe&gt;</pre>
@@ -84,7 +79,7 @@
 		<li><code>lang</code> = 2 letter language code e.g. <code>cy</code> for Welsh</li>
 	</ul>
 
-
+-->
 	<h2>Offline use and custom Chromoscopes</h2>
 	<p>If you've downloaded your own copy of the code and have your own tile sets, you should follow these instructions. Firstly you'll need to add the appropriate Javascript and CSS files to the page header. Then, still in the header, you'll need to define your Chromoscope instance, add some wavelengths to it, any annotation layers, an optional search feature and then load it. In the page body you should create an element with an <code>id</code>. The following code shows a pretty basic page.</p>
 
