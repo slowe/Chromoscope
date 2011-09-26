@@ -417,7 +417,7 @@
 
 	<a name="readKML"></a>
 	<h2><a href="#readKML" class="menu">Read KML file</a></h2>
-		<p>Read a KML file. Due to browser security policies, this will have to be hosted on the same domain.</p>
+		<p>To read a KML file you'll need to use the KML plugin. Due to browser security policies, this will have to be hosted on the same domain.</p>
 		<ul>
 			<li><b>kml</b> <i>string</i> the location of the KML file</li>
 			<li><b>overwrite</b> <i>boolean</i> [optional] overwrite previously loaded Placemarkers</li>
@@ -437,6 +437,7 @@
 	<h2><a href="#pin" class="menu">Add a map pin</a></h2>
 		<p>A suitable layer will need to exist for the pin</p>
 		<ul>
+			<li><b>group</b> <i>number</i> [optional] The number of the pin group to add this to (default is 0)</b></li>
 			<li><b>ra</b> <i>number</i> [optional] The Right Ascension of the pin</b></li>
 			<li><b>dec</b> <i>number</i> [optional] The declination of the pin</b></li>
 			<li><b>glon</b> <i>number</i> [optional] The Galactic longitude of the pin</li>
@@ -456,16 +457,22 @@
 			<li><b>delayhtml</b> add a lot of pins one-after-the-other. You'll need to call <code>chromo.updatePins("",true)</code></li>
 		</ul>
 		<pre class="code">
-		chromo.pins[p] = new Pin({id:<span class="d">1</span>, img:<i>'something.png'</i>, title:<i>'Title'</i>, desc:<i>'A description'</i>, glon:<span class="d">120.0</span>, glat:<span class="d">5.2</span>}, <span class="d">chromo</span>)
+
+		chromo.addPin({group:0,img:<i>'something.png'</i>,title:<i>'Title'</i>,desc:<i>'A description'</i>, glon:<span class="d">120.0</span>, glat:<span class="d">5.2</span>});
 
 
 		<span class="c">// Adding many pins may get slow so here we don't add the pins to the screen until we've provided them all to Chromoscope.</span>
 		<span class="c">// We'll allow their IDs to be auto-generated.</span>
-		p = 0;
-		chromo.pins[p++] = new Pin({img:<i>'something.png'</i>, title:<i>'A title'</i>, desc:<i>'A description'</i>, glon:<span class="d">120.0</span>, glat:<span class="d">5.2</span>}, <span class="d">chromo</span>)
+		group = chromo.addPinGroup({id:'idhere',title:'A title for the group'})
+		chromo.addPin({group:<span class="d">group</span>,style:style,img:<i>'something.png'</i>,title:<i>'Pin 1'</i>,desc:<i>'A description'</i>,ra:<span class="d">23.56</span>,dec:<span class="d">-5.2</span>},<span class="d">true</span>);
+		chromo.addPin({group:<span class="d">group</span>,style:style,img:<i>'something.png'</i>,title:<i>'Pin 2'</i>,desc:<i>'A second'</i>,ra:<span class="d">22.01</span>,dec:<span class="d">-15.6</span>},<span class="d">true</span>);
 		...
-		chromo.pins[p++] = new Pin({img:<i>'somethingelse.png'</i>, title:<i>'Pin x'</i>, desc:<i>'The umpteenth pin'</i>, glon:<span class="d">-43.8</span>, glat:<span class="d">-43.2</span>}, <span class="d">chromo</span>)
-		chromo.updatePins(<i>""</i>, <span class="d">true</span>)
+		chromo.addPin({group:<span class="d">group</span>,style:style,img:<i>'something.png'</i>,title:<i>'Pin X'</i>,desc:<i>'Final pin'</i>,ra:<span class="d">2.64</span>,dec:<span class="d">45.6</span>},<span class="d">true</span>);
+		<span class="c">// Add a switch to turn the layer on and off</span>
+		chromo.addPinGroupSwitches(<span class="d">group</span>);
+		<span class="c">// Update all the pins as we delayed their creation</span>
+		chromo.updatePins({delay: <span class="d">true</span>})
+		chromo.wrapPins();
 		</pre>
 
 
