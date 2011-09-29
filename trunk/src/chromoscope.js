@@ -10,7 +10,7 @@
  * To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.4 (2011-09-25):
+ * Changes in version 1.4 (2011-09-29):
  *   - Added core search form to search through KML placemarkers
  *   - Turned into a jQuery plugin. Requires a change to the setup line
  *      chromo = $.chromoscope("body",{lang:'en',showintro:true});
@@ -128,6 +128,7 @@ $(document).keydown(function(e){
 		this.showlangs = true;		// Display the languages link
 		this.showcoord = true;		// Display the coordinates
 		this.showsearch = false;	// Display the search link
+		this.showversion = true;	// Display the version number
 		this.compact = false;		// Hide parts of the interface if small
 		this.loaded = false;		// Set to true once loaded
 		this.mapSize = 256;
@@ -196,6 +197,7 @@ $(document).keydown(function(e){
 			if(typeof inp.showabout=="boolean") this.showabout = inp.showabout;
 			if(typeof inp.showlangs=="boolean") this.showlangs = inp.showlangs;
 			if(typeof inp.showcoord=="boolean") this.showcoord = inp.showcoord;
+			if(typeof inp.showversion=="boolean") this.showversion = inp.showversion;
 			if(typeof inp.sliderbar=="boolean") this.sliderbar = inp.sliderbar;
 			if(typeof inp.zoomctrl=="boolean") this.zoomctrl = inp.zoomctrl;
 			if(typeof inp.compact=="boolean") this.compact = inp.compact;
@@ -293,7 +295,7 @@ $(document).keydown(function(e){
 		this.buildLang();
 		if(this.showintro) this.buildIntro();
 		this.makeWavelengthSlider();
-		$(this.body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
+		if(this.showversion) $(this.body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
 		if($.browser.opera && $.browser.version == 9.3){ $(".keyboard").hide(); $(".nokeyboard").show(); }
 	}
 
@@ -397,7 +399,7 @@ $(document).keydown(function(e){
 
 
 		if(!this.title) $(this.body+" .chromo_title").toggle();
-		$(this.body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
+		if(this.showversion) $(this.body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
 		$(this.body+" .chromo_outerDiv").append('<div id="chromo_zoomer" style="width:50px;height:50px;display:none;"><div style="position:absolute;width:10px;height:10px;left:0px;top:0px;border-top:2px solid white;border-left:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;right:0px;top:0px;border-top:2px solid white;border-right:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;right:0px;bottom:0px;border-bottom:2px solid white;border-right:2px solid white;"></div><div style="position:absolute;width:10px;height:10px;left:0px;bottom:0px;border-bottom:2px solid white;border-left:2px solid white;"></div></div>');
 
 		//console.log("Time to start mouse events:" + (new Date() - this.start) + "ms");
@@ -2210,7 +2212,6 @@ $(document).keydown(function(e){
 		input.plugins = $.chromoscope.plugins;
 		return new Chromoscope(input);
 	};
-	$.chromoscope.version = "1.4beta";
 	$.chromoscope.plugins = [];
 })(jQuery);
 
