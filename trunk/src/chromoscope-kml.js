@@ -69,7 +69,7 @@
 							_obj.message('Processing '+docname);
 							if(!_obj.container) $('title').text(docname+' | Chromoscope');
 							var total = _obj.processFile("json",data,overwrite,ngroup);
-							_obj.triggerEvent("kml",{total:total,name:docname});
+							_obj.trigger("kml",{total:total,name:docname});
 							if(duration > 0) setTimeout(function(file,duration){ _obj.readKML(_obj.file,duration); },duration);
 						}).error(function(data) {
 							_obj.message('Failed to load '+file+'. It may not exist or be inaccessible.',true);
@@ -94,7 +94,7 @@
 								_obj.message('Processing '+docname);
 								if(!_obj.container) $('title').text(docname+' | Chromoscope');
 								var total = _obj.processFile("kml",xml,overwrite,ngroup);
-								_obj.triggerEvent("kml",{total:total,name:$('Document',xml).children('name').text()});
+								_obj.trigger("kml",{total:total,name:$('Document',xml).children('name').text()});
 								//if(callback) callback.call();
 								if(duration > 0) setTimeout(function(file,duration){ _obj.readKML(file,duration); },duration);
 							},
@@ -151,7 +151,7 @@
 					styles[j.id].img.onload = function(){ 
 						//console.log("Time to loaded style img "+_obj.pinstyleload+":" + (new Date() - _obj.start) + "ms");
 						if(++_obj.pinstyleload == _obj.pinstylecount){
-							_obj.updatePins({}); 
+							_obj.updatePins({draw:false,finish:true}); 
 							if(_obj.showintro) _obj.buildIntro();
 							else $(_obj.container+" .chromo_message").hide();
 						}
@@ -159,7 +159,7 @@
 					styles[j.id].img.onerror = function(){
 						//console.log("Time to error "+_obj.pinstyleload+":" + (new Date() - _obj.start) + "ms");
 						if(++_obj.pinstyleload == _obj.pinstylecount){
-							_obj.updatePins({delay:false,finish:true}); 
+							_obj.updatePins({draw:false,finish:true}); 
 							if(_obj.showintro) _obj.buildIntro();
 							else $(_obj.container+" .chromo_message").hide();
 						}
@@ -202,7 +202,7 @@
 						//console.log("Time to loaded style img "+_obj.pinstyleload+":" + (new Date() - _obj.start) + "ms");
 
 						if(++_obj.pinstyleload == _obj.pinstylecount){
-							_obj.updatePins({delay:false,finish:true}); 
+							_obj.updatePins({draw:false,finish:true}); 
 							if(_obj.showintro) _obj.buildIntro();
 							else $(_obj.container+" .chromo_message").hide();
 						}
@@ -212,7 +212,7 @@
 						//console.log("Time to error "+_obj.pinstyleload+":" + (new Date() - _obj.start) + "ms");
 
 						if(++_obj.pinstyleload == _obj.pinstylecount){
-							_obj.updatePins({delay:false,finish:true}); 
+							_obj.updatePins({draw:false,finish:true}); 
 							if(_obj.showintro) _obj.buildIntro();
 							else $(_obj.container+" .chromo_message").hide();
 						}
@@ -255,7 +255,7 @@
 			}
 			if(added > 0){
 				this.addPinGroupSwitches(group);
-				this.updatePins({delay:true});
+				this.updatePins({draw:true});
 				this.wrapPins();
 			}
 			//console.log("Time to end of processFile: " + (new Date() - this.start) + "ms");
