@@ -32,7 +32,7 @@
 			//console.log("Time to end trigger KML load:" + (new Date() - this.start) + "ms");
 		}).bind("getViewURL",function(){ 
 			return '&kml='+this.q.kml
-		});
+		}).bind("processkml",function(){ this.findPin(this.q.pin); });
 
 		// Get a locally hosted KML file
 		// Usage: readKML(chromo,kml,[overwrite],[duration],[callback])
@@ -257,6 +257,7 @@
 				this.addPinGroupSwitches(group);
 				this.updatePins({draw:true});
 				this.wrapPins();
+				this.trigger("processkml");
 			}
 			//console.log("Time to end of processFile: " + (new Date() - this.start) + "ms");
 			return added;

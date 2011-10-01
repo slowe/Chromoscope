@@ -11,6 +11,7 @@
  *   - Added core search form to search through KML placemarkers
  *   - Turned into a jQuery plugin. Requires a change to the setup line
  *      chromo = $.chromoscope("body",{lang:'en',showintro:true});
+ *   - Removed global variable
  *
  * Changes in version 1.3.3 (2011-07-25):
  *   - Added KML title to page title if not in a container
@@ -2156,7 +2157,7 @@ jQuery.query = function() {
 		if(matched == 0) msg = "Not found.";
 		else if(matched == 1){
 			this.moveMap(this.pins[i].glon,this.pins[i].glat,this.zoom,1000);
-			this.showBalloon(this.pins[i]);
+			this.pins[i].showBalloon();
 			this.hide('.chromo_search');
 			$(this.body+' .chromo_search_object').blur();
 			msg = "";
