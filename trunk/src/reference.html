@@ -93,7 +93,8 @@
 	<pre class="code">
 	$(document).ready(<b>function</b>(){
 
-		<span class="c">// Set up the Chromoscope</span>
+		<span class="c">// Several ways you could set up Chromoscope</span>
+
 		<b>var</b> chromo <span class="s">=</span> $.chromoscope();
 
 		<span class="c">// Set up the Chromoscope to show Italian and no introductory message</span>
@@ -166,10 +167,20 @@
 	<span class="c">// Load the map</span>
 	chromo.load();
 
-	<span class="c">// Or call it with a callback function</span>
+
+	<span class="c">// There are two ways to make your own function happen when Chromoscope loads:</span>
+
+	<span class="c">// Method 1: Call load with a callback function</span>
 	chromo.load(<b>function</b>(){
 		alert(<i>'Loaded'</i>);
 	});
+
+	<span class="c">// Method 2: Bind a load event</span>
+	chromo.bind("load",<b>function</b>(){
+		<span class="c">// The 'this' context is the Chromoscope instance</span>
+		alert(<i>'Loaded '</i>+this.title);
+	})
+	chromo.load();
 	</pre>
 
 
@@ -309,6 +320,7 @@
 
 		chromo.registerKey(<i>'l'</i>,function(){
 			alert(<i>'Pressed l'</i>);
+			this.changeWavelengthByName('l');
 		}).registerKey(<i>38</i>,function(){
 			alert(<i>'Pressed down cursor key'</i>);
 		}).registerKey([<i>'h'</i>,<span class="d">63</span>],function(){
@@ -483,9 +495,9 @@
 			<li><b>pin</b> <i>pin</i> - the pin you want to show the info balloon for.</li>
 		</ul>
 		<pre class="code">
-		chromo.showBalloon(<span class="d">pin</span>)
+		<span class="d">pin</span>.showBalloon()
 
-		chromo.showBalloon(<span class="d">chromo.pins[0]</span>)
+		<span class="d">chromo.pins[0]</span>.showBalloon()
 		</pre>
 
 </body>

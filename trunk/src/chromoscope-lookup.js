@@ -28,7 +28,10 @@
 			var message = jData.message;
 			chromo.lookup_done = true;
 			if(target.suggestion){
-				$(chromo.body+' .chromo_search_message').html("Not found. Did you mean <a href=\"#\" onClick=\"chromo_active.lookUP(\'"+target.suggestion+"\');\">"+target.suggestion+"</a>?");
+				$(chromo.body+' .chromo_search_message').html("Not found. Did you mean <a href=\"#\" class='lookup_suggestion'>"+target.suggestion+"</a>?");
+				$(chromo.body+' .chromo_search_message .lookup_suggestion').bind("click",{suggestion:target.suggestion},function(e){
+					lookUP(e.data.suggestion);
+				});
 			}else{
 				// Remove focus from the input field
 				$('.chromo_search_object').blur();
@@ -59,7 +62,7 @@
 					chromo.addPin({group:group,id:pid,title:target.name,desc:msg,glon:gal.lon,glat:gal.lat,msg:msg,width:330});
 
 					chromo.moveMap(gal.lon,gal.lat,chromo.zoom,1000);
-					chromo.showBalloon(chromo.pins[chromo.pins.length-1]);
+					chromo.pins[chromo.pins.length-1].showBalloon();
 					chromo.wrapPins();
 				}else{
 					if(message) $(chromo.body+' .chromo_search_message').html(message);
