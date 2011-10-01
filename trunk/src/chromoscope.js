@@ -4,13 +4,10 @@
  * Summer Exhibition 2009. Developed as an educational resource.
  *
  * This application will run locally or can be run on a web
- * server. The only part that requires an internet connection
- * is the search tool which makes use of strudel.org.uk/lookUP/
- *
- * To run locally you'll need to download the appropriate 
+ * server. To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.4 (2011-09-29):
+ * Changes in version 1.4 (2011-10-01):
  *   - Added core search form to search through KML placemarkers
  *   - Turned into a jQuery plugin. Requires a change to the setup line
  *      chromo = $.chromoscope("body",{lang:'en',showintro:true});
@@ -29,9 +26,6 @@
  *   - Allow mouse interaction with info balloons (stop dragging)
  */
 
-// Manually define one global variable to hold the Chromoscope instance.
-var chromo_active;
-
 // Get the URL query string and parse it
 jQuery.query = function() {
         var r = {length:0};
@@ -49,18 +43,7 @@ jQuery.query = function() {
 	}
         return r;
 };
-// Define the keyboard capture
-$(document).keydown(function(e){
-	if(!chromo_active) return true;
-	if(!e) e=window.event;
-	var code = e.keyCode || e.charCode || e.which || 0;
-	chromo_active.keypress(code,e)
-}).keypress(function(e){
-	if(!chromo_active) return true;
-	if(!e) e=window.event;
-	var code = e.keyCode || e.charCode || e.which || 0;
-	chromo_active.keypress(code,e)
-});
+
 // Extend jQuery
 (function ($) {
 
@@ -158,6 +141,7 @@ $(document).keydown(function(e){
 		this.start = new Date();
 		this.search = [];
 		this.plugins = [];
+		this.active = false;
 
 		this.events = {move:"",zoom:"",slide:"", wcsupdate:""};	// Let's add some default events
 		this.init(input);
@@ -218,7 +202,7 @@ $(document).keydown(function(e){
 		if(this.container) this.body = this.container;
 		if(this.pushstate){
 			window.onpopstate = function(event) {
-				// Can't use moveMap because it updates the state event chromo_active.moveMap(event.state.l,event.state.b,event.state.z);
+				// Can't use moveMap because it updates the state event chromo.moveMap(event.state.l,event.state.b,event.state.z);
 			};
 		}
 		// Initialize the plugins
@@ -337,7 +321,8 @@ $(document).keydown(function(e){
 		this.wrapPins();
 	}
 
-	Chromoscope.prototype.activate = function(){ chromo_active = this; }
+	Chromoscope.prototype.activate = function(){ this.active = true; }
+	Chromoscope.prototype.deactivate = function(){ this.active = false; }
 
 	Array.prototype.avg = function() {
 		var av = 0;
@@ -356,6 +341,20 @@ $(document).keydown(function(e){
 	//	callback = An optional function that will be called after this executes.
 	Chromoscope.prototype.load = function(callback){
 
+
+		// Define the keyboard capture
+		$(document).bind("keydown",{me:this},function(e){
+			if(e.data.me.ignorekeys) return true;
+			if(!e) e=window.event;
+			var code = e.keyCode || e.charCode || e.which || 0;
+			e.data.me.keypress(code,e)
+		}).bind("keypress",{me:this},function(e){
+			if(e.data.me.ignorekeys) return true;
+			if(!e) e=window.event;
+			var code = e.keyCode || e.charCode || e.which || 0;
+			e.data.me.keypress(code,e)
+		});
+
 		//console.log("Time to start load:" + (new Date() - this.start) + "ms");
 
 		// Does the container actually exist?
@@ -371,8 +370,8 @@ $(document).keydown(function(e){
 			}
 			$(this.body).bind('mouseover', {me:this}, function(e){
 				e.data.me.activate();
-			}).bind('mouseout', function(e){
-				chromo_active = "";
+			}).bind('mouseout', {me:this}, function(e){
+				e.data.me.deactivate();
 			});
 		}
 
@@ -522,7 +521,6 @@ $(document).keydown(function(e){
 		// If we have a touch screen browser, we should convert touch events into mouse events.
 		if('ontouchstart' in document.documentElement) $(this.body+" .chromo_outerDiv").addTouch();
 
-		this.activate();
 		this.setViewport();
 
 		// For a Wii make text bigger, hide annotation layer and keyboard shortcuts
@@ -629,6 +627,9 @@ $(document).keydown(function(e){
 		this.trigger("load");
 		//console.log("Time to end trigger load:" + (new Date() - this.start) + "ms");
 
+		// If this is full page we will activate it now
+		if(this.body=="body") this.activate()
+
 		// We should now execute the callback function
 		if(typeof callback=="function") callback.call();
 
@@ -731,11 +732,21 @@ $(document).keydown(function(e){
 
 	// Construct the Language Switcher
 	Chromoscope.prototype.buildLang = function(overwrite){
-		var lang = '<ul>';
-		for(l = 0; l < this.langs.length ; l++) if(this.langs[l].code != this.langshort) lang += '<li><a href="?lang='+this.langs[l].code+'" onClick="javascript:chromo_active.getLanguage(\''+this.langs[l].code+'\');return false;">'+this.langs[l].name+' ('+this.langs[l].code+')</a></li>'; else this.langlong = this.langs[l].name;
+		var lang = '<ul class="languages">';
+		for(l = 0; l < this.langs.length ; l++) if(this.langs[l].code != this.langshort) lang += '<li><a href="?lang='+this.langs[l].code+'" class="'+this.langs[l].code+'">'+this.langs[l].name+' ('+this.langs[l].code+')</a></li>'; else this.langlong = this.langs[l].name;
 		lang += '</ul>';
 		if($(this.body+" .chromo_lang").length == 0) $(this.body).append('<div class="chromo_lang chromo_popup">'+lang+'</div>');
 		else $(this.body+" .chromo_lang").html(lang);
+
+		for(l = 0; l < this.langs.length ; l++){
+			if(this.langs[l].code != this.langshort){
+				$(this.body+' ul.languages a.'+this.langs[l].code).bind("click",{me:this,lang:this.langs[l].code},function(e){
+					e.preventDefault();
+					e.data.me.getLanguage(e.data.lang);
+				});
+			}
+		}
+
 		var w = (this.wide > 160) ? 160 : this.wide;
 		$(this.body+" .chromo_lang").css("width",(w)+"px");
 
@@ -808,7 +819,7 @@ $(document).keydown(function(e){
 
 	// Press a key
 	Chromoscope.prototype.keypress = function(charCode,event){
-		if(this.ignorekeys) return true;
+		if(this.ignorekeys || !this.active) return true;
 		for(i = 0 ; i < this.keys.length ; i++){
 			if(this.keys[i].charCode == charCode){
 				this.keys[i].fn.call(this,{event:event});
@@ -831,7 +842,7 @@ $(document).keydown(function(e){
 	}
 
 	// Build a structure containing information about a wavelength layer.
-	// Usage: chromo_active.spectrum[s++] = new Wavelength({useasdefault:false,key:'f',name:'farir',tiles:'IR-tiles/',ext:'jpg',title:'Far-IR',attribution:'IRAS/NASA'});
+	// Usage: chromo.spectrum[s++] = new Wavelength({useasdefault:false,key:'f',name:'farir',tiles:'IR-tiles/',ext:'jpg',title:'Far-IR',attribution:'IRAS/NASA'});
 	//	useasdefault (boolean) = If true this will be the starting wavelength displayed
 	//	key (string) = A keyboard shortcut to go to this wavelength
 	//	name (string) = An internal ID for this wavelength. Should be unique.
@@ -844,7 +855,7 @@ $(document).keydown(function(e){
 	}
 
 	// Build a structure containing information about an annotation layer. It has the same inputs as Wavelength
-	// Usage: chromo_active.annotations[0] = new AnnotationLayer({opacity:0.4,key:'l',name:'labels',tiles:'labels-tiles/',ext:'jpg'});
+	// Usage: chromo.annotations[0] = new AnnotationLayer({opacity:0.4,key:'l',name:'labels',tiles:'labels-tiles/',ext:'jpg'});
 	//	opacity (number) = The opacity of this layer
 	//	key (string) = A keyboard shortcut to toggle this annotation
 	//	name (string) = An internal ID for this annotation. Should be unique.
@@ -1195,7 +1206,7 @@ $(document).keydown(function(e){
 			layers[l++] = Math.round(this.lambda);
 
 			// Step out from the nominal wavelength to pre-load
-			// other wavelengths as set by chromo_active.wavelength_load_range
+			// other wavelengths as set by chromo.wavelength_load_range
 			if(this.wavelength_load_range > 0){
 				for(w = 1; w <= this.wavelength_load_range ; w++){
 					// Check if the lower wavelength is required
@@ -1656,7 +1667,7 @@ $(document).keydown(function(e){
 	Chromoscope.prototype.buildSearch = function(){
 		// Create the search box if necessary
 		if($(this.body+" .chromo_search").length == 0){
-			$(this.body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'<form id="'+this.container+'_search_form" name="'+this.container+'_search_form"><div class="chromo_search_area"><input type="text" name="name" style="width:160px;" class="chromo_search_object" onFocus="disableKeys(true);" onBlur="disableKeys(false);" /><button type="submit" name="chromo_search_submit" class="chromo_search_submit">'+this.phrasebook.search+'</button></div><div class="chromo_search_message"></div></form></div>');
+			$(this.body).append('<div class="chromo_search chromo_popup">'+this.createClose()+'<form id="'+this.container+'_search_form" name="'+this.container+'_search_form"><div class="chromo_search_area"><input type="text" name="name" style="width:160px;" class="chromo_search_object" /><button type="submit" name="chromo_search_submit" class="chromo_search_submit">'+this.phrasebook.search+'</button></div><div class="chromo_search_message"></div></form></div>');
 			$(this.body+' .chromo_search form').bind('submit',{chromo:this},function(e){
 				e.preventDefault();
 				args = {val:$(e.data.chromo.container+" .chromo_search_object").val(),name:$(e.data.chromo.container+" .chromo_search_type:checked").val()}
@@ -1785,7 +1796,7 @@ $(document).keydown(function(e){
 	}
 	// Trigger a defined event with arguments. This is meant for internal use to be 
 	// sure to include the correct arguments for a particular event
-	// chromo.triggerE("zoom",args)
+	// chromo.trigger("zoom",args)
 	Chromoscope.prototype.trigger = function(ev,args){
 		if(typeof ev != "string") return;
 		if(typeof args != "object") args = {};
@@ -1854,7 +1865,7 @@ $(document).keydown(function(e){
 	}
 
 	// Define a pin
-	// Usage: chromolayer.pins[p] = new Pin({id:1,img:'something.png',title:'Title',desc:'A description',glon:120.0,glat:5.2},chromo_active,delayhtml)
+	// Usage: chromolayer.pins[p] = new Pin({id:1,img:'something.png',title:'Title',desc:'A description',glon:120.0,glat:5.2},chromo,delayhtml)
 	//	id = The unique ID which will refer to this pin
 	//	group = The ID of the pin group
 	//	img (string) = The location of an image file to use as a pin. Can be remote.
@@ -1870,7 +1881,7 @@ $(document).keydown(function(e){
 	//	dec (number) = The declination of the pin (optional: instead of glat)
 	//	glon (number) = The Galactic longitude of the pin
 	//	glat (number) = The Galactic latitude of the pin
-	//	chromo_active = The element that this will attach to
+	//	chromo = The chromoscope instance that this will attach to
 	//	delayhtml = True if you want to add a lot of pins one-after-the-other. You'll need to call updatePins({draw:true})
 	//	src = An id for the source of this pin
 	function Pin(inp,el,delayhtml){
@@ -2242,14 +2253,6 @@ $(document).keydown(function(e){
 // ===================================
 // Generic functions that are independent 
 // of the chromo container
-
-
-// Disable keyboard control
-function disableKeys(option){ if(chromo_active) chromo_active.ignorekeys = option; }
-
-// Enable keyboard control
-function allowKeyPress(){ if(chromo_active) { return !chromo_active.ignorekeys; } else { return false; } }
-
 
 // A cross browser way to get the opacity of an element
 // Usage: getOpacity($("#chromo_message"))
