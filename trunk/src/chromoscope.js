@@ -2033,13 +2033,14 @@ jQuery.query = function() {
 	}
 
 	Pin.prototype.toggleBalloon = function(){
-		if(this.info.visible){
-			$(this.el.body+" ."+this.info.id).remove();
-			this.info.visible = false;
-			this.el.trigger("pinclose",{pin:this});
-		}else this.showBalloon();
+		if(this.info.visible) this.hideBalloon();
+		else this.showBalloon();
 	}
-
+	Pin.prototype.hideBalloon = function(){
+		$(this.el.body+" ."+this.info.id).remove();
+		this.info.visible = false;
+		this.el.trigger("pinclose",{pin:this});
+	}
 	Pin.prototype.showBalloon = function(duration){
 		var rad = 10;
 

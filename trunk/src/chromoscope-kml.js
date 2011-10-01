@@ -109,9 +109,6 @@
 			}
 			//console.log("Time to end of readKML:" + (new Date() - this.start) + "ms");
 		}
-		
-
-
 
 		// Parse a loaded KML/JSON file
 		// Usage: processFile(filetype,xml,[overwrite])
@@ -141,7 +138,7 @@
 			this.pinstyleload = 0;
 			var _obj = this;
 			var added = 0;
-
+			
 			if(filetype == "json"){
 				for(i=0 ; i< data.styles.length ; i++){
 					var j = data.styles[i];
@@ -174,7 +171,7 @@
 					var balloonstyle = "";
 					var x, y, xunits, yunits, w, h = "";
 					var style = data.placemarks[i].style;
-					var id_text = "";
+					var id = ($(this).attr('id')) ? "pin-"+$(this).attr('id') : "";
 					if(typeof styles[style]=="object"){
 						img = styles[style].img;
 						balloonstyle = styles[style].balloonstyle
@@ -185,7 +182,7 @@
 						w = (styles[style].img.width) ? styles[style].img.width : "";
 						h = (styles[style].img.height) ? styles[style].img.height : "";
 					}
-					c.addPin({group:group,style:style,img:img,title:data.placemarks[i].name,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:data.placemarks[i].description,ra:data.placemarks[i].ra+180,dec:data.placemarks[i].dec},true);
+					c.addPin({group:group,id:id,style:style,img:img,title:data.placemarks[i].name,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:data.placemarks[i].description,ra:data.placemarks[i].ra+180,dec:data.placemarks[i].dec},true);
 					added++;
 				}
 			}else{
@@ -223,6 +220,46 @@
 				});
 
 				//console.log("Time to process styles: " + (new Date() - this.start) + "ms");
+				$('gx\\:Tour',data).children().each(function(i){
+					var name = $(this).find("name").text();
+					var tour = [];
+					$(this).children().each(function(i){
+						var step = {
+							type:$(this).context.localName,
+							duration:Number($(this).find("gx\\:duration").text())*1000,
+							Placemark: []
+						};
+						if($(this).find("gx\\:flyToMode")) step.flyToMode = $(this).find("gx\\:flyToMode").text();
+						if(step.type == "FlyTo"){
+							$(this).find("Camera").each(function(j){
+								step.Camera = {
+									longitude: Number($(this).find("longitude").text())+180,
+									latitude: Number($(this).find("latitude").text())
+								}
+							});
+							$(this).find("LookAt").each(function(j){
+								step.LookAt = {
+									longitude: Number($(this).find("longitude").text())+180,
+									latitude: Number($(this).find("latitude").text()),
+									range: Number($(this).find("range").text())
+								}
+							});
+
+						}
+						if(step.type == "AnimatedUpdate"){
+							$(this).find("Placemark").each(function(j){
+								step.Placemark.push({
+									id: $(this).attr('targetId'),
+									balloonVisibility: ($(this).find("gx\\:balloonVisibility").text()=="1") ? true : false
+								})
+							});
+						}
+						tour.push(step)
+					})
+					if(tour.length > 0) _obj.bind("processkml",function(){ runTour(this,tour); });
+				});
+
+				//console.log("Time to process styles: " + (new Date() - this.start) + "ms");
 				$('Placemark',data).each(function(i){
 
 					// Get the custom icon
@@ -238,7 +275,7 @@
 					var desc = ($(this).find("description")) ? $(this).find("description").text() : "";
 					var ra = ($(this).find("longitude")) ? (parseFloat($(this).find("longitude").text())+180) : 0.0;
 					var dec = ($(this).find("latitude")) ? parseFloat($(this).find("latitude").text()) : 0.0;
-					var id_text = "";
+					var id = ($(this).attr('id')) ? "pin-"+$(this).attr('id') : "";
 					if(typeof styles=="object" && style != "" && typeof styles[style]=="object"){
 						img = styles[style].img;
 						balloonstyle = styles[style].balloonstyle.find('text').text()
@@ -249,7 +286,7 @@
 						w = (styles[style].img.width) ? styles[style].img.width : "";
 						h = (styles[style].img.height) ? styles[style].img.height : "";
 					}
-					c.addPin({group:group,style:style,img:img,title:title,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:desc,ra:ra,dec:dec},true);
+					c.addPin({group:group,id:id,style:style,img:img,title:title,x:x,y:y,xunits:xu,yunits:yu,w:w,h:h,balloonstyle:balloonstyle,desc:desc,ra:ra,dec:dec},true);
 					added++;
 				});
 			}
@@ -262,6 +299,43 @@
 			//console.log("Time to end of processFile: " + (new Date() - this.start) + "ms");
 			return added;
 		}
+
+		runTour = function(chromo,tour){
+			var step = tour[0];
+
+			if(step.type == "FlyTo"){
+				kml_coord = 0;
+				if(typeof step.LookAt=="object") kml_coord = Equatorial2Galactic(step.LookAt.longitude, step.LookAt.latitude);
+				if(kml_coord.length == 2){
+					// Move the map
+					chromo.moveMap(kml_coord[0],kml_coord[1],chromo.zoom,step.duration);
+				}
+			}else if(step.type == "AnimatedUpdate"){
+				for(var i = 0; i < step.Placemark.length ; i++){
+					var id = "pin-"+step.Placemark[i].id;
+					var matched = false;
+					for(var p = 0 ; p < chromo.pins.length; p++){
+						if(chromo.pins[p].id == id){
+							if(step.Placemark[i].balloonVisibility) chromo.pins[p].showBalloon();
+							else chromo.pins[p].hideBalloon();
+							break;
+						}
+					}
+				}
+			}
+			// Remove this step from the list
+			tour.shift();
+
+			// Set a timeout until the next step of the tour happen
+			if(tour.length > 0) var t = setTimeout(runTour,step.duration,chromo,tour);
+		}
+		
+		function range2zoom(r){
+			//r = R*(k*sin(ß/2) - cos(ß/2) + 1)
+			// Return field of view in degrees
+			return 180*Math.acos(1 - r/6378000)/Math.PI;
+		}
+
 		//console.log("Time to end of KML init:" + (new Date() - this.start) + "ms");
 	}
 
