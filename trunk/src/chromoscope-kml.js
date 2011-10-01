@@ -2,6 +2,10 @@
  * Chromoscope KML Add-on
  * Written by Stuart Lowe to parse KML files and display placemarkers
  *
+ * Changes in version 1.2 (2011-10-01):
+ *   - Basic tour elements are now supported:
+ *     wait, flyTo Placemark, open/close info balloons with animatedMove
+ *
  * Changes in version 1.1 (2011-09-25):
  *   - Now a proper plugin
  *   - Allow multiple KML files using ';' separator
@@ -300,6 +304,7 @@
 			return added;
 		}
 
+		// Step through a tour
 		runTour = function(chromo,tour){
 			var step = tour[0];
 
@@ -342,7 +347,7 @@
 	$.chromoscope.plugins.push({
 		init: init,
 		name: 'kml',
-		version: '1.1'
+		version: '1.2'
 	});
 })(jQuery);
 
