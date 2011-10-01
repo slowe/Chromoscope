@@ -422,6 +422,7 @@ $(document).keydown(function(e){
 		}).mousemove({me:this},function(ev){
 			var chromo = ev.data.me;
 			if(this.dragging){
+
 				newtop = this.y + (ev.clientY - this.dragStartTop);
 				newleft = this.x + (ev.clientX - this.dragStartLeft);
 				this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
@@ -439,7 +440,7 @@ $(document).keydown(function(e){
 					chromo.checkTiles();
 					this.clock = tempclock;
 					var coords = chromo.getCoords();
-					chromo.triggerEvent("move",{position:coords,zoom:chromo.zoom});
+					chromo.trigger("move",{position:coords,zoom:chromo.zoom});
 				}
 			}
 			// If the shift key is pressed we will show the cursor position
@@ -625,7 +626,7 @@ $(document).keydown(function(e){
 		});
 
 		//console.log("Time to trigger load:" + (new Date() - this.start) + "ms");
-		this.triggerEvent("load");
+		this.trigger("load");
 		//console.log("Time to end trigger load:" + (new Date() - this.start) + "ms");
 
 		// We should now execute the callback function
@@ -1111,7 +1112,7 @@ $(document).keydown(function(e){
 				complete:function(){
 					_obj.checkTiles();
 					_obj.updateCoords();
-					_obj.triggerEvent("move",{position:{l:l,b:b},zoom:z});
+					_obj.trigger("move",{position:{l:l,b:b},zoom:z});
 				}
 			});
 		}else{
@@ -1120,7 +1121,7 @@ $(document).keydown(function(e){
 			if(jQuery.browser.msie) this.changeWavelength(0);
 			this.checkTiles();
 			this.updateCoords();
-			this.triggerEvent("move",{position:{l:l,b:b},zoom:z});
+			this.trigger("move",{position:{l:l,b:b},zoom:z});
 		}
 	}
 
@@ -1139,7 +1140,7 @@ $(document).keydown(function(e){
 		if(this.showcoord){ $(this.body+" .chromo_coords").html(label); }
 
 		// Call an attached event
-		if(this.coordlabel != label) this.triggerEvent("wcsupdate",{position:coords,zoom:this.zoom});
+		if(this.coordlabel != label) this.trigger("wcsupdate",{position:coords,zoom:this.zoom});
 
 		// Store the current value of the coordinate label
 		this.coordlabel = label;
@@ -1434,7 +1435,7 @@ $(document).keydown(function(e){
 		}
 		this.updateCredit();
 		this.positionSlider();
-		this.triggerEvent("slide",{lambda:this.lambda});
+		this.trigger("slide",{lambda:this.lambda});
 	}
 
 	Chromoscope.prototype.updateCredit = function(){
@@ -1562,7 +1563,7 @@ $(document).keydown(function(e){
 		var scale = this.mapSize/oldmapSize
 		this.zoomPins(scale);
 		this.updateCredit();
-		this.triggerEvent("zoom",{zoom:this.zoom,scaling:scale});
+		this.trigger("zoom",{zoom:this.zoom,scaling:scale});
 	}
 
 	// Alter the magnification
@@ -1667,7 +1668,7 @@ $(document).keydown(function(e){
 				return false;
 			});
 
-			this.triggerEvent("buildSearch");
+			this.trigger("buildSearch");
 		}
 		var exists, s;
 		for(i = 0; i < this.search.length ; i++){
@@ -1748,7 +1749,7 @@ $(document).keydown(function(e){
 		}
 		var url = window.location.protocol + "//" + window.location.host + "" + window.location.pathname+'?l='+this.l.toFixed(4)+'&b='+this.b.toFixed(4)+'&w='+this.lambda.toFixed(2)+'&o='+w+'&z='+this.zoom;
 		if(this.events['getViewURL']){
-			var o = this.triggerEvent("getViewURL",{'url':url})
+			var o = this.trigger("getViewURL",{'url':url})
 			for(i = 0 ; i < o.length ; i++) url += o
 		}
 		return url;
@@ -1784,8 +1785,8 @@ $(document).keydown(function(e){
 	}
 	// Trigger a defined event with arguments. This is meant for internal use to be 
 	// sure to include the correct arguments for a particular event
-	// chromo.triggerEvent("zoom",args)
-	Chromoscope.prototype.triggerEvent = function(ev,args){
+	// chromo.triggerE("zoom",args)
+	Chromoscope.prototype.trigger = function(ev,args){
 		if(typeof ev != "string") return;
 		if(typeof args != "object") args = {};
 		var o = [];
@@ -1916,7 +1917,7 @@ $(document).keydown(function(e){
 			this.yunits = (typeof inp.yunits=="string") ? inp.yunits : "fraction";
 
 			this.info.id = "balloon-"+this.id;
-			this.html = '<div class="pin '+el.pingroups[this.group].id+'" title="'+this.title+'" id="'+this.id+'" style="position:absolute;display:block;width:'+this.pin_w+';height:'+this.pin_h+'"><img src="'+this.img.src+'" style="width:100%;height:100%;" /></div>';
+			this.html = '<div class="pin '+el.pingroups[this.group].id+'" title="'+this.title+'" id="'+this.id+'" style="position:absolute;display:block;width:'+this.w+';height:'+this.h+'"><img src="'+this.img.src+'" style="width:100%;height:100%;" /></div>';
 			// Some booleans to keep track of what we've done to the pin
 			this.placed = false;
 			this.drawn = false;
@@ -1927,7 +1928,7 @@ $(document).keydown(function(e){
 				this.xoff = (this.xunits=="pixels") ? this.x : this.w*this.x;
 				this.yoff = (this.yunits=="pixels") ? this.y : this.h*this.y;
 			}
-			this.info.html = el.buildBalloon(this)
+			this.info.html = this.buildBalloon()
 
 			if(!delayhtml){
 				$(this.loc).append(this.html);
@@ -1938,29 +1939,12 @@ $(document).keydown(function(e){
 				this.jquery.css({left:(parseInt(this.pos.x - this.xoff)),top:(parseInt(this.pos.y - this.yoff))});
 				this.placed = true;
 				this.jquery.bind('click',{p:this,el:el},function(e){
-					e.data.el.toggleBalloon(e.data.p);
+					e.data.p.toggleBalloon();
 				});
 				this.bound = true;
 				this.jquery.show();
 			}
 		}
-	}
-
-
-	Chromoscope.prototype.buildBalloon = function(pin){
-		var contents = "";
-		// Deal with KML balloon styles
-		if(pin.info.style){
-			// We need to replace the $[name] and $[description]
-			var text = pin.info.style;
-			text = text.replace("$[name]",pin.title)
-			contents = text.replace("$[description]",pin.desc)
-		}else{
-			// There is no user-provided styling so apply a basic style
-			contents = (pin.msg) ? pin.msg : '<h3>'+pin.title+'</h3><p>'+pin.desc+'</p>';
-		}
-		// Make the <div> to hold the contents of the balloon
-		return '<div class="balloon '+pin.info.id+'" style="position:absolute;">'+contents+this.createCloseOld()+'</div>';
 	}
 
 
@@ -1984,9 +1968,9 @@ $(document).keydown(function(e){
 			if(html) $(this.body+' .pinholder').append(html);
 			//console.log("part 3: " + (new Date() - this.start) + "ms");
 		}
-		console.log("Time to start of updatePins: " + (new Date() - this.start) + "ms");
+		//console.log("Time to start of updatePins: " + (new Date() - this.start) + "ms");
 		for(var p = 0 ; p < max ; p++) if(!this.pins[p].placed) this.updatePin(p,finish);
-		console.log("Time to end of updatePins: " + (new Date() - this.start) + "ms");
+		//console.log("Time to end of updatePins: " + (new Date() - this.start) + "ms");
 		this.addPinGroupSwitches();
 		this.registerSearch({name:'placemark',desc:'placemarks',fn:function(args){ this.findPin(args.val); return false; }});
 		this.buildLinks();
@@ -2015,40 +1999,56 @@ $(document).keydown(function(e){
 			}
 		}
 		if(!pin.bound){
-			pin.jquery.bind('click',{p:pin,el:this},function(e){ e.data.el.toggleBalloon(e.data.p); });
+			pin.jquery.bind('click',{p:pin},function(e){ e.data.p.toggleBalloon(); });
 			pin.bound = true;
 		}
 	}
 
-	Chromoscope.prototype.toggleBalloon = function(pin){
-		if(pin.info.visible){
-			$(this.body+" ."+pin.info.id).remove();
-			pin.info.visible = false;
-			this.triggerEvent("pinclose",{pin:pin});
-		}else this.showBalloon(pin);
+	Pin.prototype.buildBalloon = function(){
+		var contents = "";
+		// Deal with KML balloon styles
+		if(this.info.style){
+			// We need to replace the $[name] and $[description]
+			var text = this.info.style;
+			text = text.replace("$[name]",this.title)
+			contents = text.replace("$[description]",this.desc)
+		}else{
+			// There is no user-provided styling so apply a basic style
+			contents = (this.msg) ? this.msg : '<h3>'+this.title+'</h3><p>'+this.desc+'</p>';
+		}
+		// Make the <div> to hold the contents of the balloon
+		return '<div class="balloon '+this.info.id+'" style="position:absolute;">'+contents+this.el.createCloseOld()+'</div>';
 	}
 
-	Chromoscope.prototype.showBalloon = function(pin,duration){
+	Pin.prototype.toggleBalloon = function(){
+		if(this.info.visible){
+			$(this.el.body+" ."+this.info.id).remove();
+			this.info.visible = false;
+			this.el.trigger("pinclose",{pin:this});
+		}else this.showBalloon();
+	}
+
+	Pin.prototype.showBalloon = function(duration){
 		var rad = 10;
 
-		var id = pin.loc+" ."+pin.info.id;
+		var id = this.loc+" ."+this.info.id;
 
 		if($(id).length > 0){
 			$(id).remove();
-			pin.info.visible = false;
+			this.info.visible = false;
 		}
 
-		if(!pin.info.html) pin.info.html = this.buildBalloon(pin)
-		$(pin.loc).append(pin.info.html);
+		if(!this.info.html) this.info.html = this.el.buildBalloon(this)
+		$(this.loc).append(this.info.html);
 
 		el = $(id);
 
-		if(pin.info.width > 0) el.css({'width':pin.info.width});
+		if(this.info.width > 0) el.css({'width':this.info.width});
 		var w = el.outerWidth();
 		var h = el.outerHeight();
 
 		// Correction for (e.g. IE < 9) where the width goes crazy
-		if(w > this.wide){
+		if(w > this.el.wide){
 			w = (w > 500) ? 330 : w/2;
 			el.css({'width':w});
 		}
@@ -2058,35 +2058,35 @@ $(document).keydown(function(e){
 		$(id+' .arrow').remove();
 
 		// Position the balloon relative to the pin
-		pin.info.x = -w/2;
-		if((pin.pos.y-h-rad) < this.mapSize*0.25){
-			pin.info.y = pin.h*0.25;
+		this.info.x = -w/2;
+		if((this.pos.y-h-rad) < this.el.mapSize*0.25){
+			this.info.y = this.h*0.25;
 			el.prepend('<div class="arrowtop"></div>');
 			$(id+" .arrowtop").css({'left':((parseInt(w/2)-rad))});
 		}else{
-			pin.info.y = -h-rad;
+			this.info.y = -h-rad;
 			el.append('<div class="arrow"></div>');
 			$(id+" .arrow").css({'left':((parseInt(w/2)-rad))});
 		}
-		el.css({'left':parseInt(pin.pos.x+pin.info.x),'top':(pin.pos.y+pin.info.y)});
+		el.css({'left':parseInt(this.pos.x+this.info.x),'top':(this.pos.y+this.info.y)});
 
 		if(duration && duration > 0) el.fadeIn(duration);
 		else el.show();
-		pin.info.visible = true;
+		this.info.visible = true;
 
 		// Attach event
-		$(id+" .chromo_close").bind('click',{me:this,id:id,pin:pin},function(e){
+		$(id+" .chromo_close").bind('click',{me:this.el,id:id,pin:this},function(e){
 			e.data.me.mouseevents = true;
 			$(e.data.id).remove();
 			e.data.pin.info.visible = false;
-			e.data.me.triggerEvent("pinclose",{pin:e.data.pin});
+			e.data.me.trigger("pinclose",{pin:e.data.pin});
 		});
-		el.bind('mouseover',{me:this},function(e){
+		el.bind('mouseover',{me:this.el},function(e){
 			e.data.me.mouseevents = false;
-		}).bind('mouseout',{me:this},function(e){
+		}).bind('mouseout',{me:this.el},function(e){
 			e.data.me.mouseevents = true;
 		})
-		this.triggerEvent("pinopen",{pin:pin});
+		this.el.trigger("pinopen",{pin:this});
 	}
 
 	// Go through each pin and reposition it on the map
@@ -2097,15 +2097,27 @@ $(document).keydown(function(e){
 		var x = $(this.body+" .chromo_innerDiv").position().left;
 		var y = $(this.body+" .chromo_innerDiv").position().top;
 
+		//d = new Date()
+		// Get the visible range in x,y coords
+		var r = this.getVisibleRange('X');
+		// Expand range by one tile size
+		r.right += this.tileSize;
+		r.left -= this.tileSize;
+		var moveby = 0;
 		for(var p = i ; p < max ; p++){
-			//var pos = x+this.pins[p].x;
-			if(this.pins[p].pos.x < -x-this.tileSize) this.pins[p].pos.x += this.mapSize;
-			while(this.pins[p].pos.x > -x+this.mapSize-this.tileSize){
-				this.pins[p].pos.x -= this.mapSize;
+			moveby = 0;
+			// Is the pin outside the visible area
+			if(this.pins[p].pos.x > r.right || this.pins[p].pos.x < r.left){
+				while(this.pins[p].pos.x+moveby > r.right) moveby -= this.mapSize;
+				while(this.pins[p].pos.x+moveby < r.left) moveby += this.mapSize;
+				if(this.pins[p].pos.x+moveby < r.right && this.pins[p].pos.x+moveby > r.left){
+					this.pins[p].pos.x += moveby;
+					this.pins[p].jquery.css({left:(parseInt(this.pins[p].pos.x)-this.pins[p].xoff)});
+					if(this.pins[p].info.visible) $(this.body+" ."+this.pins[p].info.id).css({'left':((this.pins[p].pos.x)+this.pins[p].info.x)});
+				}
 			}
-			this.pins[p].jquery.css({left:(parseInt(this.pins[p].pos.x)-this.pins[p].xoff)});
-			if(this.pins[p].info.visible) $(this.body+" ."+this.pins[p].info.id).css({'left':((this.pins[p].pos.x)+this.pins[p].info.x),'top':((this.pins[p].pos.y)+this.pins[p].info.y)});
 		}
+		//console.log("Time to end wrap: " + (new Date() - d) + "ms");
 	}
 
 	Chromoscope.prototype.findPin = function(query){
