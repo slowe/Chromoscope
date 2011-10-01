@@ -258,10 +258,13 @@
 								})
 							});
 						}
+						$(this).find("chromo\\:wavelength").each(function(j){
+							step.wavelength = $(this).text();
+						});
 						tour.push(step)
 					})
 					if(tour.length > 0) _obj.bind("processkml",function(){ runTour(this,tour); });
-				});
+				}).remove();
 
 				//console.log("Time to process styles: " + (new Date() - this.start) + "ms");
 				$('Placemark',data).each(function(i){
@@ -315,6 +318,10 @@
 					// Move the map
 					chromo.moveMap(kml_coord[0],kml_coord[1],chromo.zoom,step.duration);
 				}
+				if(step.wavelength){
+					if(Number(step.wavelength)) chromo.changeWavelength(Number(step.wavelength),step.duration);
+					else if(step.wavelength.length == 1) chromo.changeWavelengthByName(step.wavelength,step.duration);
+				}
 			}else if(step.type == "AnimatedUpdate"){
 				for(var i = 0; i < step.Placemark.length ; i++){
 					var id = "pin-"+step.Placemark[i].id;
@@ -323,6 +330,10 @@
 						if(chromo.pins[p].id == id){
 							if(step.Placemark[i].balloonVisibility) chromo.pins[p].showBalloon();
 							else chromo.pins[p].hideBalloon();
+							if(step.wavelength){
+								if(Number(step.wavelength)) chromo.changeWavelength(Number(step.wavelength),step.duration);
+								else if(step.wavelength.length == 1) chromo.changeWavelengthByName(step.wavelength,step.duration);
+							}
 							break;
 						}
 					}

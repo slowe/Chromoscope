@@ -1483,17 +1483,28 @@ jQuery.query = function() {
 		}	
 	}
 
+	animateWavelength = function(chromo,target,velocity){
+		var tick = 200;	// ms
+		chromo.changeWavelength(velocity*tick)
+		if((velocity > 0 && chromo.lambda < target) || (velocity < 0 && chromo.lambda > target)) setTimeout(animateWavelength,tick,chromo,target,velocity);
+		else chromo.changeWavelength( target-chromo.lambda);
+	}
+
+
 	// Change the visible wavelength by a pseudo-wavelength amount.
 	// The gap between wavelengths is 1.0.
 	// Usage: changeWavelength(0.1)
-	Chromoscope.prototype.changeWavelength = function(byWavelength){
+	Chromoscope.prototype.changeWavelength = function(byWavelength,duration){
 
-		this.setWavelength(this.lambda + byWavelength);
 		var low = Math.floor(this.lambda);
 		var high = Math.ceil(this.lambda);
 		var output = '';
+		if(duration && duration!=0){
+			animateWavelength(this,this.lambda+byWavelength,byWavelength/duration);
+		}else{
+			this.setWavelength(this.lambda + byWavelength);
 
-		for(var idx=0 ; idx < this.spectrum.length ; idx++){
+			for(var idx=0 ; idx < this.spectrum.length ; idx++){
 				if(idx < low || idx > high){
 					this.spectrum[idx].opacity = 0;
 					setOpacity($(this.body+" ."+this.spectrum[idx].name),0);
@@ -1504,31 +1515,51 @@ jQuery.query = function() {
 					this.spectrum[idx].opacity = newOpacity;
 					setOpacity($(this.body+" ."+this.spectrum[idx].name),newOpacity);
 				}
+			}
 		}
 	}
 
 	// Change the visible wavelength by the keyboard shortcut character
-	Chromoscope.prototype.changeWavelengthByName = function(character){
+	Chromoscope.prototype.changeWavelengthByName = function(character,duration){
 		if(!character) return;
 		var matched = 0;
 		var backup = 0;
-		for(var i=0 ; i < this.spectrum.length ; i++){
-			backup = (this.spectrum[i].useasdefault) ? i : backup;
-			if(character == this.spectrum[i].key){
-				this.setWavelength(i);
-				this.spectrum[i].opacity = this.maxOpacity;
-				setOpacity($(this.body+" ."+this.spectrum[i].name),this.spectrum[i].opacity);
-				matched = 1;
-			}else{
-				this.spectrum[i].opacity = 0;
-				setOpacity($(this.body+" ."+this.spectrum[i].name),0);
+
+		if(duration && duration!=0){
+			for(var i=0 ; i < this.spectrum.length ; i++){
+				if(character == this.spectrum[i].key){
+					animateWavelength(this,i,(i-this.lambda)/duration);
+				}
+			}
+		}else{
+			for(var i=0 ; i < this.spectrum.length ; i++){
+				backup = (this.spectrum[i].useasdefault) ? i : backup;
+				if(character == this.spectrum[i].key){
+					this.setWavelength(i);
+					this.spectrum[i].opacity = this.maxOpacity;
+					setOpacity($(this.body+" ."+this.spectrum[i].name),this.spectrum[i].opacity);
+					matched = 1;
+				}else{
+					this.spectrum[i].opacity = 0;
+					setOpacity($(this.body+" ."+this.spectrum[i].name),0);
+				}
+			}
+			if(!matched){
+				this.setWavelength(backup);
+				this.spectrum[backup].opacity = this.maxOpacity;
+				setOpacity($(this.body+" ."+this.spectrum[backup].name),this.spectrum[backup].opacity);
 			}
 		}
-		if(!matched){
-			this.setWavelength(backup);
-			this.spectrum[backup].opacity = this.maxOpacity;
-			setOpacity($(this.body+" ."+this.spectrum[backup].name),this.spectrum[backup].opacity);
-		}
+
+/*
+function doMove() {
+
+     foo.style.left = (foo.style.left+10)+'px'; // pseudo-property code: Move right by 10px
+
+     setTimeout(doMove,20); // call doMove() in 20 msec
+
+    }
+   */
 	}
 
 	// Show/hide the annotation layer by keyboard shortcut character
