@@ -27,6 +27,7 @@
 			margin-left: 0em;
 			overflow-x: auto;
 			padding: 1em;
+			padding-left: 0em;
 		}
 		pre.code .b {
 			color: blue!important;
@@ -91,7 +92,7 @@
 				matches = $(this).text().match(/\n\r?/g);
 				if(matches){
 					line = matches.length + 1;
-					var html = '<div style="float:left;border-right:3px solid #22BE07;padding-right:0.5em;margin-right:1em;">';
+					var html = '<div style="float:left;border-right:3px solid #999999;padding-right:0.5em;margin-right:1em;">';
 					for(var i = 1 ; i <= line ; i++){
 						html += '<div style="text-align:right;">'+i+'.</div>';
 					}
