@@ -259,9 +259,8 @@
 								})
 							});
 						}
-						$(this).find("chromo\\:wavelength").each(function(j){
-							step.wavelength = $(this).text();
-						});
+						$(this).find("chromo\\:wavelength").each(function(j){ step.wavelength = $(this).text(); });
+						$(this).find("chromo\\:labels").each(function(j){ step.labels = $(this).text(); });
 						tour.push(step);
 					})
 					if(tour.length > 0) _obj.bind("processkml",function(){ runTour(this,tour); });
@@ -311,6 +310,11 @@
 		// Step through a tour
 		runTour = function(chromo,tour){
 			var step = tour[0];
+			// Check if any blocking animation is still running
+			if(chromo.animating){
+				var t = setTimeout(runTour,50,chromo,tour)
+				return;
+			}
 			if(!step) return;
 			if(step.type == "FlyTo"){
 				kml_coord = 0;
@@ -344,6 +348,8 @@
 				if(Number(step.wavelength)) chromo.changeWavelength(Number(step.wavelength),step.duration);
 				else if(step.wavelength.length == 1) chromo.changeWavelengthByName(step.wavelength,step.duration);
 			}
+			if(step.labels) chromo.toggleAnnotationsByName('l');
+
 			// Remove this step from the list
 			tour.shift();
 			if(tour.length > 0){
