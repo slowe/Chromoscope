@@ -263,7 +263,7 @@
 						$(this).find("chromo\\:labels").each(function(j){ step.labels = $(this).text(); });
 						tour.push(step);
 					})
-					if(tour.length > 0) _obj.bind("processkml",function(){ runTour(this,tour); });
+					if(tour.length > 0) _obj.bind("processkml",function(){ this.showintro = false; runTour(this,tour); });
 				}).remove();
 
 				//console.log("Time to process styles: " + (new Date() - this.start) + "ms");
