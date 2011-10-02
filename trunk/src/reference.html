@@ -78,11 +78,11 @@
 
 			$('pre.code').each(function(i){
 				text = $(this).text();
-				text = text.replace(/(\'[\w\#\.\,\/\-\_\=\s\<\>\/\"\?\;\:\(\)]+\')/g,"<span class='s'>$1<\/span>");
+				text = text.replace(/(\'[\w\#\.\,\/\-\_\=\s\<\>\/\"\?\;\:\(\)]*\')/g,"<span class='s'>$1<\/span>");
 				text = text.replace(/\<([^ s\/]+)/g,"<<span class='c'>$1<\/span>");
 				text = text.replace(/(\"[\w\#\.\/\-\_]+\")/g,"<span class='s'>$1<\/span>");
 				text = text.replace(/([\w\_]+)\(/g,"<span class='f'>$1<\/span>\(");
-				text = text.replace(/\/\/([^\n\r]*)/g,"<span class='c'>//$1<\/span>");
+				text = text.replace(/(^|\s|\t)\/\/([^\n\r]*)/g,"$1<span class='c'>//$2<\/span>");
 				text = text.replace(/(true|false)/g,"<span class='b'>$1<\/span>");
 				text = text.replace(/(\(|\)|\{|\})/g,"<span class='bracket'>$1<\/span>");
 				text = text.replace(/(this)\./g,"<span class='b'>this<\/span>\.");
@@ -333,7 +333,7 @@ chromo.changeLanguage({code:'en',
 	nozoomin : 'Can\'t zoom in any more',
 	nozoomout : 'Can\'t zoom out any more',
 	url : 'The URL for this view is:',
-	intro : '&lt;p&gt;Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in &lt;a href="http://blog.chromoscope.net/data/"&gt;a range of wavelengths&lt;/a&gt; from X-rays to the longest radio waves.&lt;/p&gt;&lt;p&gt;Change the wavelength using the &lt;em&gt;slider&lt;/em&gt; in the top right of the screen and explore space using your mouse. For more information we have &lt;a href="#" onClick="javascript:chromo_active.showVideoTour();return false;"&gt;a quick video tour&lt;/a&gt; or you can read &lt;a href="http://blog.chromoscope.net/about/"&gt;more on our blog&lt;/a&gt;. If you get stuck, click &quot;Help&quot; in the bottom left.&lt;/p&gt;&lt;p&gt;&lt;a href="http://www.astro.cardiff.ac.uk/research/instr/"&gt;&lt;img src="cardiffuni.png" style="border:0px;margin: 0px 5px 5px 0px;float:left;" /&gt;&lt;/a&gt;Chromoscope is kindly funded by the Cardiff University &lt;a href="http://www.astro.cardiff.ac.uk/research/egalactic/"&gt;Astronomy&lt;/a&gt; and &lt;a href="http://www.astro.cardiff.ac.uk/research/instr/"&gt;Astronomy Instrumentation&lt;/a&gt; Groups.&lt;/p&gt;',
+	intro : 'Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in &lt;a href="http://blog.chromoscope.net/data/"&gt;a range of wavelengths&lt;/a&gt; from X-rays to the longest radio waves.',
 	gal : 'http://en.wikipedia.org/wiki/Galactic_coordinate_system',
 	galcoord : 'Galactic Coordinates',
 	eq : 'http://en.wikipedia.org/wiki/Equatorial_coordinate_system',
