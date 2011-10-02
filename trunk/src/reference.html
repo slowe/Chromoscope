@@ -26,7 +26,7 @@
 			border-bottom-right-radius: 1em;
 			border-top-right-radius: 1em;
 			color: #FFFFFF;
-			margin-left: -2.5em;
+			margin-left: 0em;
 			overflow-x: auto;
 			padding: 1em;
 		}
@@ -57,7 +57,7 @@
 			$('#menu').html(menu);
 
 			// Set up the Chromoscope
-			chromo = $.chromoscope({container:'#chromoscope',lang:'en',showintro:true});
+			chromo = $.chromoscope({container:'#chromoscopeholder',lang:'en',showintro:true});
 
 			// The spectral bands should be in order
 			chromo.addWavelength({key:'g',useasdefault:false,name:'gamma',tiles:'http://s3.amazonaws.com/chromoscope-fermi-tiles/',ext:'jpg',title:'gamma',attribution:'<a href="http://fermi.gsfc.nasa.gov/">Fermi</a>'})
@@ -84,14 +84,14 @@
 	<p>A standard, modern, web browser is all that you need to use Chromoscope so there is no need to install any extra software, plugins or learn a new interface. Being platform independent means that whether you use Windows, Mac or Linux, it should still be accessible. The code (<a href="https://github.com/slowe/Chromoscope">latest development version</a>) <a href="http://blog.chromoscope.net/download/">can be downloaded</a> to your own computer or web server and then you can select which wavelength collections you want.</p>
 
 
-	<div id="chromoscope" style="width:800px;height:500px;"></div>
+	<div id="chromoscopeholder" style="width:800px;height:500px;"></div>
 
 	<h2>Index</h2>
 	<ol id="menu">
 	</ol>
 
-	<h2>Chromoscope</h2>
-	<p>Creates a Chromoscope object to show a zoomable, multi-source map. You must do this first.</p>
+	<h2 id="chromoscope"><a href="#chromoscope" class="menu">Chromoscope</a></h2>
+	<p>The first thing you need to do is create a Chromoscope object to show a zoomable, multi-source map.</p>
 	<h3>Parameters</h3>
 	<p>All of these parameters are optional. The defaults are given in brackets.</p>
 	<ul>
@@ -126,28 +126,28 @@
 	</ul>
 	<h3>Usage</h3>
 	<pre class="code">
-	$(document).ready(<b>function</b>(){
+$(document).ready(<b>function</b>(){
 
-		<span class="c">// Several ways you could set up Chromoscope</span>
+	<span class="c">// Several ways you could set up Chromoscope</span>
 
-		<b>var</b> chromo <span class="s">=</span> $.chromoscope();
+	<b>var</b> chromo <span class="s">=</span> $.chromoscope();
 
-		<span class="c">// Set up the Chromoscope to show Italian and no introductory message</span>
-		<b>var</b> chromo <span class="s">=</span> $.chromoscope({lang:<i>'en'</i>, showintro:<span class="d">false</span>});
+	<span class="c">// Set up the Chromoscope to show Italian and no introductory message</span>
+	<b>var</b> chromo <span class="s">=</span> $.chromoscope({lang:<i>'en'</i>, showintro:<span class="d">false</span>});
 
-		<span class="c">// Attach to the element with the ID chromoscopeholder2 and in compact mode</span>
-		<b>var</b> chromo <span class="s">=</span> $.chromoscope(<i>'#chromoscopeholder2'</i>,{compact:<span class="d">true</span>});
+	<span class="c">// Attach to the element with the ID chromoscopeholder2 and in compact mode</span>
+	<b>var</b> chromo <span class="s">=</span> $.chromoscope(<i>'#chromoscopeholder2'</i>,{compact:<span class="d">true</span>});
 
-		<span class="c">// Don't show the introductory message, the "share" link, or the "about" link </span>
-		<b>var</b> chromo <span class="s">=</span> $.chromoscope({showintro:<span class="d">false</span>, showshare:<span class="d">false</span>, showabout:<span class="d">false</span>});
+	<span class="c">// Don't show the introductory message, the "share" link, or the "about" link </span>
+	<b>var</b> chromo <span class="s">=</span> $.chromoscope({showintro:<span class="d">false</span>, showshare:<span class="d">false</span>, showabout:<span class="d">false</span>});
 
-		<span class="c">// Start with the view centred on Galactic coordinates 205.5, -17.4, a zoom level of 5 and at a psuedo-wavelength of 2.6</span>
-		<b>var</b> chromo <span class="s">=</span> $.chromoscope({l:<span class="d">205.5</span>, b:<span class="d">-17.4</span>, zoom:<span class="d">5</span>, lambda:<span class="d">2.6</span>});
+	<span class="c">// Start with the view centred on Galactic coordinates 205.5, -17.4, a zoom level of 5 and at a psuedo-wavelength of 2.6</span>
+	<b>var</b> chromo <span class="s">=</span> $.chromoscope({l:<span class="d">205.5</span>, b:<span class="d">-17.4</span>, zoom:<span class="d">5</span>, lambda:<span class="d">2.6</span>});
 
-		<span class="c">// Use the specified KML file to add map pins</span>
-		<b>var</b> chromo <span class="s">=</span> $.chromoscope({kml:<i>'telescopes.kml'</i>});
+	<span class="c">// Use the specified KML file to add map pins</span>
+	<b>var</b> chromo <span class="s">=</span> $.chromoscope({kml:<i>'telescopes.kml'</i>});
 
-	}
+}
 	</pre>
 
 
@@ -170,23 +170,23 @@
 	</ul>
 
 	<pre class="code">
-	<span class="c">// Attach to document ready</span>
-	$(document).ready(<b>function</b>(){
+<span class="c">// Attach to document ready</span>
+$(document).ready(<b>function</b>(){
 
-		<span class="c">// The spectral bands should be in order they will be displayed in</span>
-		chromo.addWavelength({useasdefault:<span class="d">true</span>,key:<i>'v'</i>,name:<i>'optical'</i>,tiles:<i>'../../DSS2-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'optical'</i>,attribution:<i>'&lt;a href="http://stdatu.stsci.edu/dss/"&gt;DSS2&lt;/a&gt;/&lt;a href="http://www.wikisky.org/"&gt;Wikisky&lt;/a&gt;'</i>});
+	<span class="c">// The spectral bands should be in order they will be displayed in</span>
+	chromo.addWavelength({useasdefault:<span class="d">true</span>,key:<i>'v'</i>,name:<i>'optical'</i>,tiles:<i>'../../DSS2-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'optical'</i>,attribution:<i>'&lt;a href="http://stdatu.stsci.edu/dss/"&gt;DSS2&lt;/a&gt;/&lt;a href="http://www.wikisky.org/"&gt;Wikisky&lt;/a&gt;'</i>});
 
-		<span class="c">// A range limited layer</span>
-		chromo.addWavelength({range:{longitude: [<span class="d">-120</span>,<span class="d">80</span>],latitude:[<span class="d">-20</span>,<span class="d">20</span>]},blank:<i>'blank.gif'</i>,useasdefault:<span class="d">false</span>,key:<i>'r'</i>,name:<i>'radio'</i>,tiles:<i>'../../Radio_vsmoothed-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'radio'</i>,attribution:<i>'&lt;a href="http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm"&gt;Haslam et al.&lt;/a&gt;'</i>});
+	<span class="c">// A range limited layer</span>
+	chromo.addWavelength({range:{longitude: [<span class="d">-120</span>,<span class="d">80</span>],latitude:[<span class="d">-20</span>,<span class="d">20</span>]},blank:<i>'blank.gif'</i>,useasdefault:<span class="d">false</span>,key:<i>'r'</i>,name:<i>'radio'</i>,tiles:<i>'../../Radio_vsmoothed-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'radio'</i>,attribution:<i>'&lt;a href="http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm"&gt;Haslam et al.&lt;/a&gt;'</i>});
 
-		<span class="c">// A layer with different sources of tiles for different zoom levels</span>
-		<span class="c">// Here we use Herschel tiles for the level 5 zoom. 'z' defines the default</span>
-		chromo.addWavelength({useasdefault:<span class="d">false</span>,key:<i>'f'</i>,name:<i>'farir'</i>,tiles:{z:<i>'../../IRAS-tiles/'</i>,z5:<i>'Herschel-tiles/'</i>},ext:<i>'jpg'</i>,title:<i>'farir'</i>,attribution:{z:<i>'&lt;a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html"&gt;IRAS&lt;/a&gt;/NASA'</i>,z5:<i>'ESA/Herschel'</i>}});
+	<span class="c">// A layer with different sources of tiles for different zoom levels</span>
+	<span class="c">// Here we use Herschel tiles for the level 5 zoom. 'z' defines the default</span>
+	chromo.addWavelength({useasdefault:<span class="d">false</span>,key:<i>'f'</i>,name:<i>'farir'</i>,tiles:{z:<i>'../../IRAS-tiles/'</i>,z5:<i>'Herschel-tiles/'</i>},ext:<i>'jpg'</i>,title:<i>'farir'</i>,attribution:{z:<i>'&lt;a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html"&gt;IRAS&lt;/a&gt;/NASA'</i>,z5:<i>'ESA/Herschel'</i>}});
 
-		<span class="c">// Add an annotation layer. This uses tiles like the wavelength layers but will be toggled on/off</span>
-		chromo.addAnnotationLayer({opacity:<span class="d">0.4</span>,key:<i>'l'</i>,name:<i>'labels'</i>,tiles:<i>'../../labels-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'Labels'</i>,attribution:<i>'some Labels from Chris'</i>});
+	<span class="c">// Add an annotation layer. This uses tiles like the wavelength layers but will be toggled on/off</span>
+	chromo.addAnnotationLayer({opacity:<span class="d">0.4</span>,key:<i>'l'</i>,name:<i>'labels'</i>,tiles:<i>'../../labels-tiles/'</i>,ext:<i>'jpg'</i>,title:<i>'Labels'</i>,attribution:<i>'some Labels from Chris'</i>});
 
-	}
+}
 	</pre>
 
 
@@ -199,23 +199,23 @@
 	</ul>
 	<h3>Usage</h3>
 	<pre class="code">
-	<span class="c">// Load the map</span>
-	chromo.load();
+<span class="c">// Load the map</span>
+chromo.load();
 
 
-	<span class="c">// There are two ways to make your own function happen when Chromoscope loads:</span>
+<span class="c">// There are two ways to make your own function happen when Chromoscope loads:</span>
 
-	<span class="c">// Method 1: Call load with a callback function</span>
-	chromo.load(<b>function</b>(){
-		alert(<i>'Loaded'</i>);
-	});
+<span class="c">// Method 1: Call load with a callback function</span>
+chromo.load(<b>function</b>(){
+	alert(<i>'Loaded'</i>);
+});
 
-	<span class="c">// Method 2: Bind a load event</span>
-	chromo.bind("load",<b>function</b>(){
-		<span class="c">// The 'this' context is the Chromoscope instance</span>
-		alert(<i>'Loaded '</i>+this.title);
-	})
-	chromo.load();
+<span class="c">// Method 2: Bind a load event</span>
+chromo.bind("load",<b>function</b>(){
+	<span class="c">// The 'this' context is the Chromoscope instance</span>
+	alert(<i>'Loaded '</i>+this.title);
+})
+chromo.load();
 	</pre>
 
 
@@ -230,32 +230,32 @@
 		</ul>
 		<h3>Usage</h3>
 		<pre class="code">
-		<span class="c">// Using a predefined function</span>
-		chromo.bind(<b>event</b>,<b>myfunction</b>);
+<span class="c">// Using a predefined function</span>
+chromo.bind(<b>event</b>,<b>myfunction</b>);
 
-		<span class="c">// Using an inline function</span>
-		chromo.bind(<i>'zoom'</i>,<b>function</b>(){
-			alert(<i>'Zoomed'</i>);
-		});
+<span class="c">// Using an inline function</span>
+chromo.bind(<i>'zoom'</i>,<b>function</b>(){
+	alert(<i>'Zoomed'</i>);
+});
 
-		<span class="c">// Chaining functions</span>
-		chromo.bind(<i>'zoom'</i>,<b>function</b>(){
-			alert(<i>'Zoomed to '</i>+this.zoom);
-		}).bind(<i>'wcsupdate'</i>,<b>function</b>(){
-			<span class="c">// Display an alert with the Galactic Coordinates for the edges of the view</span>
-			<b>var</b> vr = this.getVisibleRange(<i>'G'</i>);
-			alert(<i>'left = '</i>+vr.left+<i>'&lt;br /&gt;right = '</i>+vr.right+<i>'&lt;br /&gt;top = '</i>+vr.top+<i>'&lt;br /&gt;bottom = '</i>+vr.bottom);
-		});
+<span class="c">// Chaining functions</span>
+chromo.bind(<i>'zoom'</i>,<b>function</b>(){
+	alert(<i>'Zoomed to '</i>+this.zoom);
+}).bind(<i>'wcsupdate'</i>,<b>function</b>(){
+	<span class="c">// Display an alert with the Galactic Coordinates for the edges of the view</span>
+	<b>var</b> vr = this.getVisibleRange(<i>'G'</i>);
+	alert(<i>'left = '</i>+vr.left+<i>'&lt;br /&gt;right = '</i>+vr.right+<i>'&lt;br /&gt;top = '</i>+vr.top+<i>'&lt;br /&gt;bottom = '</i>+vr.bottom);
+});
 
-		<span class="c">// Event variables</span>
-		chromo.bind(<i>'zoom'</i>,<b>function</b>(<b>ev</b>){
-			alert(<i>'Zoomed to '</i>+ev.zoom);
-		}).bind(<i>'wcsupdate'</i>,<b>function</b>(<b>ev</b>){
-			<span class="c">// Display an alert with the Galactic coordinates for the view centre</span>
-			alert(<i>'l,b = '</i>+ev.position.l+<i>','</i>+ev.position.b);
-		}).bind(<i>'pinopen'</i>,function(ev){
-			alert(<i>'Opened pin '</i>+ev.pin.id);
-		});
+<span class="c">// Event variables</span>
+chromo.bind(<i>'zoom'</i>,<b>function</b>(<b>ev</b>){
+	alert(<i>'Zoomed to '</i>+ev.zoom);
+}).bind(<i>'wcsupdate'</i>,<b>function</b>(<b>ev</b>){
+	<span class="c">// Display an alert with the Galactic coordinates for the view centre</span>
+	alert(<i>'l,b = '</i>+ev.position.l+<i>','</i>+ev.position.b);
+}).bind(<i>'pinopen'</i>,function(ev){
+	alert(<i>'Opened pin '</i>+ev.pin.id);
+});
 		</pre>
 
 	<h2>Other functions</h2>
@@ -269,10 +269,10 @@
 		</ul>
 		<h3>Usage</h3>
 		<pre class="code">
-		chromo.getLanguage(<span class="d">lang</span>);
+chromo.getLanguage(<span class="d">lang</span>);
 
-		<span class="c">// Load the French language file stored in fr.js</span>
-		chromo.getLanguage(<i>'fr'</i>);
+<span class="c">// Load the French language file stored in fr.js</span>
+chromo.getLanguage(<i>'fr'</i>);
 		</pre>
 
 	<a name="defineLanguage">
@@ -283,52 +283,52 @@
 		</ul>
 		<h3>Usage</h3>
 		<pre class="code">
-		chromo.changeLanguage(<span class="d">lang</span>)
+chromo.changeLanguage(<span class="d">lang</span>)
 
-		<span class="c">// Define English (this is the default anyway but should give you hints for writing your own)</span>
-		chromo.changeLanguage({code:<i>'en'</i>,
-			name : <i>'English'</i>,
-			translator : <i>''</i>,
-			lang : <i>'Change language:'</i>,
-			version : <i>'version'</i>,
-			help : <i>'Help'</i>,
-			helpmenu : <i>'Help'</i>,
-			helpdesc : <i>'The Milky Way is shown across the middle. The north pole of the Galaxy is towards the top. Use the mouse to drag the sky around. Want more info? &lt;a href="#" onClick="javascript:chromo_active.showVideoTour();return false;"&gt;Watch a quick tour&lt;/a&gt; (opens in this window). &lt;span class="keyboard"&gt;The keyboard controls are:&lt;ul class="chromo_controlkeys"&gt;&lt;/ul&gt;&lt;/span&gt;&lt;span class="nokeyboard"&gt;&lt;ul class="chromo_controlbuttons"&gt;&lt;/ul&gt;&lt;/span&gt; &lt;span class="keyboard"&gt;Created by &lt;a href="http://www.strudel.org.uk/"&gt;Stuart Lowe&lt;/a&gt;, &lt;a href="http://www.astro.cf.ac.uk/pub/Robert.Simpson/index.html"&gt;Rob Simpson&lt;/a&gt;, and &lt;a href="http://www.astro.cardiff.ac.uk/contactsandpeople/?page=full&id=493"&gt;Chris North&lt;/a&gt;. You can also &lt;a href="http://blog.chromoscope.net/download/"&gt;download it&lt;/a&gt; to run locally.&lt;/span&gt;'</i>,
-			about : <i>'About'</i>,
-			share : <i>'Share'</i>,
-			sharewith : <i>'Share it with'</i>,
-			switchtext : <i>'switch to __WAVELENGTH__ view of the sky'</i>,
-			search : <i>'search'</i>,
-			press : <i>'Press __KEY__'</i>,
-			close : <i>'Close'</i>,
-			closedesc : <i>'click to close'</i>,
-			switchannotation : <i>' show or hide __ANNOTATION__'</i>,
-			showhide : <i>'show or hide all screen furniture (except the credit line)'</i>,
-			up : <i>'higher energy (reduce the wavelength)'</i>,
-			down : <i>'lower energy (increase the wavelength)'</i>,
-			zoomin : <i>'zoom in'</i>,
-			zoomout : <i>'zoom out'</i>,
-			nozoomin : <i>'Can\'t zoom in any more'</i>,
-			nozoomout : <i>'Can\'t zoom out any more'</i>,
-			url : <i>'The URL for this view is:'</i>,
-			intro : <i>'&lt;p&gt;Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in &lt;a href="http://blog.chromoscope.net/data/"&gt;a range of wavelengths&lt;/a&gt; from X-rays to the longest radio waves.&lt;/p&gt;&lt;p&gt;Change the wavelength using the &lt;em&gt;slider&lt;/em&gt; in the top right of the screen and explore space using your mouse. For more information we have &lt;a href="#" onClick="javascript:chromo_active.showVideoTour();return false;"&gt;a quick video tour&lt;/a&gt; or you can read &lt;a href="http://blog.chromoscope.net/about/"&gt;more on our blog&lt;/a&gt;. If you get stuck, click &quot;Help&quot; in the bottom left.&lt;/p&gt;&lt;p&gt;&lt;a href="http://www.astro.cardiff.ac.uk/research/instr/"&gt;&lt;img src="cardiffuni.png" style="border:0px;margin: 0px 5px 5px 0px;float:left;" /&gt;&lt;/a&gt;Chromoscope is kindly funded by the Cardiff University &lt;a href="http://www.astro.cardiff.ac.uk/research/egalactic/"&gt;Astronomy&lt;/a&gt; and &lt;a href="http://www.astro.cardiff.ac.uk/research/instr/"&gt;Astronomy Instrumentation&lt;/a&gt; Groups.&lt;/p&gt;'</i>,
-			gal : <i>'http://en.wikipedia.org/wiki/Galactic_coordinate_system'</i>,
-			galcoord : <i>'Galactic Coordinates'</i>,
-			eq : <i>'http://en.wikipedia.org/wiki/Equatorial_coordinate_system'</i>,
-			eqcoord : <i>'Equatorial Coordinates'</i>,
-			gamma : <i>'Gamma ray'</i>,
-			xray : <i>'X-ray'</i>,
-			optical : <i>'Visible'</i>,
-			halpha : <i>'Hydrogen &alpha;'</i>,
-			farir : <i>'Far-IR'</i>,
-			microwave : <i>'Microwave'</i>,
-			radio : <i>'Radio'</i>,
-			labels : <i>'Labels'</i>,
-			centre : <i>'Centre map at this point'</i>,
-			wikisky : <i>'View in Wikisky'</i>,
-			wwt : <i>'View in WorldWideTelescope'</i>,
-			nearby : <i>'Objects within 10&prime;'</i>,
-		})
+<span class="c">// Define English (this is the default anyway but should give you hints for writing your own)</span>
+chromo.changeLanguage({code:<i>'en'</i>,
+	name : <i>'English'</i>,
+	translator : <i>''</i>,
+	lang : <i>'Change language:'</i>,
+	version : <i>'version'</i>,
+	help : <i>'Help'</i>,
+	helpmenu : <i>'Help'</i>,
+	helpdesc : <i>'The Milky Way is shown across the middle. The north pole of the Galaxy is towards the top. Use the mouse to drag the sky around. Want more info? &lt;a href="#" onClick="javascript:chromo_active.showVideoTour();return false;"&gt;Watch a quick tour&lt;/a&gt; (opens in this window). &lt;span class="keyboard"&gt;The keyboard controls are:&lt;ul class="chromo_controlkeys"&gt;&lt;/ul&gt;&lt;/span&gt;&lt;span class="nokeyboard"&gt;&lt;ul class="chromo_controlbuttons"&gt;&lt;/ul&gt;&lt;/span&gt; &lt;span class="keyboard"&gt;Created by &lt;a href="http://www.strudel.org.uk/"&gt;Stuart Lowe&lt;/a&gt;, &lt;a href="http://www.astro.cf.ac.uk/pub/Robert.Simpson/index.html"&gt;Rob Simpson&lt;/a&gt;, and &lt;a href="http://www.astro.cardiff.ac.uk/contactsandpeople/?page=full&id=493"&gt;Chris North&lt;/a&gt;. You can also &lt;a href="http://blog.chromoscope.net/download/"&gt;download it&lt;/a&gt; to run locally.&lt;/span&gt;'</i>,
+	about : <i>'About'</i>,
+	share : <i>'Share'</i>,
+	sharewith : <i>'Share it with'</i>,
+	switchtext : <i>'switch to __WAVELENGTH__ view of the sky'</i>,
+	search : <i>'search'</i>,
+	press : <i>'Press __KEY__'</i>,
+	close : <i>'Close'</i>,
+	closedesc : <i>'click to close'</i>,
+	switchannotation : <i>' show or hide __ANNOTATION__'</i>,
+	showhide : <i>'show or hide all screen furniture (except the credit line)'</i>,
+	up : <i>'higher energy (reduce the wavelength)'</i>,
+	down : <i>'lower energy (increase the wavelength)'</i>,
+	zoomin : <i>'zoom in'</i>,
+	zoomout : <i>'zoom out'</i>,
+	nozoomin : <i>'Can\'t zoom in any more'</i>,
+	nozoomout : <i>'Can\'t zoom out any more'</i>,
+	url : <i>'The URL for this view is:'</i>,
+	intro : <i>'&lt;p&gt;Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in &lt;a href="http://blog.chromoscope.net/data/"&gt;a range of wavelengths&lt;/a&gt; from X-rays to the longest radio waves.&lt;/p&gt;&lt;p&gt;Change the wavelength using the &lt;em&gt;slider&lt;/em&gt; in the top right of the screen and explore space using your mouse. For more information we have &lt;a href="#" onClick="javascript:chromo_active.showVideoTour();return false;"&gt;a quick video tour&lt;/a&gt; or you can read &lt;a href="http://blog.chromoscope.net/about/"&gt;more on our blog&lt;/a&gt;. If you get stuck, click &quot;Help&quot; in the bottom left.&lt;/p&gt;&lt;p&gt;&lt;a href="http://www.astro.cardiff.ac.uk/research/instr/"&gt;&lt;img src="cardiffuni.png" style="border:0px;margin: 0px 5px 5px 0px;float:left;" /&gt;&lt;/a&gt;Chromoscope is kindly funded by the Cardiff University &lt;a href="http://www.astro.cardiff.ac.uk/research/egalactic/"&gt;Astronomy&lt;/a&gt; and &lt;a href="http://www.astro.cardiff.ac.uk/research/instr/"&gt;Astronomy Instrumentation&lt;/a&gt; Groups.&lt;/p&gt;'</i>,
+	gal : <i>'http://en.wikipedia.org/wiki/Galactic_coordinate_system'</i>,
+	galcoord : <i>'Galactic Coordinates'</i>,
+	eq : <i>'http://en.wikipedia.org/wiki/Equatorial_coordinate_system'</i>,
+	eqcoord : <i>'Equatorial Coordinates'</i>,
+	gamma : <i>'Gamma ray'</i>,
+	xray : <i>'X-ray'</i>,
+	optical : <i>'Visible'</i>,
+	halpha : <i>'Hydrogen &alpha;'</i>,
+	farir : <i>'Far-IR'</i>,
+	microwave : <i>'Microwave'</i>,
+	radio : <i>'Radio'</i>,
+	labels : <i>'Labels'</i>,
+	centre : <i>'Centre map at this point'</i>,
+	wikisky : <i>'View in Wikisky'</i>,
+	wwt : <i>'View in WorldWideTelescope'</i>,
+	nearby : <i>'Objects within 10&prime;'</i>,
+})
 		</pre>
 
 
@@ -337,7 +337,7 @@
 		<p>Reset the map view</p>
 		<h3>Usage</h3>
 		<pre class="code">
-		chromo.reset()
+chromo.reset()
 		</pre>
 
 
@@ -348,19 +348,19 @@
 			<li><b>key</b> <i>number</i>/<i>character</i> - the character or character code you want to simulate (can be an array)</li>
 		</ul>
 		<pre class="code">
-		chromo.registerKey(<span class="d">key</span>,function(){
-			alert(<i>'Pressed'</i>);
-		});
+chromo.registerKey(<span class="d">key</span>,function(){
+	alert(<i>'Pressed'</i>);
+});
 
 
-		chromo.registerKey(<i>'l'</i>,function(){
-			alert(<i>'Pressed l'</i>);
-			this.changeWavelengthByName('l');
-		}).registerKey(<i>38</i>,function(){
-			alert(<i>'Pressed down cursor key'</i>);
-		}).registerKey([<i>'h'</i>,<span class="d">63</span>],function(){
-			alert(<i>'Pressed h or ?'</i>);
-		});
+chromo.registerKey(<i>'l'</i>,function(){
+	alert(<i>'Pressed l'</i>);
+	this.changeWavelengthByName('l');
+}).registerKey(<i>38</i>,function(){
+	alert(<i>'Pressed down cursor key'</i>);
+}).registerKey([<i>'h'</i>,<span class="d">63</span>],function(){
+	alert(<i>'Pressed h or ?'</i>);
+});
 		</pre>
 
 
@@ -371,9 +371,9 @@
 			<li><b>key</b> <i>character</i> - the keypress you want to simulate</li>
 		</ul>
 		<pre class="code">
-		chromo.simulateKeyPress(<span class="d">key</span>);
+chromo.simulateKeyPress(<span class="d">key</span>);
 
-		chromo.simulateKeyPress(<i>'l'</i>);
+chromo.simulateKeyPress(<i>'l'</i>);
 		</pre>
 
 	<a name="moveMap"></a>
@@ -385,9 +385,9 @@
 			<li><b>zoom</b> <i>number</i> the zoom level</li>
 		</ul>
 		<pre class="code">
-			chromo.moveMap(<span class="d">longitude</span>, <span class="d">latitude</span>, <span class="d">zoom</span>);
+chromo.moveMap(<span class="d">longitude</span>, <span class="d">latitude</span>, <span class="d">zoom</span>);
 
-			chromo.moveMap(<span class="d">-67.2</span>, <span class="d">14.4</span>, <span class="d">3</span>);
+chromo.moveMap(<span class="d">-67.2</span>, <span class="d">14.4</span>, <span class="d">3</span>);
 		</pre>
 
 	<a name="getCoords"></a>
@@ -401,15 +401,15 @@
 			<li><b>epoch</b> <i>number</i> [optional]  the epoch (<i>2000</i>)</i>
 		</ul>
 		<pre class="code">
-		<span class="c">// Return a two element structure containing the Galactic l,b {l, b}</span>
-		<b>coords</b> <span class="s">=</span> chromo.getCoords();
-		alert(<b>coords</b>.l+','+<b>coords</b>.b)
+<span class="c">// Return a two element structure containing the Galactic l,b {l, b}</span>
+<b>coords</b> <span class="s">=</span> chromo.getCoords();
+alert(<b>coords</b>.l+','+<b>coords</b>.b)
 
-		<span class="c">// Return a two element array containing the Galactic l,b from RA/Dec</span>
-		<b>var</b> galactic <span class="s">=</span> Equatorial2Galactic(<span class="d">ra</span>, <span class="d">dec</span>, <span class="d">epoch</span>);
+<span class="c">// Return a two element array containing the Galactic l,b from RA/Dec</span>
+<b>var</b> galactic <span class="s">=</span> Equatorial2Galactic(<span class="d">ra</span>, <span class="d">dec</span>, <span class="d">epoch</span>);
 
-		<span class="c">// Return a two element array containing the Right Ascension and Declination from Galactic Coordinates</span>
-		<b>var</b> radec <span class="s">=</span> Galactic2Equatorial(<span class="d">l</span>, <span class="d">b</span>, <span class="d">epoch</span>);
+<span class="c">// Return a two element array containing the Right Ascension and Declination from Galactic Coordinates</span>
+<b>var</b> radec <span class="s">=</span> Galactic2Equatorial(<span class="d">l</span>, <span class="d">b</span>, <span class="d">epoch</span>);
 		</pre>
 
 	<a name="getVisibleRange"></a>
@@ -419,13 +419,13 @@
 			<li><b>coordtype</b> <i>string</i> [optional] specify as <code>'G'</code> if you want the range in Galactic coordinates or 'X' to get the map x,y values.</li>
 		</ul>
 		<pre class="code">
-		<b>var</b> range <span class="s">=</span> chromo.getVisibleRange(<span class="d">coordtype</span>);
+<b>var</b> range <span class="s">=</span> chromo.getVisibleRange(<span class="d">coordtype</span>);
 
-		<span class="c">// Returns the Galactic coordinates for the view.</span>
-		<b>var</b> range <span class="s">=</span> chromo.getVisibleRange(<i>'G'</i>);
+<span class="c">// Returns the Galactic coordinates for the view.</span>
+<b>var</b> range <span class="s">=</span> chromo.getVisibleRange(<i>'G'</i>);
 
-		<span class="c">// Popup showing the result structure contents { left: l, right: r, top: t, bottom: b }</span>
-		alert(range.left+' '+range.right+' '+range.top+' '+range.bottom);
+<span class="c">// Popup showing the result structure contents { left: l, right: r, top: t, bottom: b }</span>
+alert(range.left+' '+range.right+' '+range.top+' '+range.bottom);
 		</pre>
 
 
@@ -436,9 +436,9 @@
 			<li><b>delta</b> <i>number</i> the amount to change by</li>
 		</ul>
 		<pre class="code">
-		chromo.changeWavelength(<span class="d">delta</span>);
+chromo.changeWavelength(<span class="d">delta</span>);
 
-		chromo.changeWavelength(<span class="d">0.1</span>);
+chromo.changeWavelength(<span class="d">0.1</span>);
 		</pre>
 
 
@@ -449,15 +449,15 @@
 			<li><b>zoom</b> <i>integer</i> the new zoom level</li>
 		</ul>
 		<pre class="code">
-		<span class="c">// Zoom in 1 zoom level</span>
-		chromo.zoomIn();
+<span class="c">// Zoom in 1 zoom level</span>
+chromo.zoomIn();
 
-		<span class="c">// Zoom out 1 zoom level</span>
-		chromo.zoomOut();
+<span class="c">// Zoom out 1 zoom level</span>
+chromo.zoomOut();
 
-		chromo.setMagnification(<span class="d">zoom</span>);
+chromo.setMagnification(<span class="d">zoom</span>);
 
-		chromo.setMagnification(<span class="d">4</span>);
+chromo.setMagnification(<span class="d">4</span>);
 		</pre>
 
 
@@ -472,11 +472,11 @@
 			<li><b>callback</b> <i>function</i> [optional] a function to call after this</li>
 		</ul>
 		<pre class="code">
-		<span class="c">// Zoom in 1 zoom level</span>
-		chromo.readKML(<span class="d">kml</span>,<span class="d">overwrite</span>,<span class="d">duration</span>,<span class="d">callback</span>);
+<span class="c">// Zoom in 1 zoom level</span>
+chromo.readKML(<span class="d">kml</span>,<span class="d">overwrite</span>,<span class="d">duration</span>,<span class="d">callback</span>);
 
-		<span class="c">// Load the pulsars.kml file</span>
-		chromo.readKML(<i>'pulsars.kml'</i>);
+<span class="c">// Load the pulsars.kml file</span>
+chromo.readKML(<i>'pulsars.kml'</i>);
 		</pre>
 
 
@@ -505,21 +505,21 @@
 		</ul>
 		<pre class="code">
 
-		chromo.addPin({group:0,img:<i>'something.png'</i>,title:<i>'Title'</i>,desc:<i>'A description'</i>, glon:<span class="d">120.0</span>, glat:<span class="d">5.2</span>});
+chromo.addPin({group:0,img:<i>'something.png'</i>,title:<i>'Title'</i>,desc:<i>'A description'</i>, glon:<span class="d">120.0</span>, glat:<span class="d">5.2</span>});
 
 
-		<span class="c">// Adding many pins may get slow so here we don't add the pins to the screen until we've provided them all to Chromoscope.</span>
-		<span class="c">// We'll allow their IDs to be auto-generated.</span>
-		group = chromo.addPinGroup({id:'idhere',title:'A title for the group'})
-		chromo.addPin({group:<span class="d">group</span>,style:style,img:<i>'something.png'</i>,title:<i>'Pin 1'</i>,desc:<i>'A description'</i>,ra:<span class="d">23.56</span>,dec:<span class="d">-5.2</span>},<span class="d">true</span>);
-		chromo.addPin({group:<span class="d">group</span>,style:style,img:<i>'something.png'</i>,title:<i>'Pin 2'</i>,desc:<i>'A second'</i>,ra:<span class="d">22.01</span>,dec:<span class="d">-15.6</span>},<span class="d">true</span>);
-		...
-		chromo.addPin({group:<span class="d">group</span>,style:style,img:<i>'something.png'</i>,title:<i>'Pin X'</i>,desc:<i>'Final pin'</i>,ra:<span class="d">2.64</span>,dec:<span class="d">45.6</span>},<span class="d">true</span>);
-		<span class="c">// Add a switch to turn the layer on and off</span>
-		chromo.addPinGroupSwitches(<span class="d">group</span>);
-		<span class="c">// Update all the pins as we delayed their creation</span>
-		chromo.updatePins({delay: <span class="d">true</span>})
-		chromo.wrapPins();
+<span class="c">// Adding many pins may get slow so here we don't add the pins to the screen until we've provided them all to Chromoscope.</span>
+<span class="c">// We'll allow their IDs to be auto-generated.</span>
+group = chromo.addPinGroup({id:'idhere',title:'A title for the group'})
+chromo.addPin({group:<span class="d">group</span>,style:style,img:<i>'something.png'</i>,title:<i>'Pin 1'</i>,desc:<i>'A description'</i>,ra:<span class="d">23.56</span>,dec:<span class="d">-5.2</span>},<span class="d">true</span>);
+chromo.addPin({group:<span class="d">group</span>,style:style,img:<i>'something.png'</i>,title:<i>'Pin 2'</i>,desc:<i>'A second'</i>,ra:<span class="d">22.01</span>,dec:<span class="d">-15.6</span>},<span class="d">true</span>);
+...
+chromo.addPin({group:<span class="d">group</span>,style:style,img:<i>'something.png'</i>,title:<i>'Pin X'</i>,desc:<i>'Final pin'</i>,ra:<span class="d">2.64</span>,dec:<span class="d">45.6</span>},<span class="d">true</span>);
+<span class="c">// Add a switch to turn the layer on and off</span>
+chromo.addPinGroupSwitches(<span class="d">group</span>);
+<span class="c">// Update all the pins as we delayed their creation</span>
+chromo.updatePins({delay: <span class="d">true</span>})
+chromo.wrapPins();
 		</pre>
 
 
@@ -530,9 +530,9 @@
 			<li><b>pin</b> <i>pin</i> - the pin you want to show the info balloon for.</li>
 		</ul>
 		<pre class="code">
-		<span class="d">pin</span>.showBalloon()
+<span class="d">pin</span>.showBalloon()
 
-		<span class="d">chromo.pins[0]</span>.showBalloon()
+<span class="d">chromo.pins[0]</span>.showBalloon()
 		</pre>
 
 	</div>
