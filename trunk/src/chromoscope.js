@@ -1105,13 +1105,16 @@ jQuery.query = function() {
 	//	z (number) = Zoom level. A value of -1 should be used if you don't want to affect the zoom.
 	//	duration (number) = The duration of the transition in milliseconds (default = 0)
 	Chromoscope.prototype.moveMap = function(l,b,z,duration){
+
 		z = (z && z >= 0) ? z : chromo.zoom;
 		duration = (duration) ? duration : 0;
 		var oldmapSize = this.mapSize;
 		if(z > 0) this.setMagnification(z);
 
-		l = (l+360)%360;
-		var newl = (l <= 180) ? -(l) : (360-l);
+		if(this.l < 0) this.l+= 360;
+
+		var templ = (l+360)%360;
+		var newl = (templ <= 180) ? -(templ) : (360-templ);
 		var newleft = -((newl)*this.mapSize/360)+(this.wide - this.mapSize)/2;
 		var newtop = ((b)*this.mapSize/360)+(this.tall - this.mapSize)/2;
 		var el = $(this.body+" .chromo_innerDiv");
@@ -1119,14 +1122,16 @@ jQuery.query = function() {
 		if(duration && (l!=this.l && b!=this.b)){
 			var newpos = this.limitBounds(newleft,newtop,true);
 			var _obj = this;
+			this.animating = true;
 			el.animate(newpos,{
 				duration:duration,
-				step:function(now,fx){ _obj.checkTiles(); _obj.updateCoords(); },
+				step:function(now,fx){ _obj.checkTiles(); },
 				complete:function(){
 					_obj.checkTiles();
 					_obj.updateCoords();
 					_obj.l = l;
 					_obj.b = b;
+					_obj.animating = false;
 					_obj.trigger("move",{position:{l:l,b:b},zoom:z});
 				}
 			});
@@ -1136,8 +1141,6 @@ jQuery.query = function() {
 			if(jQuery.browser.msie) this.changeWavelength(0);
 			this.checkTiles();
 			this.updateCoords();
-			this.l = newl;
-			this.b = b;
 			this.trigger("move",{position:{l:l,b:b},zoom:z});
 		}
 	}
@@ -1201,10 +1204,10 @@ jQuery.query = function() {
 			var visibleTiles = (changeW && this.previousTiles.length > 0 && this.zoom == this.previousZoom && !changeForced) ? this.previousTiles : this.getVisibleTiles(visibleRange);
 
 			// Create an array of indices to layers that we will load
-			layers = new Array();
+			var layers = new Array();
 
 			// Set an array index
-			l = 0;
+			var l = 0;
 
 			// We want to load the nearest wavelength first
 			// followed by the next nearest and then any that
@@ -1214,7 +1217,7 @@ jQuery.query = function() {
 			// Step out from the nominal wavelength to pre-load
 			// other wavelengths as set by chromo.wavelength_load_range
 			if(this.wavelength_load_range > 0){
-				for(w = 1; w <= this.wavelength_load_range ; w++){
+				for(var w = 1; w <= this.wavelength_load_range ; w++){
 					// Check if the lower wavelength is required
 					if(layers[0]-w >= this.minlambda) layers[l++] = layers[0]-w;
 					// Check if the higher wavelength is required
@@ -1232,11 +1235,11 @@ jQuery.query = function() {
 
 			// Work out the x,y pixel values for the user-defined range
 			var pixels = Math.pow(2, this.zoom)
-
+			
 			// Loop over all the layers we've pre-selected
 			for(var l = 0 ; l < layers.length ; l++){
 				output = "";
-				idx = layers[l];
+				var idx = layers[l];
 
 				if(idx >= 0){
 					if(this.spectrum[idx].limitrange){
@@ -1250,15 +1253,15 @@ jQuery.query = function() {
 				}
 
 				// Loop over all the tiles that we want to load
-				for (v = 0; v < visibleTiles.length; v++, counter++) {
+				for (var v = 0; v < visibleTiles.length; v++, counter++) {
 					if(idx >= 0) tileName = this.id+"_"+this.spectrum[idx].name+"x" + visibleTiles[v].x + "y" + visibleTiles[v].y + "z"+this.zoom;
 					else tileName = this.id+"_"+this.annotations[-(idx+1)].name+"x" + visibleTiles[v].x + "y" + visibleTiles[v].y + "z"+this.zoom;
 
 					this.visibleTilesMap[counter] = tileName;
 
 					// Check if this tile was previously loaded
-					match = false;
-					for (p = 0; p < this.previousTilesMap.length; p++) {
+					var match = false;
+					for (var p = 0; p < this.previousTilesMap.length; p++) {
 						if(this.previousTilesMap[p] == tileName){ match = true; break; }
 					}
 					// Did not exist before so needs to be added
@@ -1297,9 +1300,9 @@ jQuery.query = function() {
 			$(this.body+' .tile').css({width:this.tileSize,height:this.tileSize});
 
 			if(!changeZ || changeForced){
-				for (p = 0; p < this.previousTilesMap.length; p++) {
-					match = false;
-					for (v = 0; v < this.visibleTilesMap.length; v++) {
+				for (var p = 0; p < this.previousTilesMap.length; p++) {
+					var match = false;
+					for (var v = 0; v < this.visibleTilesMap.length; v++) {
 						if(this.previousTilesMap[p] == this.visibleTilesMap[v]){
 							match = true;
 							v = this.visibleTilesMap.length;
@@ -1490,7 +1493,8 @@ jQuery.query = function() {
 
 	animateWavelength = function(chromo,target,velocity){
 		var tick = 200;	// ms
-		chromo.changeWavelength(velocity*tick)
+		chromo.changeWavelength(velocity*tick);
+		chromo.checkTiles();
 		if((velocity > 0 && chromo.lambda < target) || (velocity < 0 && chromo.lambda > target)) setTimeout(animateWavelength,tick,chromo,target,velocity);
 		else chromo.changeWavelength( target-chromo.lambda);
 	}
@@ -1596,6 +1600,7 @@ function doMove() {
 	// Usage: setMagnification(z)
 	//	z (number) = The zoom level
 	Chromoscope.prototype.setMagnification = function(z) {
+//console.log('zoom ',z,this.zoom,' ',this.l,this.b)
 		this.zoom = Math.round(z*100)/100;
 		var minZ = this.minZoom();
 		if(this.zoom < minZ){ 
