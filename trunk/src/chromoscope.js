@@ -407,6 +407,7 @@ jQuery.query = function() {
 		// Define the mouse events
 		$(this.body+" .chromo_outerDiv").mousedown({me:this},function(ev){
 			var chromo = ev.data.me;
+			if(!chromo.active) chromo.activate()
 			if(ev.button != 2 && chromo.mouseevents){
 				// Don't do anything for a right mouse button event
 				this.dragStartLeft = ev.clientX;
@@ -452,7 +453,7 @@ jQuery.query = function() {
 			}
 		}).mouseup({me:this},function(ev){
 			var chromo = ev.data.me;
-			if(!chromo || !chromo.active) return;
+			if(!chromo) return;
 			// Bind the double tap to double click
 			if('ontouchstart' in document.documentElement){
 				var delay = 500;
@@ -1104,27 +1105,28 @@ jQuery.query = function() {
 	//	z (number) = Zoom level. A value of -1 should be used if you don't want to affect the zoom.
 	//	duration (number) = The duration of the transition in milliseconds (default = 0)
 	Chromoscope.prototype.moveMap = function(l,b,z,duration){
-		z = (z && z >= 0) ? z : 5;
+		z = (z && z >= 0) ? z : chromo.zoom;
 		duration = (duration) ? duration : 0;
 		var oldmapSize = this.mapSize;
 		if(z > 0) this.setMagnification(z);
 
-		l = l%360;
+		l = (l+360)%360;
 		var newl = (l <= 180) ? -(l) : (360-l);
 		var newleft = -((newl)*this.mapSize/360)+(this.wide - this.mapSize)/2;
 		var newtop = ((b)*this.mapSize/360)+(this.tall - this.mapSize)/2;
 		var el = $(this.body+" .chromo_innerDiv");
 
-		if(duration){
+		if(duration && (l!=this.l && b!=this.b)){
 			var newpos = this.limitBounds(newleft,newtop,true);
-			if(el.position().left-newpos.left > this.mapSize/2) el.css({left:el.position().left-this.mapSize});
 			var _obj = this;
 			el.animate(newpos,{
 				duration:duration,
-				step:function(now,fx){ _obj.checkTiles(); },
+				step:function(now,fx){ _obj.checkTiles(); _obj.updateCoords(); },
 				complete:function(){
 					_obj.checkTiles();
 					_obj.updateCoords();
+					_obj.l = l;
+					_obj.b = b;
 					_obj.trigger("move",{position:{l:l,b:b},zoom:z});
 				}
 			});
@@ -1134,6 +1136,8 @@ jQuery.query = function() {
 			if(jQuery.browser.msie) this.changeWavelength(0);
 			this.checkTiles();
 			this.updateCoords();
+			this.l = newl;
+			this.b = b;
 			this.trigger("move",{position:{l:l,b:b},zoom:z});
 		}
 	}
@@ -1592,7 +1596,7 @@ function doMove() {
 	// Usage: setMagnification(z)
 	//	z (number) = The zoom level
 	Chromoscope.prototype.setMagnification = function(z) {
-		this.zoom = Math.round(z*100)/100
+		this.zoom = Math.round(z*100)/100;
 		var minZ = this.minZoom();
 		if(this.zoom < minZ){ 
 			this.zoom = minZ;
@@ -1623,8 +1627,8 @@ function doMove() {
 			x -= Math.round($(this.body).offset().left);
 			y -= Math.round($(this.body).offset().top);
 		}
+		if(byZoom==0) return;
 		originalzoom = this.zoom;
-
 		this.setMagnification(this.zoom + byZoom);
 		if(this.zoom == originalzoom) return;
 
@@ -1633,7 +1637,8 @@ function doMove() {
 		this.x = $(this.body+" .chromo_innerDiv").position().left;
 
 		// Get the position
-		pos = this.getNewPosition(this.x,this.y,byZoom);
+		var pos = this.getNewPosition(this.x,this.y,byZoom);
+		var xoff,yoff;
 		if(byZoom > 0){
 			xoff = (x) ? (this.wide/2 - x) : 0;
 			yoff = (y) ? (this.tall/2 - y) : 0;
