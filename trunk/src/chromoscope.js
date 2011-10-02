@@ -249,7 +249,7 @@ jQuery.query = function() {
 		this.xray = (inp.xray) ? inp.xray : 'X-ray';
 		this.optical = (inp.optical) ? inp.optical : 'Visible';
 		this.halpha = (inp.halpha) ? inp.halpha : 'Hydrogen &alpha;';
-		this.farir = (inp.farir) ? inp.farir : 'Far-IR';
+		this.farir = (inp.farir) ? inp.farir : 'Far-Infrared';
 		this.microwave = (inp.microwave) ? inp.microwave : 'Microwave';
 		this.radio = (inp.radio) ? inp.radio : 'Radio';
 		this.labels = (inp.labels) ? inp.labels : 'Labels';
@@ -369,7 +369,7 @@ jQuery.query = function() {
 				this.container = '';
 				return true;
 			}
-			$(this.body).bind('mouseover', {me:this}, function(e){
+			$(this.body).bind('click', {me:this}, function(e){
 				e.data.me.activate();
 			}).bind('mouseout', {me:this}, function(e){
 				e.data.me.deactivate();
@@ -421,6 +421,7 @@ jQuery.query = function() {
 			}
 		}).mousemove({me:this},function(ev){
 			var chromo = ev.data.me;
+			if(!chromo.active) return;
 			if(this.dragging){
 
 				newtop = this.y + (ev.clientY - this.dragStartTop);
@@ -451,7 +452,7 @@ jQuery.query = function() {
 			}
 		}).mouseup({me:this},function(ev){
 			var chromo = ev.data.me;
-			if(!chromo) return;
+			if(!chromo || !chromo.active) return;
 			// Bind the double tap to double click
 			if('ontouchstart' in document.documentElement){
 				var delay = 500;
@@ -479,7 +480,7 @@ jQuery.query = function() {
 			return false;
 		}).bind('mousewheel',{me:this},function(ev, delta) {
 			var chromo = ev.data.me;
-			if(!chromo) return;
+			if(!chromo || !chromo.active) return;
 			if(!chromo.mouseevents) return;
 			if(delta > 0) chromo.changeMagnification(1,ev.pageX,ev.pageY);
 			else chromo.changeMagnification(-1,ev.pageX,ev.pageY);
