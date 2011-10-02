@@ -168,6 +168,7 @@
 					if(j.icon) styles[j.id].img.src = j.icon;
 					this.pinstylecount++;
 				}
+				if(typeof data.tour=="object") _obj.bind("processkml",function(){ runTour(this,data.tour); });
 				//console.log("Time to process styles: " + (new Date() - this.start) + "ms");
 				for(i = 0 ; i < data.placemarks.length ; i++){
 					// Get the custom icon
@@ -261,7 +262,7 @@
 						$(this).find("chromo\\:wavelength").each(function(j){
 							step.wavelength = $(this).text();
 						});
-						tour.push(step)
+						tour.push(step);
 					})
 					if(tour.length > 0) _obj.bind("processkml",function(){ runTour(this,tour); });
 				}).remove();
@@ -310,17 +311,21 @@
 		// Step through a tour
 		runTour = function(chromo,tour){
 			var step = tour[0];
-
+			if(!step) return;
 			if(step.type == "FlyTo"){
 				kml_coord = 0;
-				if(typeof step.LookAt=="object") kml_coord = Equatorial2Galactic(step.LookAt.longitude, step.LookAt.latitude);
-				if(kml_coord.length == 2){
-					// Move the map
-					chromo.moveMap(kml_coord[0],kml_coord[1],chromo.zoom,step.duration);
-				}
-				if(step.wavelength){
-					if(Number(step.wavelength)) chromo.changeWavelength(Number(step.wavelength),step.duration);
-					else if(step.wavelength.length == 1) chromo.changeWavelengthByName(step.wavelength,step.duration);
+				if(typeof step.LookAt=="object"){
+					var nzoom = 0;
+					if(step.LookAt.range){
+						var deg = range2degrees(step.LookAt.range);
+						var fov = 360*chromo.wide/chromo.mapSize;
+						if(fov/deg > 2) while (fov/deg > 2){ nzoom++; fov /=2; }
+						else if(deg/fov > 2) while (deg/fov > 2){ nzoom--; fov *=2; }
+					}
+					if(step.LookAt.longitude){
+						kml_coord = Equatorial2Galactic(step.LookAt.longitude, step.LookAt.latitude);
+						chromo.moveMap(kml_coord[0],kml_coord[1],chromo.zoom+nzoom,step.duration);
+					}
 				}
 			}else if(step.type == "AnimatedUpdate"){
 				for(var i = 0; i < step.Placemark.length ; i++){
@@ -330,23 +335,27 @@
 						if(chromo.pins[p].id == id){
 							if(step.Placemark[i].balloonVisibility) chromo.pins[p].showBalloon();
 							else chromo.pins[p].hideBalloon();
-							if(step.wavelength){
-								if(Number(step.wavelength)) chromo.changeWavelength(Number(step.wavelength),step.duration);
-								else if(step.wavelength.length == 1) chromo.changeWavelengthByName(step.wavelength,step.duration);
-							}
 							break;
 						}
 					}
 				}
 			}
+			if(step.wavelength){
+				if(Number(step.wavelength)) chromo.changeWavelength(Number(step.wavelength),step.duration);
+				else if(step.wavelength.length == 1) chromo.changeWavelengthByName(step.wavelength,step.duration);
+			}
 			// Remove this step from the list
 			tour.shift();
+			if(tour.length > 0){
+				// Check for steps that happen in parallel
+				if(step.type == "AnimatedUpdate" || step.type == "SoundCue") runTour(chromo,tour);
+				// Set a timeout until the next step of the tour happen
+				else var t = setTimeout(runTour,step.duration,chromo,tour);
+			}
 
-			// Set a timeout until the next step of the tour happen
-			if(tour.length > 0) var t = setTimeout(runTour,step.duration,chromo,tour);
 		}
 		
-		function range2zoom(r){
+		function range2degrees(r){
 			//r = R*(k*sin(ß/2) - cos(ß/2) + 1)
 			// Return field of view in degrees
 			return 180*Math.acos(1 - r/6378000)/Math.PI;
