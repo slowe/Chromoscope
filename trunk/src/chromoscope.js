@@ -1854,14 +1854,16 @@ function doMove() {
 	}
 
 	Chromoscope.prototype.addPinGroup = function(inp){
-		var len = this.pingroups.length
-		for(var i = 0 ; i < len ; i++) if(this.pingroups[i].id == inp.id) break;
+		var len = this.pingroups.length;
+		var i = 0;
+		for(i = 0 ; i < len ; i++) if(this.pingroups[i].id == inp.id) return i;
+
 		if(i == len){
 			inp.id = (typeof inp.id=="string") ? inp.id.replace(/[^0-9a-zA-Z]/g,"-") : "pingroup-"+len;
-			this.pingroups[len] = {
+			this.pingroups.push({
 				id: inp.id,
 				title: inp.title
-			};
+			});
 		}
 		return len;
 	}
