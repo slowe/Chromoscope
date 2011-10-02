@@ -2,6 +2,18 @@
 <head>
 	<title>Developer Documentation | Chromoscope</title>
 	<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.chromoscope.net/favicon.ico" />
+	<link rel="stylesheet" href="style.css" type="text/css" />
+	<!--[if IE 6]><link rel="stylesheet" href="style-ie.css" type="text/css" /><![endif]-->
+	<script src="jquery-1.6.min.js"></script>
+	<script src="jquery.mousewheel.min.js"></script>
+	<script src="chromoscope.js"></script>
+	<script src="chromoscope-lookup.js"></script>
+	<script src="chromoscope-kml.js"></script>
+	<script src="chromoscope-contextmenu.js"></script>
+	<script type="text/javascript" src="ui/jquery.ui.core.min.js"></script>
+	<script type="text/javascript" src="ui/jquery.ui.widget.min.js"></script>
+	<script type="text/javascript" src="ui/jquery.ui.mouse.min.js"></script>
+	<script type="text/javascript" src="ui/jquery.ui.sortable.min.js"></script>
 	<style type="text/css">
 		body {
 			font-family: 'Trebuchet MS',Tahoma,Helvetica,Verdana,sans-serif;
@@ -36,7 +48,6 @@
 			color: #E7BE61!important;
 		}
     	</style>
-		<script src="jquery-1.6.min.js"></script>
 		<script type="text/javascript">
 		$(document).ready(function(){
 			menu = "";
@@ -44,14 +55,38 @@
 				menu += '<li><a href="'+$(this).attr('href')+'">'+$(this).text()+'</a></li>';
 			});
 			$('#menu').html(menu);
+
+			// Set up the Chromoscope
+			chromo = $.chromoscope({container:'#chromoscope',lang:'en',showintro:true});
+
+			// The spectral bands should be in order
+			chromo.addWavelength({key:'g',useasdefault:false,name:'gamma',tiles:'http://s3.amazonaws.com/chromoscope-fermi-tiles/',ext:'jpg',title:'gamma',attribution:'<a href="http://fermi.gsfc.nasa.gov/">Fermi</a>'})
+			chromo.addWavelength({key:'x',useasdefault:false,name:'xray',tiles:'http://s3.amazonaws.com/chromoscope-RASS-tiles/',ext:'jpg',title:'xray',attribution:'<a href="http://www.mpe.mpg.de/xray/wave/rosat/index.php">ROSAT</a>'});
+			chromo.addWavelength({key:'v',useasdefault:true,name:'optical',tiles:{z:'DSS2-tiles/',z3:'http://s3.amazonaws.com/chromoscope-photopic/',z4:'photopic/'},ext:'jpg',title:'optical',attribution:{z:'<a href="http://stdatu.stsci.edu/dss/">DSS2</a>/<a href="http://www.wikisky.org/">Wikisky</a>',z3:'Nick Risinger, <a href="http://skysurvey.org/">skysurvey.org</a>',z4:'Nick Risinger, <a href="http://skysurvey.org/">skysurvey.org</a>'}});
+			chromo.addWavelength({key:'a',useasdefault:false,name:'halpha',tiles:'http://s3.amazonaws.com/chromoscope-H-alpha-tiles/',ext:'jpg',title:'halpha',attribution:'<a href="http://www.astro.wisc.edu/wham/">WHAM</a>/<a href="http://www.phys.vt.edu/~halpha/">VTSS</a>/<a href="http://amundsen.swarthmore.edu/">SHASSA</a>/<a href="http://www.cfa.harvard.edu/~dfinkbei/">Finkbeiner</a>'});
+			chromo.addWavelength({key:'f',useasdefault:false,name:'farir',tiles:'http://s3.amazonaws.com/chromoscope-IRAS-tiles/',ext:'jpg',title:'farir',attribution:'<a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html">IRAS</a>/NASA'});
+			chromo.addWavelength({key:'m',useasdefault:false,name:'microwave',tiles:'Planck-FSM-tiles/',ext:'jpg',title:'microwave',attribution:'<a href="http://www.esa.int/esaCP/SEMF2FRZ5BG_index_0.html">ESA Planck</a> LFI and HFI Consortia (2010)'});
+			chromo.addWavelength({key:'r',useasdefault:false,name:'radio',tiles:'Radio_vsmoothed-tiles/',ext:'jpg',title:'radio',attribution:'<a href="http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm">Haslam et al.</a>'});
+
+			// Annotation layers will be shown at all wavelengths
+			chromo.addAnnotationLayer({opacity:0.4,key:'l',name:'labels',tiles:'labelsnew/',ext:'jpg',title:'Labels',attribution:'some Labels from Chris'});
+
+			// Load the map
+			chromo.load();
+
 		});
 		</script>
 </head>
 <body>
+	<div style="width:800px;margin:auto;">
 	<h1>Chromoscope Developer Documentation</h1>
 	<p><a href="http://www.chromoscope.net/">Chromoscope</a> is an accessible, easy tool that anyone can use to explore and understand the sky at multiple wavelengths. It lets you easily move around the sky and fade between wavelengths using a simple user-interface to illustrate the similarities and differences between what is visible at each wavelength.</p>
 	<p>A standard, modern, web browser is all that you need to use Chromoscope so there is no need to install any extra software, plugins or learn a new interface. Being platform independent means that whether you use Windows, Mac or Linux, it should still be accessible. The code (<a href="https://github.com/slowe/Chromoscope">latest development version</a>) <a href="http://blog.chromoscope.net/download/">can be downloaded</a> to your own computer or web server and then you can select which wavelength collections you want.</p>
 
+
+	<div id="chromoscope" style="width:800px;height:500px;"></div>
+
+	<h2>Index</h2>
 	<ol id="menu">
 	</ol>
 
@@ -500,5 +535,6 @@
 		<span class="d">chromo.pins[0]</span>.showBalloon()
 		</pre>
 
+	</div>
 </body>
 </html>
