@@ -200,7 +200,7 @@ jQuery.query = function() {
 			if(typeof inp.plugins=="object") this.plugins = inp.plugins;
 			if(typeof inp.dir=="string") this.dir = inp.dir;
 			if(typeof inp.coordinatesystem=="string") this.coordinate.system = inp.coordinatesystem;
-			if(typeof inp.coordinatesystem=="string") this.coordinate.system = inp.coordinatesystem;
+			if(typeof inp.coordinateactive=="string") this.coordinate.active = inp.coordinateactive;
 		}
 		if(this.container) this.body = this.container;
 		if(this.pushstate){
