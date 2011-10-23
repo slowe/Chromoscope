@@ -121,7 +121,7 @@ jQuery.query = function() {
 		this.draggingSlider = false;
 		this.moved = false;
 		this.ignorekeys = false;	// Allow/disallow keyboard control
-		this.coordtype = 'G';		// The coordinate type to display 'G' for Galactic and 'A' for equatorial
+		this.coordinate = { system:'G', active:'G', label:"" };	// The coordinate type to display 'G' for Galactic and 'A' for equatorial
 		this.pushstate = !!(window.history && history.pushState);	// Do we update the address bar?
 		this.y = 0;
 		this.x = 0;
@@ -199,6 +199,8 @@ jQuery.query = function() {
 			if(typeof inp.langs=="object") this.langs = inp.langs;
 			if(typeof inp.plugins=="object") this.plugins = inp.plugins;
 			if(typeof inp.dir=="string") this.dir = inp.dir;
+			if(typeof inp.coordinatesystem=="string") this.coordinate.system = inp.coordinatesystem;
+			if(typeof inp.coordinatesystem=="string") this.coordinate.system = inp.coordinatesystem;
 		}
 		if(this.container) this.body = this.container;
 		if(this.pushstate){
@@ -534,14 +536,12 @@ jQuery.query = function() {
 		// Set the default zoom level
 		this.setMagnification(this.zoom);
 
-
 		this.buildHelp();
 		this.buildLinks();
 		this.buildLang();
 		if(this.showintro) this.buildIntro();
 
 		//console.log("Time to end intro:" + (new Date() - this.start) + "ms");
-
 		//console.log("Time to end context:" + (new Date() - this.start) + "ms");
 
 		// Disable keyboard commands on input text fields
@@ -603,9 +603,7 @@ jQuery.query = function() {
 
 		}
 
-
 		//console.log("Time to end wavelengths:" + (new Date() - this.start) + "ms");
-
 
 		// Make it sortable (if we have the jQuery/UI options available)
 		if(typeof $().sortable=="function"){
@@ -613,7 +611,6 @@ jQuery.query = function() {
 			$(this.body+" .chromo_keys").sortable({containment:'parent',forcePlaceHolderSize:true,placeholder:'chromo_key_highlight',cursor:cur});
 			$(this.body+" .chromo_keys").bind('sortupdate',{el:this},function (event,ui){ event.data.el.orderWavelengths($(this).sortable('toArray')); });
 		}
-
 
 		// If the window resizes (e.g. going fullscreen)
 		// we need to recalculate the screen properties
@@ -637,6 +634,8 @@ jQuery.query = function() {
 		if(typeof callback=="function") callback.call();
 
 		this.loaded = true;
+		this.updateCoords();
+
 		//console.log("Time to end:" + (new Date() - this.start) + "ms");
 		$(this.body+" .chromo_info").html("Took " + (new Date() - this.start) + "ms to load.")
 	}
@@ -725,8 +724,8 @@ jQuery.query = function() {
 		// Allow coordinates to be converted
 		$(this.body+" .chromo_coords").css({cursor:'pointer'});
 		$(this.body+" .chromo_coords").bind('click',{el:this},function (event){
-			event.data.el.coordtype = (event.data.el.coordtype == "G") ? "A" : "G";
-			event.data.el.updateCoords(); 
+			event.data.el.coordinate.active = (event.data.el.coordinate.active == "G") ? "A" : "G";
+			event.data.el.updateCoords();
 		});
 
 		if(!($.browser.opera && $.browser.version == 9.3)) this.updateCoords();
@@ -1147,23 +1146,38 @@ jQuery.query = function() {
 
 	// Update the coordinate holder
 	Chromoscope.prototype.updateCoords = function(x,y){
-		var coords = this.getCoords(x,y);
-		this.l = coords.l;
-		this.b = coords.b;
+		if(!this.loaded) return;
+		var coords = this.getCoordinates(x,y);
 
-		if(this.coordtype == 'G') var label = ''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>'; //$(this.body+" .chromo_coords").html(''+coords.l.toFixed(2)+'&deg;, '+coords.b.toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>')
-		else{
-			var radec = Galactic2Equatorial(coords.l,coords.b);
-			var label = ''+radec.ra_h+'h'+radec.ra_m+'m'+radec.ra_s+'s, '+radec.dec_d+'&deg;'+radec.dec_m+'&prime;'+radec.dec_s+'&Prime; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>';
-			//$(this.body+" .chromo_coords").html(''+radec[0].toFixed(2)+'&deg;, '+radec[1].toFixed(2)+'&deg; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>')
+		if(this.coordinate.active == 'G'){
+			var label = ''+coords[0].toFixed(2)+'&deg;, '+coords[1].toFixed(2)+'&deg; <a href="'+this.phrasebook.gal+'" title="'+this.phrasebook.galcoord+'" style="text-decoration:none;">Gal</a>';
+		}else{
+			var ra_h = parseInt(coords[0]);
+			var ra_m = parseInt((coords[0]-ra_h)*60);
+			var ra_s = ((coords[0]-ra_h-ra_m/60)*3600).toFixed(2);
+			if(ra_h < 10) ra_h = "0"+ra_h;
+			if(ra_m < 10) ra_m = "0"+ra_m;
+			if(ra_s < 10) ra_s = "0"+ra_s;
+			var dec_sign = (coords[1] >= 0) ? "" : "-";
+			var dec_d = parseInt(Math.abs(coords[1]));
+			var dec_m = parseInt((Math.abs(coords[1])-dec_d)*60);
+			var dec_s = ((Math.abs(coords[1])-dec_d-dec_m/60)*3600).toFixed(1);
+			if(Math.abs(dec_d) < 10) dec_d = "0"+dec_d;
+			if(dec_m < 10) dec_m = "0"+dec_m;
+			if(dec_s < 10) dec_s = "0"+dec_s;
+			var label = ''+ra_h+'h'+ra_m+'m'+ra_s+'s, '+dec_sign+dec_d+'&deg;'+dec_m+'&prime;'+dec_s+'&Prime; <a href="'+this.phrasebook.eq+'" title="'+this.phrasebook.eqcoord+'" style="text-decoration:none;">J2000</a>';
 		}
 		if(this.showcoord){ $(this.body+" .chromo_coords").html(label); }
 
-		// Call an attached event
-		if(this.coordlabel != label) this.trigger("wcsupdate",{position:coords,zoom:this.zoom});
+		if(this.coordinate.l != this.l && this.coordinate.b != this.b){
+			this.l = this.coordinate.l;
+			this.b = this.coordinate.b;
+			// Call an attached event
+			this.trigger("wcsupdate",{position:{l:this.l,b:this.b},zoom:this.zoom});
+		}
 
 		// Store the current value of the coordinate label
-		this.coordlabel = label;
+		this.coordinate.label = label;
 		//if(this.pushstate) history.pushState({l:this.l,b:this.b,z:this.zoom,w:this.lambda,spec:this.spectrum},"Chromoscope ("+this.l+","+this.b+")",this.getViewURL());
 	}
 
@@ -1693,18 +1707,37 @@ function doMove() {
 		return { left: newleft, top: newtop }
 	}
 
-	// Get the Galactic coordinates for the current map centre
-	Chromoscope.prototype.getCoords = function(offx,offy){
-		if(!this.loaded) return {l:0,b:0} 
+	// Get the current map centre coordinates in the current coordinate system
+	Chromoscope.prototype.getCoordinates = function(offx,offy,sys){
+		if(!this.loaded) return [0,0]
+		if(typeof offx=="string"){ sys = offx; offx = ""; }
+		if(typeof sys!="string") sys = this.coordinate.active;
 		if(!offx) var offx = $(this.body+" .chromo_outerDiv").width()*0.5;
 		if(!offy) var offy = $(this.body+" .chromo_outerDiv").height()*0.5;
 		var scale = 360/this.mapSize;
 		var p = $(this.body+" .chromo_innerDiv").position();
-		var l = (offx-p.left)*scale;
-		var b = (p.top+this.mapSize*0.5-offy)*scale;
-		l = l % 360;
-		l = 180-l;
-		return {l:l, b:b}
+		this.coordinate.l = 180-(((offx-p.left)*scale)%360);
+		this.coordinate.b = (p.top+this.mapSize*0.5-offy)*scale;
+		if(this.coordinate.system=='A'){
+			l = this.coordinate.l;
+			if(l < 0) l = 360+l;
+			if(sys == 'A'){
+				return [l/15,this.coordinate.b]
+			}else{
+				return Equatorial2Galactic(this.coordinate.l,this.coordinate.b);
+			}
+		}else{
+			if(sys == 'A'){
+				radec = Galactic2Equatorial(this.coordinate.l,this.coordinate.b);
+				return [radec.ra,radec.dec];
+			}else return [this.coordinate.l,this.coordinate.b]
+		}
+	}
+
+	// Get the Galactic coordinates for the current map centre
+	Chromoscope.prototype.getCoords = function(offx,offy,system){
+		var c = this.getCoordinates(offx,offy,system)
+		return {l:c[0], b:c[1]}
 	}
 
 	Chromoscope.prototype.buildSearch = function(){
@@ -2394,18 +2427,8 @@ function Galactic2Equatorial(l, b, epoch){
 	alpha = (Math.atan2( sinA, cosA ))*r2d + NGP_d;
 
 	alpha = alpha%360.0;
-	var ra_h = parseInt(alpha/15);
-	var ra_m = parseInt((alpha/15-ra_h)*60);
-	var ra_s = ((alpha/15-ra_h-ra_m/60)*3600).toFixed(2);
-	var ra = (ra_h+ra_m/60+ra_s/3600);
-	if(ra_h < 10) ra_h = "0"+ra_h;
-	if(ra_m < 10) ra_m = "0"+ra_m;
-	if(ra_s < 10) ra_s = "0"+ra_s;
-	var dec_sign = (delta >= 0) ? 1 : -1;
-	var dec_d = parseInt(Math.abs(delta));
-	var dec_m = parseInt((Math.abs(delta)-dec_d)*60);
-	var dec_s = ((Math.abs(delta)-dec_d-dec_m/60)*3600).toFixed(1);
-	return {ra:ra,ra_h:ra_h,ra_m:ra_m,ra_s:ra_s,dec:delta,dec_d:dec_d*dec_sign,dec_m:dec_m,dec_s:dec_s};
+	var ra = alpha/15;
+	return {ra:ra,dec:delta};
 }
 
 // Convert from Galactic longitude/latitude to X,Y coordinates within the full sky

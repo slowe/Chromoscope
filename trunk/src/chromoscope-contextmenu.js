@@ -17,9 +17,11 @@
 		// 	args.z = zoom level
 		// 	args.ra = Right Ascension (decimal hours)
 		// 	args.dec = Declination (decimal degrees)
-		chromo.bind("contextmenu",function(args){ return '<a href="#" onClick="javascript:chromo_active.moveMap('+args.l+','+args.b+','+args.z+');return false;">'+(this.phrasebook.centre)+'</a>'; })
+		chromo.bind("contextmenu",function(args){ return { text:'<a href="#">'+(this.phrasebook.centre)+'</a>','fn':function(){ args.chromo.moveMap(args.l,args.b,args.z); } } })
+		chromo.bind("contextmenu",function(args){ return '<hr />'; })
 		chromo.bind("contextmenu",function(args){ return '<a href="http://server1.wikisky.org/v2?ra='+args.ra+'&de='+args.dec+'&zoom='+(args.z-2)+'&img_source=DSS2">'+this.phrasebook.wikisky+'</a>'; })
 		chromo.bind("contextmenu",function(args){ return '<a href="http://www.worldwidetelescope.org/wwtweb/goto.aspx?object=ViewShortcut&ra='+(args.ra)+'&dec='+args.dec+'&zoom='+(0.3*60*360/Math.pow(2,args.z))+'">'+this.phrasebook.wwt+'</a>'; })
+		chromo.bind("contextmenu",function(args){ return '<hr />'; })
 		chromo.bind("contextmenu",function(args){ return '<a href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord='+args.l.toFixed(4)+'+'+args.b.toFixed(4)+'&CooFrame=Gal&CooEpoch=2000&CooEqui=2000&Radius=10">'+this.phrasebook.nearby+' (Simbad)</a>'; })
 		chromo.bind("contextmenu",function(args){ return '<a href="http://nedwww.ipac.caltech.edu/cgi-bin/nph-objsearch?search_type=Near+Position+Search&in_csys=Galactic&in_equinox=J2000.0&lon='+args.l+'&lat='+args.b+'&radius=10&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=20&img_stamp=YES">'+this.phrasebook.nearby+' (NED)'; })
 		chromo.bind("load",function(){ buildContextMenu(this); });
@@ -37,25 +39,36 @@
 				var newleft = (e.clientX)-offx;
 				var coords = chromo.getCoords(newleft,newtop);
 				var radec = Galactic2Equatorial(coords.l,coords.b);
-				if($(chromo.body+" .chromo_context").length == 0) $(chromo.body).append('<div class="chromo_context" style="color:black;background-color:#eee;position:absolute;padding:2px;font-size:0.9em;z-index:1001;cursor:default;"></div>');
+				if($(chromo.body+" .chromo_context").length == 0) $(chromo.body).append('<div class="chromo_context" style="color:black;background-color:#f3f3f3;position:absolute;padding:2px;z-index:1001;cursor:default;border-radius:4px;padding:4px 0px 4px 0px;box-shadow:2px 2px 8px #333"></div>');
 
 				if(chromo.events['contextmenu']){
-					var output = '<ul style="margin:0px;padding:0px;font-size:0.9em;list-style:none;display:block;">'
-					var o = chromo.triggerEvent("contextmenu",{l:coords.l,b:coords.b,z:chromo.zoom,ra:radec.ra,dec:radec.dec});
-					for(i = 0 ; i < o.length ; i++) output += "<li>"+o[i]+"</li>";
-					output += '</ul>'
-					$(chromo.body+" .chromo_context").html(output).bind('mouseleave', {el:chromo,body:chromo.body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; });
-					$(chromo.body+" .chromo_context li a").css({padding:'3px',display:'block',textDecoration:'none',color:'black'});
+					$(chromo.body+" .chromo_context").html('<ul style="margin:0px;padding:0px;list-style:none;display:block;font-family:Lucida Grande,Arial,san-serif;font-size:10pt;"></ul>').bind('mouseleave', {el:chromo,body:chromo.body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; });
+
+					var o = chromo.trigger("contextmenu",{chromo:chromo,l:coords.l,b:coords.b,z:chromo.zoom,ra:radec.ra,dec:radec.dec});
+					for(i = 0 ; i < o.length ; i++){
+						fn = "";
+						// Check if this context menu item has a function attached
+						if(typeof o[i]=="object"){
+							fn = o[i].fn;
+							o[i] = o[i].text;
+						}
+						$(chromo.body+" .chromo_context ul").append("<li class=\"contextmenu-"+i+"\">"+o[i]+"</li>");
+						// Execute any attached functions
+						if(fn) $(chromo.body+" .chromo_context ul li.contextmenu-"+i).bind('click',fn);
+					}
+
+					$(chromo.body+" .chromo_context li a").css({padding:'2px 2px 2px 20px',display:'block',textDecoration:'none',color:'black'});
 					$(chromo.body+" .chromo_context li a").hover( function(){
-						$(this).css('background-color', '#ccc');
+						$(this).css({'background-color':'#6666ff','color':'white'});
 					},function(){
-						$(this).css('background-color', 'transparent');
+						$(this).css({'background-color':'transparent','color':'black'});
 					});
 					var w = $(chromo.body+" .chromo_context").outerWidth();
 					var h = $(chromo.body+" .chromo_context").outerHeight();
 					if(newleft+w > chromo.wide) newleft -= w-2*offset;
 					if(newtop+h > chromo.tall) newtop -= h-(2*offset);
-					$(chromo.body+" .chromo_context").css({left:(newleft-offset)+'px',top:(newtop-offset)+'px',width:'200px'}).show();
+					$(chromo.body+" .chromo_context").css({left:(newleft-offset)+'px',top:(newtop-offset)+'px',width:'230px'}).show();
+					$(chromo.body+" .chromo_context hr").css({'margin':'4px 0px 4px 0px','border':0,'background-color':'#ccc','height':'2px','border-bottom':'1px solid #fff'}).show();
 					chromo.dragging = false;
 					return false;
 				}
