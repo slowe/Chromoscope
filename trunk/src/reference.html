@@ -78,7 +78,7 @@
 
 			$('pre.code').each(function(i){
 				text = $(this).text();
-				text = text.replace(/(\'[\w\#\.\,\/\-\_\=\s\<\>\/\"\?\;\:\(\)]*\')/g,"<span class='s'>$1<\/span>");
+				text = text.replace(/(\'[\w\#\.\,\/\-\_\=\s\<\>\/\"\?\;\:\(\)\&]*\')/g,"<span class='s'>$1<\/span>");
 				text = text.replace(/\<([^ s\/]+)/g,"<<span class='c'>$1<\/span>");
 				text = text.replace(/(\"[\w\#\.\/\-\_]+\")/g,"<span class='s'>$1<\/span>");
 				text = text.replace(/([\w\_]+)\(/g,"<span class='f'>$1<\/span>\(");
@@ -340,15 +340,15 @@ chromo.changeLanguage({code:'en',
 	gamma : 'Gamma ray',
 	xray : 'X-ray',
 	optical : 'Visible',
-	halpha : 'Hydrogen &alpha;',
-	farir : 'Far-IR',
+	halpha : 'Hydrogen alpha',
+	farir : 'Far-Infrared',
 	microwave : 'Microwave',
 	radio : 'Radio',
 	labels : 'Labels',
 	centre : 'Centre map at this point',
 	wikisky : 'View in Wikisky',
 	wwt : 'View in WorldWideTelescope',
-	nearby : 'Objects within 10&prime;',
+	nearby : 'Objects within 10&amp;prime;',
 })</pre>
 
 
