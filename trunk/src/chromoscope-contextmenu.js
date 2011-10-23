@@ -2,6 +2,11 @@
  * Chromoscope context menu plugin
  * Written by Stuart Lowe to add a context-sensitive menu
  *
+ * Changes in version 1.1 (2011-10-23):
+ *   - Removed need for global variable
+ *   - Can attach functions to menu items
+ *   - Improved context menu styling
+ *
  * Changes in version 1.0 (2011-09-25):
  *   - Now a separate plugin
  */
@@ -79,7 +84,7 @@
 	$.chromoscope.plugins.push({
 		init: init,
 		name: 'contextmenu',
-		version: '1.0'
+		version: '1.1'
 	});
 })(jQuery);
 
