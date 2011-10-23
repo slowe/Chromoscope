@@ -1736,9 +1736,9 @@ function doMove() {
 	}
 
 	// Get the Galactic coordinates for the current map centre
-	Chromoscope.prototype.getCoords = function(offx,offy,system){
-		var c = this.getCoordinates(offx,offy,system)
-		return {l:c[0], b:c[1]}
+	Chromoscope.prototype.getCoords = function(offx,offy){
+		var c = this.getCoordinates(offx,offy);
+		return {l:this.coordinate.l, b:this.coordinate.b}
 	}
 
 	Chromoscope.prototype.buildSearch = function(){
