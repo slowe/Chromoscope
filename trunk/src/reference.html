@@ -224,22 +224,21 @@ $(document).ready(function(){
 	</ul>
 	<h3>Usage</h3>
 	<pre class="code">
-// Load the map
-chromo.load();
-
-
 // There are two ways to make your own function happen when Chromoscope loads:
 
 // Method 1: Call load with a callback function
+
 chromo.load(function(){
 	alert('Loaded');
 });
 
-// Method 2: Bind a load event
+// Method 2: Bind a load event then call load() later
+
 chromo.bind("load",function(){
 	// The 'this' context is the Chromoscope instance
 	alert('Loaded '+this.title);
 })
+...
 chromo.load();</pre>
 
 
@@ -407,20 +406,28 @@ chromo.moveMap(longitude, latitude, zoom);
 
 chromo.moveMap(-67.2, 14.4, 3);</pre>
 
-	<a name="getCoords"></a>
-	<h2><a href="#getCoords" class="menu">Get Coordinates</a></h2>
-		<p>Chromoscope will provide the coordinates of the centre of the view. It also has some useful coordinate transforms so that it can convert between systems.</p>
+	<a name="getCoordinates"></a>
+	<h2><a href="#getCoordinates" class="menu">Get Coordinates</a></h2>
+		<p>Chromoscope will provide the coordinates of the centre of the view. There are two different functions - getCoords() and getCoordinates() - which produce different output. Chromoscope also has some useful coordinate transforms so that it can convert between systems.</p>
 		<ul>
 			<li><b>ra</b> <i>number</i> the Right ascension</i>
 			<li><b>dec</b> <i>number</i> the Declination</i>
 			<li><b>l</b> <i>number</i> the Galactic longitude</i>
 			<li><b>b</b> <i>number</i> the Galactic latitude</i>
-			<li><b>epoch</b> <i>number</i> [optional]  the epoch (<i>2000</i>)</i>
+			<li><b>epoch</b> <i>number</i> [optional]  the epoch (<i>2000</i> or <i>1950</i>)</li>
 		</ul>
 		<pre class="code">
 // Return a two element structure containing the Galactic l,b {l, b}
-coords = chromo.getCoords();
+var coords = chromo.getCoords();
 alert(coords.l+','+coords.b)
+
+// Return a two element structure containing the Galactic l,b [l,b]
+coords = chromo.getCoordinates('G');
+alert('l='+coords[0]+', b='+coords[1])
+
+// Return a two element structure containing [ra,dec]
+coords = chromo.getCoordinates('A');
+alert('Ra='+coords[0]+', Dec='+coords[1])
 
 // Return a two element array containing the Galactic l,b from RA/Dec
 var galactic = Equatorial2Galactic(ra, dec, epoch);
@@ -477,7 +484,7 @@ chromo.setMagnification(4);</pre>
 
 	<a name="readKML"></a>
 	<h2><a href="#readKML" class="menu">Read KML file</a></h2>
-		<p>To read a KML file you'll need to use the KML plugin. Due to browser security policies, this will have to be hosted on the same domain.</p>
+		<p>To read a KML file you'll need to use the KML plugin. Due to browser security policies, the KML file will have to be hosted on the same domain.</p>
 		<ul>
 			<li><b>kml</b> <i>string</i> the location of the KML file</li>
 			<li><b>overwrite</b> <i>boolean</i> [optional] overwrite previously loaded Placemarkers</li>
