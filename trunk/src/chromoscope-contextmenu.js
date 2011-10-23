@@ -44,7 +44,7 @@
 				var newleft = (e.clientX)-offx;
 				var coords = chromo.getCoords(newleft,newtop);
 				var radec = Galactic2Equatorial(coords.l,coords.b);
-				if($(chromo.body+" .chromo_context").length == 0) $(chromo.body).append('<div class="chromo_context" style="color:black;background-color:#f3f3f3;position:absolute;padding:2px;z-index:1001;cursor:default;border-radius:4px;padding:4px 0px 4px 0px;box-shadow:2px 2px 8px #333"></div>');
+				if($(chromo.body+" .chromo_context").length == 0) $(chromo.body).append('<div class="chromo_context" style="color:black;background-color:#f3f3f3;position:absolute;padding:2px;z-index:1001;cursor:default;border-radius:4px;padding:4px 0px 4px 0px;box-shadow:2px 2px 8px #333;width:230px"></div>');
 
 				if(chromo.events['contextmenu']){
 					$(chromo.body+" .chromo_context").html('<ul style="margin:0px;padding:0px;list-style:none;display:block;font-family:Lucida Grande,Arial,san-serif;font-size:10pt;"></ul>').bind('mouseleave', {el:chromo,body:chromo.body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; });
@@ -72,7 +72,7 @@
 					var h = $(chromo.body+" .chromo_context").outerHeight();
 					if(newleft+w > chromo.wide) newleft -= w-2*offset;
 					if(newtop+h > chromo.tall) newtop -= h-(2*offset);
-					$(chromo.body+" .chromo_context").css({left:(newleft-offset)+'px',top:(newtop-offset)+'px',width:'230px'}).show();
+					$(chromo.body+" .chromo_context").css({left:(newleft-offset)+'px',top:(newtop-offset)+'px'}).show();
 					$(chromo.body+" .chromo_context hr").css({'margin':'4px 0px 4px 0px','border':0,'background-color':'#ccc','height':'2px','border-bottom':'1px solid #fff'}).show();
 					chromo.dragging = false;
 					return false;
