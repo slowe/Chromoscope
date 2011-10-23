@@ -12,6 +12,7 @@
  *   - Turned into a jQuery plugin. Requires a change to the setup line
  *      chromo = $.chromoscope("body",{lang:'en',showintro:true});
  *   - Removed global variable
+ *   - Can now display tilesets that are in Equatorial coordinates
  *
  * Changes in version 1.3.3 (2011-07-25):
  *   - Added KML title to page title if not in a container
