@@ -160,7 +160,7 @@ $(document).ready(function(){
 	var chromo = $.chromoscope();
 
 	// Set up the Chromoscope to show Italian and no introductory message
-	var chromo = $.chromoscope({lang:'en', showintro:false});
+	var chromo = $.chromoscope({lang:'it', showintro:false});
 
 	// Attach to the element with the ID chromoscopeholder2 and in compact mode
 	var chromo = $.chromoscope('#chromoscopeholder2',{compact:true});
@@ -173,6 +173,9 @@ $(document).ready(function(){
 
 	// Use the specified KML file to add map pins
 	var chromo = $.chromoscope({kml:'telescopes.kml'});
+
+	// Set up a Chromoscope where the tile sets are in RA/Dec
+	var chromo = $.chromoscope({'coordinatesystem':'A','coordinateactive':'A'});
 
 }</pre>
 

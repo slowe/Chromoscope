@@ -42,14 +42,13 @@
 				var offy = ($(chromo.container).length > 0) ? $(chromo.container).offset().top : 0;
 				var newtop = (e.clientY)-offy;
 				var newleft = (e.clientX)-offx;
-				var coords = chromo.getCoords(newleft,newtop);
-				var radec = Galactic2Equatorial(coords.l,coords.b);
+				var coords = chromo.getCoordinates(newleft,newtop,'G');//chromo.getCoords(newleft,newtop);
+				var radec = chromo.getCoordinates(newleft,newtop,'A');
 				if($(chromo.body+" .chromo_context").length == 0) $(chromo.body).append('<div class="chromo_context" style="color:black;background-color:#f3f3f3;position:absolute;padding:2px;z-index:1001;cursor:default;border-radius:4px;padding:4px 0px 4px 0px;box-shadow:2px 2px 8px #333;width:230px"></div>');
 
 				if(chromo.events['contextmenu']){
 					$(chromo.body+" .chromo_context").html('<ul style="margin:0px;padding:0px;list-style:none;display:block;font-family:Lucida Grande,Arial,san-serif;font-size:10pt;"></ul>').bind('mouseleave', {el:chromo,body:chromo.body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; });
-
-					var o = chromo.trigger("contextmenu",{chromo:chromo,l:coords.l,b:coords.b,z:chromo.zoom,ra:radec.ra,dec:radec.dec});
+					var o = chromo.trigger("contextmenu",{chromo:chromo,l:coords[0],b:coords[1],z:chromo.zoom,ra:radec[0],dec:radec[1]});
 					for(i = 0 ; i < o.length ; i++){
 						fn = "";
 						// Check if this context menu item has a function attached
@@ -64,7 +63,7 @@
 
 					$(chromo.body+" .chromo_context li a").css({padding:'2px 2px 2px 20px',display:'block',textDecoration:'none',color:'black'});
 					$(chromo.body+" .chromo_context li a").hover( function(){
-						$(this).css({'background-color':'#6666ff','color':'white'});
+						$(this).css({'background-color':'#6666ff','background-image': 'linear-gradient(top, rgb(99,136,249) 41%, rgb(34,94,246) 71%)','color':'white'});
 					},function(){
 						$(this).css({'background-color':'transparent','color':'black'});
 					});
