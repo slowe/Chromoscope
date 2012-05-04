@@ -14,7 +14,8 @@ There are currently seven included:
 * X-ray ([ROSAT](http://www.mpe.mpg.de/xray/wave/rosat/mission/rosat/index.php)),
 * Optical ([DSS](http://stdatu.stsci.edu/dss/)/[Wikisky](http://www.wikisky.org/)), 
 * H-alpha ([WHAM](http://www.astro.wisc.edu/wham/description.html), [SHASSA](http://amundsen.swarthmore.edu/), [VTSS](http://www.phys.vt.edu/~halpha/), [Finkbeiner](http://www.cfa.harvard.edu/~dfinkbei/)), 
-* Infrared ([IRAS](http://irsa.ipac.caltech.edu/IRASdocs/iras.html)),
+* Near Infrared ([WISE](http://wise.ssl.berkely.edu/IRASdocs/iras.html)),
+* Far Infrared ([IRAS](http://irsa.ipac.caltech.edu/IRASdocs/iras.html)),
 * Microwave ([Planck](http://www.esa.int/planck)), 
 * Radio ([Haslam](http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm)).
 
