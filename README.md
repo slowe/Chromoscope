@@ -39,4 +39,4 @@ Chromoscope does not need a web connection to operate (other than for the search
 Credits
 -------
 
-Chromoscope was created by Stuart Lowe ([LCOGT](http://lcogt.net/)), Chris North (Cardiff University) and Robert Simpson (Oxford University). Translations are provided by a variety of people; credits are in the translation files.
+Chromoscope was created by Stuart Lowe ([LCOGT](http://lcogt.net/)), Chris North (Cardiff University) and Robert Simpson (Oxford University). [Translations](http://chromoscope.net/dev/translate.html) are provided by a variety of people; credits are in the translation files.
