@@ -233,7 +233,6 @@ img.map { opacity: 1; }
 }
 .chromo_message {
 	position:absolute;
-	text-align:center;
 	padding:1em;
 	z-index:102;
 	display: none;
@@ -282,3 +281,6 @@ p.social img {
 	margin-left: 4px;
 }
 form { margin: 0px; padding: 0px; }
+input { line-height: 1.2em;}
+button { line-height: 1.2em;}
+.chromo_search_area { text-align:center;}
