@@ -8,7 +8,7 @@ View the Universe
 
 Chromoscope has been created using public-domain datasets from a number of all-sky astronomy projects. It lets you easily move around the sky and fade between wavelengths using a simple user-interface to illustrate the similarities and differences between what is visible at each wavelength.
 
-There are currently seven included:
+There are currently eight included:
 
 * Gamma ray ([Fermi](http://fermi.gsfc.nasa.gov/)),
 * X-ray ([ROSAT](http://www.mpe.mpg.de/xray/wave/rosat/mission/rosat/index.php)),
