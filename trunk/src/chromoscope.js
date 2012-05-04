@@ -53,7 +53,7 @@ jQuery.query = function() {
 	// Declare the Chromoscope object
 	function Chromoscope(input){
 
-		this.version = "1.4 beta";
+		this.version = "1.4";
 
 		this.q = $.query();
 		this.zoom = -1;
@@ -252,6 +252,7 @@ jQuery.query = function() {
 		this.xray = (inp.xray) ? inp.xray : 'X-ray';
 		this.optical = (inp.optical) ? inp.optical : 'Visible';
 		this.halpha = (inp.halpha) ? inp.halpha : 'Hydrogen &alpha;';
+		this.nearir = (inp.nearir) ? inp.nearir : 'Near-Infrared';
 		this.farir = (inp.farir) ? inp.farir : 'Far-Infrared';
 		this.microwave = (inp.microwave) ? inp.microwave : 'Microwave';
 		this.radio = (inp.radio) ? inp.radio : 'Radio';
@@ -260,6 +261,7 @@ jQuery.query = function() {
 		this.wikisky = (inp.wikisky) ? inp.wikisky : 'View in Wikisky';
 		this.wwt = (inp.wwt) ? inp.wwt : 'View in WorldWideTelescope';
 		this.nearby = (inp.nearby) ? inp.nearby : 'Objects within 10&prime;';
+		this.alignment = (inp.alignment) ? inp.alignment : 'left';
 	}
 
 	// Try to load the external phrasebook as JSON.
@@ -367,8 +369,8 @@ jQuery.query = function() {
 			if($(this.container).length == 0){
 				// No message holder so let's make one of those first
 				if($(".chromo_message").length == 0) $(document).append('<div class="chromo_message"></div>');
-				$(".chromo_message").css({width:"500px","text-align":"center"});
-				this.message("The element <strong>"+this.container+"</strong> doesn't seem to exist.",2000);
+				$(".chromo_message").css({width:"500px"});
+				this.message("<span style=\"text-align:center\">The element <strong>"+this.container+"</strong> doesn't seem to exist.</span>",2000);
 				this.container = '';
 				return true;
 			}
@@ -530,7 +532,8 @@ jQuery.query = function() {
 		this.setViewport();
 
 		// For a Wii make text bigger, hide annotation layer and keyboard shortcuts
-		if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall < 600))){ $(this.body+" .chromo_layerswitcher").css({'font-size':'1.5em'}); this.annotations = ""; $(".keyboard").css({'display':'none'}); $(".nokeyboard").css({'display':'show'}); this.wavelength_load_range = 0; this.spatial_preload = 1; }
+		if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall < 600))){ $(this.body+" .chromo_layerswitcher").css({'font-size':'0.9em'}); this.annotations = ""; $(".keyboard").css({'display':'none'}); $(".nokeyboard").css({'display':'show'}); this.wavelength_load_range = 0; this.spatial_preload = 1; }
+		if(navigator.platform == "Nintendo Wii") $(this.body+" .chromo_layerswitcher").css({'font-size':'1.5em'});
 
 		//console.log("Time to start set mag:" + (new Date() - this.start) + "ms");
 
@@ -564,8 +567,8 @@ jQuery.query = function() {
 		//console.log("Time to end language:" + (new Date() - this.start) + "ms");
 
 		if(this.spectrum.length == 0){
-			$(this.body+" .chromo_message").css({width:"400px","text-align":"center"});
-			this.message("No wavelengths have been added to your HTML file so there's nothing to see. :-(",2000);
+			$(this.body+" .chromo_message").css({width:"400px"});
+			this.message("<span style=\"text-align:center\">No wavelengths have been added to your HTML file so there's nothing to see. :-(</span>",2000);
 		}else{
 			// Sort out wavelength order and slider bar
 			if(this.q.o) this.orderWavelengths(this.q.o.split(","));
@@ -641,6 +644,11 @@ jQuery.query = function() {
 		$(this.body+" .chromo_info").html("Took " + (new Date() - this.start) + "ms to load.")
 	}
 
+	Chromoscope.prototype.buildKeyItem = function(key,txt){
+		a = "<strong>"+key+"</strong>";
+		b = txt;
+		return "<li>"+a+" - "+b+"</li>"
+	}
 	// Construct the Help box
 	Chromoscope.prototype.buildHelp = function(overwrite){
 
@@ -653,7 +661,7 @@ jQuery.query = function() {
 		buttons += "<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('+')\">Zoom in</a></li>";
 		buttons += "<li><a href=\"#\" onClick=\"javascript:simulateKeyPress('-')\">Zoom out</a></li>";
 		var h = (this.phrasebook.helpmenu) ? this.phrasebook.helpmenu : this.phrasebook.help;
-		var keys = "<li><strong>h</strong> - "+h+"</li>";
+		var keys = this.buildKeyItem("h",h);
 		for(var i=0 ; i < this.spectrum.length ; i++){
 			if(this.spectrum[i].key) {
 				if(typeof this.spectrum[i].title=="object"){
@@ -664,20 +672,20 @@ jQuery.query = function() {
 					else var t = this.spectrum[i].title;
 				}
 				var s = this.phrasebook.switchtext.replace("__WAVELENGTH__",t)
-				keys += "<li><strong>"+this.spectrum[i].key+'</strong> - '+s+"</li>";
+				keys += this.buildKeyItem(this.spectrum[i].key,s);
 			}
 		}
 		for(var i=0 ; i < this.annotations.length ; i++){
 			if(this.annotations[i].key){
-				var s = this.phrasebook.switchannotation.replace("__ANNOTATION__",this.annotations[i].title)
-				keys += "<li><strong>"+this.annotations[i].key+'</strong> - '+s+"</li>";
+				var s = this.phrasebook.switchannotation.replace("__ANNOTATION__",this.phrasebook[this.annotations[i].title])
+				keys += this.buildKeyItem(this.annotations[i].key,s);
 			}
 		}
-		keys += "<li><strong>.</strong> - "+this.phrasebook.showhide+"</li>";
-		keys += "<li><strong>&uarr;</strong> - "+this.phrasebook.up+"</li>";
-		keys += "<li><strong>&darr;</strong> - "+this.phrasebook.down+"</li>";
-		keys += "<li><strong>+</strong> - "+this.phrasebook.zoomin+"</li>";
-		keys += "<li><strong>&minus;</strong> - "+this.phrasebook.zoomout+"</li>";
+		keys += this.buildKeyItem(".",this.phrasebook.showhide);
+		keys += this.buildKeyItem("&uarr;",this.phrasebook.up);
+		keys += this.buildKeyItem("&darr;",this.phrasebook.down);
+		keys += this.buildKeyItem("+",this.phrasebook.zoomin);
+		keys += this.buildKeyItem("&minus;",this.phrasebook.zoomout);
 		$(this.body+" .chromo_controlbuttons").html(buttons);
 		$(this.body+" .chromo_controlkeys").html(keys);
 
@@ -691,6 +699,7 @@ jQuery.query = function() {
 		if($(this.body+" .chromo_helplink").length == 0) $(this.body).append('<p class="chromo_helplink"></p>');
 
 		this.centreDiv(".chromo_help");
+		$(this.body+" .chromo_help").attr('dir',(this.phrasebook.alignment=="right" ? 'rtl' : 'ltr'));
 	}
 
 	// Construct the links
@@ -764,7 +773,7 @@ jQuery.query = function() {
 		$(this.body+" .chromo_lang").hide();
 	}
 
-	// Construct the Language Switcher
+	// Construct the Video Tour
 	Chromoscope.prototype.showVideoTour = function(){
 		var w = 560;
 		var h = 340;
@@ -773,8 +782,8 @@ jQuery.query = function() {
 		if(h > this.tall*0.75) h = this.tall*0.75; w = h*1.6;
 
 		$(this.body+" .chromo_help").hide();
-		$(this.body+" .chromo_message").css({width:(w)+"px","text-align":"center"});
-		this.message(this.createClose()+'<object width="'+w+'" height="'+h+'"><param name="movie" value="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="'+w+'" height="'+h+'"></embed></object>');
+		$(this.body+" .chromo_message").css({width:(w)+"px"});
+		this.message(this.createClose()+'<span style=\"text-align:center\"><object width="'+w+'" height="'+h+'"><param name="movie" value="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/eE7-6fQ9_48&hl=en_GB&fs=1&" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="'+w+'" height="'+h+'"></embed></object></span>');
 		$(this.body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
 	}
 
@@ -784,8 +793,9 @@ jQuery.query = function() {
 		// iPhones have wide but not very tall screens so we make the intro a bit wider if the screen height is small.
 		if(this.tall <= 640) w *= 1.2;
 		if(w > 0.8*this.wide) w = 0.8*this.wide;
-		$(this.body+" .chromo_message").css({width:w+"px","text-align":"left"});
+		$(this.body+" .chromo_message").css({width:w+"px"});
 		if(this.showintro) this.message(this.createClose()+this.phrasebook.intro,false,'left')
+		$(this.body+" .videolink").bind('click',{me:this}, function(e){ e.preventDefault(); e.data.me.showVideoTour(); } );
 		$(this.body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
 		if(this.showintro && delay > 0) $(this.body+" .chromo_message").delay(delay).fadeOut(500)
 	}
@@ -806,7 +816,14 @@ jQuery.query = function() {
 			}
 			if(available){
 				this.keys.push({charCode:ch,char:String.fromCharCode(ch),fn:fn,txt:txt});
-				if(txt) $(this.body+" .chromo_controlkeys").append('<li><strong>'+String.fromCharCode(ch)+'</strong> - '+txt+'</li>');
+				if(this.phrasebook.alignment=="right"){
+					a = '<strong>'+String.fromCharCode(ch)+'</strong>'
+					b = txt;
+				}else{
+					b = '<strong>'+String.fromCharCode(ch)+'</strong>'
+					a = txt;
+				}
+				if(txt) $(this.body+" .chromo_controlkeys").append('<li>'+a+' - '+b+'</li>');
 			}
 		}
 		return this;
@@ -1818,11 +1835,10 @@ function doMove() {
 	Chromoscope.prototype.createLink = function(){
 		var url = this.getViewURL();
 		var safeurl = url.replace('&','%26');
-		$(this.body+" .chromo_message").css({"text-align":"center"})
 		$(this.body+" .chromo_message").css({width:400});
 		var icons = '<a href="http://twitter.com/home/?status=Spotted+this+with+@chromoscope+'+safeurl+'"><img src="twitter.gif" title="Tweet this" /></a><a href="http://www.facebook.com/sharer.php?u='+safeurl+'"><img src="facebook.gif" title="Share with Facebook" /></a><a href="http://www.blogger.com/blog-this.g?t=&amp;n=Chromoscope&amp;u='+safeurl+'"><img src="blogger.gif" title="Add to Blogger" /></a><a href="http://del.icio.us/post?url='+safeurl+'"><img src="delicious.gif" title="Tag with del.icio.us" /></a><a href="http://slashdot.org/bookmark.pl?title=Chromoscope&amp;url='+safeurl+'"><img src="slashdot.gif" title="Slashdot this" /></a><a href="http://digg.com/submit?phase=2&url='+safeurl+'"><img src="digg.gif" title="Digg this" /></a><a href="http://www.mixx.com/submit?page_url='+safeurl+'"><img src="mixx.png" title="Add to Mixx" /></a>';
 		var share = (this.phrasebook.sharewith.indexOf("__ICONS__") > 0) ? this.phrasebook.sharewith.replace("__ICONS__",icons) : this.phrasebook.sharewith+icons;
-		this.message(this.createClose()+this.phrasebook.url+'<input type="text" class="chromo_createdLink" value="'+url+'" style="width:100%;" /><br /><p class="social">'+share+' </p>')
+		this.message(this.createClose()+"<div style=\"text-align:center\">"+this.phrasebook.url+'<input type="text" class="chromo_createdLink" value="'+url+'" style="width:100%;" /><br /><p class="social">'+share+' </p></div>')
 		$(this.body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
 		$(this.body+" .chromo_createdLink").focus(function(){
 			$(this).select();
@@ -1862,7 +1878,7 @@ function doMove() {
 		if(delay && delay > 0) msg.html(html).show().delay((typeof delay=="number") ? delay : 2000).fadeOut(500);
 		else msg.html(html).show();
 		this.centreDiv(".chromo_message");
-		msg.css('text-align',((align) ? align:'center'))
+		msg.attr('dir',(this.phrasebook.alignment=="right" ? 'rtl' : 'ltr'));
 	}
 	// Bind events
 	Chromoscope.prototype.bind = function(ev,fn){
