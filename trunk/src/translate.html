@@ -1,0 +1,233 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>Translation | Chromoscope</title>
+	<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.chromoscope.net/favicon.ico" />
+	<link rel="stylesheet" href="style.css" type="text/css" />
+	<!--[if IE 6]><link rel="stylesheet" href="style-ie.css" type="text/css" /><![endif]-->
+	<script src="jquery-1.6.min.js"></script>
+	<script src="chromoscope.js"></script>
+	<style type="text/css">
+		body {
+			font-family: 'Trebuchet MS',Tahoma,Helvetica,Verdana,sans-serif;
+		}
+		#fake { display: none; }
+		#chooser {
+			margin-bottom: 20px;
+		}
+		div.twocol { 
+			width: 280px;
+			float: left;
+			margin-right:10px;
+			display: inline-block;
+			color: #555555;
+		}
+		div.fourcol {
+			width: 500px;
+			display: inline-block;
+		}
+		fieldset {
+			padding: 0px;
+			border: 0px;
+			margin: 0px 0px 0px 0px;
+		}
+		p { 
+			margin-top: 0px;
+		}
+		label {
+			margin-right: 10px;
+		}
+		legend {
+			margin:0px;
+			padding: 0px;
+			font-weight: bold;
+		}
+		input {
+			width:100%;
+			font-family: 'Trebuchet MS',Tahoma,Helvetica,Verdana,sans-serif;
+			font-size: 1em;
+		}
+		textarea {
+			width:100%;
+			height: 400px;
+			font-family: 'Trebuchet MS',Tahoma,Helvetica,Verdana,sans-serif;
+			font-size: 1em;
+		}
+		ul i {
+			color: #999;
+		}
+		pre.code {
+			border-bottom-right-radius: 1em;
+			border-top-right-radius: 1em;
+			margin-left: 0em;
+			overflow-x: auto;
+			padding: 1em;
+			padding-left: 0em;
+		}
+		pre.code .b {
+			color: blue!important;
+			font-weight: normal!important;
+		}
+		pre.code .c {
+			color: #009E00!important;
+		}
+		pre.code .d,ul li code.d {
+			color: #CF6A4C!important;
+		}
+		pre.code .s {
+			color: #82C6BC!important;
+		}
+		pre.code .f {
+			color: #BE0750!important;
+		}
+		pre.code .bracket {
+			color: black;
+			font-weight:bold;
+		}
+    	</style>
+	<script type="text/javascript">
+
+		function Translator(langs){
+
+			this.q = $.query();
+			this.chromo = $.chromoscope({container:'#fake'});
+			this.lang = this.q.lang;
+			if(!this.lang || this.lang.length!=2) this.lang = "en";
+			this.page = $('#page');
+
+			html = "<form id=\"langchoice\"><label>Select language (not all are complete):</label><select name=\"lang\">"
+			for(var i = 0; i < langs.length ; i++){
+				html += "<option name=\""+langs[i]+"\""+(this.lang==langs[i] ? " selected" : "")+">"+langs[i]+"</option>";
+			}
+			html += "</select></form>";
+
+			$('#chooser').html(html).find('#langchoice select').bind('change',{me:this},function(e){ e.data.me.setLanguage($(this).find("option:selected").val()); });
+
+			this.chromo.dir = '';
+
+			this.setLanguage(this.lang);
+
+			return this;
+		}
+
+		Translator.prototype.setLanguage = function(lang){
+			this.chromo.getLanguage(lang);
+			this.rebuildForm();
+			$('a.langlink').attr('href','http://www.chromoscope.net/?lang='+lang);
+			$('.langname').html(this.chromo.phrasebook.name);
+		}
+		Translator.prototype.rebuildForm = function(){
+
+			html = "<p>The form below contains all the language fields used in <a href=\"http://www.chromoscope.net/\">Chromoscope</a> (<a href=\"http://www.chromoscope.net/?lang="+this.lang+"\" class=\"langlink\">view Chromoscope in <span class=\"langname\">English</span></a>). The fields are split into sections. If you'd like to start translating a new language please contact <a href=\"http://twitter.com/astronomyblog\">Stuart</a>.</p>";
+			html += "<form id=\"language\">";
+			html += "<h2>About the language</h2>";
+			html += this.row('Language Name','This is the name of the language in that language e.g. English, Fran&#231;ais, Espa&#241;ol., &#2350;&#2366;&#2344;&#2325; &#2361;&#2367;&#2344;&#2381;&#2342;&#2368; and &#1506;&#1489;&#1512;&#1497;&#1514;. It appears in the language menu.',"<input type=\"text\" name=\"name\" id=\"name\" value=\""+sanitize(this.chromo.phrasebook.name)+"\" />");
+			html += this.row('Language Direction','The direction that the language goes.',"<select name=\"alignment\" id=\"alignment\"><option value=\"left\""+(this.chromo.phrasebook.alignment=="left" || !this.chromo.phrasebook.alignment ? " selected" : "")+">left to right</option><option value=\"right\" "+(this.chromo.phrasebook.alignment=="right" ? " selected" : "")+">right to left</option></select>");
+			html += this.row('Translator','This is the name of the translator. It can contain a hyperlink. It will be displayed in the bottom of the help window.',"<input type=\"text\" name=\"translator\" id=\"translator\" value=\""+sanitize(this.chromo.phrasebook.translator)+"\" />");
+
+			html += "<h2>Wavelength Layers</h2>";
+			html += this.row('Gamma ray','Text that describes this wavelength. This text is also used in the help menu.',"<input type=\"text\" name=\"gamma\" id=\"gamma\" value=\""+this.chromo.phrasebook.gamma+"\" />");
+			html += this.row('X-ray','Text that describes this wavelength. This text is also used in the help menu.',"<input type=\"text\" name=\"xray\" id=\"xray\" value=\""+this.chromo.phrasebook.xray+"\" />");
+			html += this.row('Visible','Text that describes this wavelength. This text is also used in the help menu.',"<input type=\"text\" name=\"optical\" id=\"optical\" value=\""+this.chromo.phrasebook.optical+"\" />");
+			html += this.row('Hydrogen &alpha;','Text that describes this wavelength. This is a particular type of visible red light emitted by hydrogen. This text is also used in the help menu.',"<input type=\"text\" name=\"halpha\" id=\"halpha\" value=\""+this.chromo.phrasebook.halpha+"\" />");
+			html += this.row('Near-infrared','Text that describes this wavelength. This text is also used in the help menu.',"<input type=\"text\" name=\"nearir\" id=\"nearir\" value=\""+this.chromo.phrasebook.nearir+"\" />");
+			html += this.row('Far-infrared','Text that describes this wavelength. This text is also used in the help menu.',"<input type=\"text\" name=\"farir\" id=\"farir\" value=\""+this.chromo.phrasebook.farir+"\" />");
+			html += this.row('Microwave','Text that describes this wavelength. This text is also used in the help menu.',"<input type=\"text\" name=\"microwave\" id=\"microwave\" value=\""+this.chromo.phrasebook.microwave+"\" />");
+			html += this.row('Radio','Text that describes this wavelength. This text is also used in the help menu.',"<input type=\"text\" name=\"radio\" id=\"radio\" value=\""+this.chromo.phrasebook.radio+"\" />");
+			html += this.row('Labels','When the l key is pressed an English-language constellation label layer appears. This is the text that describes that layer and is mainly used in the help menu.',"<input type=\"text\" name=\"labels\" id=\"labels\" value=\""+this.chromo.phrasebook.labels+"\" />");
+
+			html += "<h2>Descriptive Text</h2>";
+			html += this.row('Intro','This is the initial text that is displayed when the user arrives. Please don\'t remove the HTML code (bits between &lt; and &gt;).',"<textarea name=\"intro\" id=\"intro\">"+sanitize(this.chromo.phrasebook.intro)+"</textarea>");
+
+			html += "<h2>Help Screen</h2>";
+			html += this.row('Description','This is the text that appears in the &quot;Help&quot; window. Some areas will get replaced with computed text. Please don\'t remove the HTML code (bits between < and >).',"<textarea name=\"helpdesc\" id=\"helpdesc\">"+sanitize(this.chromo.phrasebook.helpdesc)+"</textarea>");
+			html += this.row('Switch wavelength','Text that will describe what happens when a particular keyboard key is pressed. Do not remove the __WAVELENGTH__ as this will be replaced with the appropriate wavelength name (see above).',"<input type=\"text\" name=\"switchtext\" id=\"switchtext\" value=\""+this.chromo.phrasebook.switchtext+"\" />");
+			html += this.row('Switch annotation','Text that will describe what happens when a particular keyboard key is pressed. Do not remove the __ANNOTATION__ as this will be replaced with the appropriate annotation name. At the moment there is only &quot;Labels&quot; if l is pressed.',"<input type=\"text\" name=\"switchannotation\" id=\"switchannotation\" value=\""+this.chromo.phrasebook.switchannotation+"\" />");
+			html += this.row('Show/hide','Text that describes what happens when the "." key is pressed. It hides everything except for the sky and credit line.',"<input type=\"text\" name=\"showhide\" id=\"showhide\" value=\""+this.chromo.phrasebook.showhide+"\" />");
+			html += this.row('Shorter Wavelength','The wavelength will get shorter (higher energy) when the up cursor is pressed.',"<input type=\"text\" name=\"up\" id=\"up\" value=\""+this.chromo.phrasebook.up+"\" />");
+			html += this.row('Longer Wavelength','The wavelength will get longer (lower energy) when the down cursor is pressed.',"<input type=\"text\" name=\"down\" id=\"down\" value=\""+this.chromo.phrasebook.down+"\" />");
+
+			html += "<h2>Bottom Left Menu</h2>";
+			html += this.row('Help','Clicking on this link will bring up the help menu.',"<input type=\"text\" name=\"help\" id=\"help\" value=\""+this.chromo.phrasebook.help+"\" />");
+			html += this.row('About','Clicking on this link goes to the blog page describing what Chromoscope is. The blog is in English.',"<input type=\"text\" name=\"about\" id=\"about\" value=\""+this.chromo.phrasebook.about+"\" />");
+			html += this.row('Share','Clicking on this link will bring up a window that lets the user share a link to this specific view (position/wavelength) via Twitter, Facebook etc.',"<input type=\"text\" name=\"share\" id=\"share\" value=\""+this.chromo.phrasebook.share+"\" />");
+			html += this.row('Search','Clicking on this link lets you find and move to the position of an object that you specify.',"<input type=\"text\" name=\"search\" id=\"search\" value=\""+this.chromo.phrasebook.search+"\" />");
+
+			html += "<h2>Hover text</h2>";
+			html += this.row('Close','Describes the action of closing a window.',"<input type=\"text\" name=\"close\" id=\"close\" value=\""+this.chromo.phrasebook.close+"\" />");
+			html += this.row('Close Description','Hover text that appears when the mouse is over a close button.',"<input type=\"text\" name=\"closedesc\" id=\"closedesc\" value=\""+this.chromo.phrasebook.closedesc+"\" />");
+			html += this.row('Press','Hover text that tells the user the shortcut key for a particular wavelength. It appears when hovering on the wavelength slider (top right).',"<input type=\"text\" name=\"press\" id=\"press\" value=\""+this.chromo.phrasebook.press+"\" />");
+			html += this.row('Zoom in','Hover text that describes the action of zooming into the map. This text is also used in the help menu.',"<input type=\"text\" name=\"zoomin\" id=\"zoomin\" value=\""+this.chromo.phrasebook.zoomin+"\" />");
+			html += this.row('Zoom out','Hover text that describes the action of zooming out the map. This text is also used in the help menu.',"<input type=\"text\" name=\"zoomout\" id=\"zoomout\" value=\""+this.chromo.phrasebook.zoomout+"\" />");
+			html += this.row('Galactic Coordinates','This is the name for the Galactic Coordinate system. This is hover text that appears when users put their mouse over the &quot;Gal&quot; next to the current coordinates.',"<input type=\"text\" name=\"galcoord\" id=\"galcoord\" value=\""+this.chromo.phrasebook.galcoord+"\" />");
+			html += this.row('Galactic Coordinates Link','A link to (nominally) a Wikipedia entry about Galactic Coordinates.',"<input type=\"text\" name=\"gal\" id=\"gal\" value=\""+this.chromo.phrasebook.gal+"\" />");
+			html += this.row('Equatorial Coordinates','This is the name for the Equatorial Coordinate system. This is hover text that appears when users put their mouse over the &quot;J2000&quot; next to the current coordinates.',"<input type=\"text\" name=\"eqcoord\" id=\"eqcoord\" value=\""+this.chromo.phrasebook.eqcoord+"\" />");
+			html += this.row('Equatorial Coordinates Link','A link to (nominally) a Wikipedia entry about Equatorial Coordinates.',"<input type=\"text\" name=\"eq\" id=\"eq\" value=\""+this.chromo.phrasebook.eq+"\" />");
+
+			html += "<h2>Other</h2>";
+			html += this.row('Version','Appears below the title with the version number e.g. version '+this.chromo.version+'',"<input type=\"text\" name=\"version\" id=\"version\" value=\""+sanitize(this.chromo.phrasebook.version)+"\" />");
+			html += this.row('Share with','This is the text that appears in the &quot;Share&quot; window.',"<input type=\"text\" name=\"sharewith\" id=\"sharewith\" value=\""+this.chromo.phrasebook.sharewith+"\" />");
+			html += this.row('URL','The label that sits before the share link box that contains the URL for the view.',"<input type=\"text\" name=\"url\" id=\"url\" value=\""+this.chromo.phrasebook.url+"\" />");
+			html += this.row('Can\'t zoom out more','If the user tries to zoom out too far. We always limit the view so that the sky fills it.',"<input type=\"text\" name=\"nozoomout\" id=\"nozoomout\" value=\""+this.chromo.phrasebook.nozoomout+"\" />");
+			html += this.row('Can\'t zoom in more','If the user tries to zoom in too far. We have a maximum zoom level because we don\'t have enough resolution to go deeper.',"<input type=\"text\" name=\"nozoomin\" id=\"nozoomin\" value=\""+this.chromo.phrasebook.nozoomin+"\" />");
+
+			html += "</form>";
+			$('#page').html(html);
+			$('#page input, #page textarea').attr('dir',(this.chromo.phrasebook.alignment=="right" ? "rtl" : "ltr")).unbind().bind('change',{me:this},function(e){
+				e.data.me.getOutput();
+			});
+			
+			this.getOutput();
+		};
+		Translator.prototype.row = function(title,desc,field){
+			var html = "	<fieldset>";
+			html += "		<legend>"+title+"</legend>";
+			html += "		<div class=\"twocol\">";
+			html += "			<p>"+desc+"</p>";
+			html += "		</div>";
+			html += "		<div class=\"fourcol\">";
+			html += "			"+field;
+			html += "		</div>";
+			html += "	</fieldset>";
+			return html;
+		}
+		Translator.prototype.getOutput = function(){
+			var arr = $('form#language').serializeArray();
+			var output = "<h2>Output</h2><p>Here is the output. You should copy and paste this into an email and send it to Stuart.</p><pre>{\n";
+			output += "\"code\" : \""+this.lang+"\",\n";
+			for(var i = 0; i < arr.length; i++){
+				output += "\""+arr[i].name+"\" : \""+sanitize(converter(arr[i].value))+"\""+(i < arr.length - 1 ? "," : "")+"\n";
+			}
+			output += "}</pre>";
+			$('#output').html(output);
+		}
+		function converter(tstr) {
+			var bstr = '';
+			for(var i=0; i<tstr.length; i++){
+				if(tstr.charCodeAt(i)>127) bstr += '&amp;#' + tstr.charCodeAt(i) + ';';
+				else bstr += tstr.charAt(i);
+			}
+			return bstr;
+		}
+		function sanitize(str){
+			str = str.replace(/</g,"&lt;");
+			str = str.replace(/>/g,"&gt;");
+			str = str.replace(/"/g,"&quot;");
+			return str;
+		}
+
+		$(document).ready(function(){
+			trans = new Translator(['en','cy','de','dk','es','fr','ga','he','hi','it','pl','pt','sv','tr']);
+
+
+		});
+	</script>
+</head>
+<body>
+	<div style="width:800px;margin:auto;">
+		<h1>Chromoscope Translation Page</h1>
+		<div id="chooser"></div>
+		<div id="page">If you'd like to start translating a new language please contact <a href="http://twitter.com/astronomyblog">Stuart</a>.</div>
+		<div id="output"></div>
+	</div>
+</body>
+</html>
