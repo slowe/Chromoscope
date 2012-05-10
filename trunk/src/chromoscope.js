@@ -251,7 +251,7 @@ jQuery.query = function() {
 		this.gamma = (inp.gamma) ? inp.gamma : 'Gamma ray';
 		this.xray = (inp.xray) ? inp.xray : 'X-ray';
 		this.optical = (inp.optical) ? inp.optical : 'Visible';
-		this.halpha = (inp.halpha) ? inp.halpha : 'Hydrogen &alpha;';
+		this.halpha = (inp.halpha) ? inp.halpha : 'Hydrogen &#945;';
 		this.nearir = (inp.nearir) ? inp.nearir : 'Near-Infrared';
 		this.farir = (inp.farir) ? inp.farir : 'Far-Infrared';
 		this.microwave = (inp.microwave) ? inp.microwave : 'Microwave';
@@ -260,7 +260,7 @@ jQuery.query = function() {
 		this.centre = (inp.centre) ? inp.centre : 'Centre map at this point';
 		this.wikisky = (inp.wikisky) ? inp.wikisky : 'View in Wikisky';
 		this.wwt = (inp.wwt) ? inp.wwt : 'View in WorldWideTelescope';
-		this.nearby = (inp.nearby) ? inp.nearby : 'Objects within 10&prime;';
+		this.nearby = (inp.nearby) ? inp.nearby : 'Objects within 10&#8242;';
 		this.alignment = (inp.alignment) ? inp.alignment : 'left';
 	}
 
