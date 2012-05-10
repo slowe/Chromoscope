@@ -14,24 +14,28 @@
 		#chooser {
 			margin-bottom: 20px;
 		}
+		#complete { font-weight: bold; }
 		div.twocol { 
 			width: 280px;
 			float: left;
 			margin-right:10px;
 			display: inline-block;
-			color: #555555;
+			color: #333333;
 		}
 		div.fourcol {
-			width: 500px;
+			width: 490px;
 			display: inline-block;
 		}
 		fieldset {
-			padding: 0px;
+			padding: 10px;
 			border: 0px;
-			margin: 0px 0px 0px 0px;
+			margin: 0px 0px 20px 0px;
+		}
+		fieldset.same {
+			background-color: #ffcccc;
 		}
 		p { 
-			margin-top: 0px;
+			margin: 0px;
 		}
 		label {
 			margin-right: 10px;
@@ -90,6 +94,8 @@
 
 			this.q = $.query();
 			this.chromo = $.chromoscope({container:'#fake'});
+			this.english = this.chromo.phrasebook;
+
 			this.lang = this.q.lang;
 			if(!this.lang || this.lang.length!=2) this.lang = "en";
 			this.page = $('#page');
@@ -102,7 +108,7 @@
 
 			$('#chooser').html(html).find('#langchoice select').bind('change',{me:this},function(e){ e.data.me.setLanguage($(this).find("option:selected").val()); });
 
-			this.chromo.dir = '';
+			this.chromo.dir = '/';
 
 			this.setLanguage(this.lang);
 
@@ -111,13 +117,15 @@
 
 		Translator.prototype.setLanguage = function(lang){
 			this.chromo.getLanguage(lang);
+			this.lang = lang;
 			this.rebuildForm();
 			$('a.langlink').attr('href','http://www.chromoscope.net/?lang='+lang);
 			$('.langname').html(this.chromo.phrasebook.name);
 		}
 		Translator.prototype.rebuildForm = function(){
 
-			html = "<p>The form below contains all the language fields used in <a href=\"http://www.chromoscope.net/\">Chromoscope</a> (<a href=\"http://www.chromoscope.net/?lang="+this.lang+"\" class=\"langlink\">view Chromoscope in <span class=\"langname\">English</span></a>). The fields are split into sections. If you'd like to start translating a new language please contact <a href=\"http://twitter.com/astronomyblog\">Stuart</a>.</p>";
+			html = "<p>The form below contains all the language fields used in <a href=\"http://www.chromoscope.net/\">Chromoscope</a> (<a href=\"http://www.chromoscope.net/?lang="+this.lang+"\" class=\"langlink\">view Chromoscope in <span class=\"langname\">English</span></a>). The fields are split into sections. If you'd like to start translating a new language please contact <a href=\"http://twitter.com/astronomyblog\">Stuart</a>. Please note that the form below doesn't automatically save. This translation appears to be <span id=\"complete\">100</span>% complete.</p>";
+			html += "<br /><p style=\"font-size:1.2em;\"><strong>If you want your changes to be applied you'll have to copy/paste the output from the bottom into an email to Stuart. This form does not automatically save!</strong></p>";
 			html += "<form id=\"language\">";
 			html += "<h2>About the language</h2>";
 			html += this.row('Language Name','This is the name of the language in that language e.g. English, Fran&#231;ais, Espa&#241;ol., &#2350;&#2366;&#2344;&#2325; &#2361;&#2367;&#2344;&#2381;&#2342;&#2368; and &#1506;&#1489;&#1512;&#1497;&#1514;. It appears in the language menu.',"<input type=\"text\" name=\"name\" id=\"name\" value=\""+sanitize(this.chromo.phrasebook.name)+"\" />");
@@ -163,6 +171,13 @@
 			html += this.row('Equatorial Coordinates','This is the name for the Equatorial Coordinate system. This is hover text that appears when users put their mouse over the &quot;J2000&quot; next to the current coordinates.',"<input type=\"text\" name=\"eqcoord\" id=\"eqcoord\" value=\""+this.chromo.phrasebook.eqcoord+"\" />");
 			html += this.row('Equatorial Coordinates Link','A link to (nominally) a Wikipedia entry about Equatorial Coordinates.',"<input type=\"text\" name=\"eq\" id=\"eq\" value=\""+this.chromo.phrasebook.eq+"\" />");
 
+
+			html += "<h2>Right-click (context) menu</h2>";
+			html += this.row('Centre','This is the first option on the right click menu. It centres the view at the coordinate where the cursor is.',"<input type=\"text\" name=\"centre\" id=\"centre\" value=\""+sanitize(this.chromo.phrasebook.centre)+"\" />");
+			html += this.row('Wikisky','Text that links to this view in Wikisky centred on the current cursor position.',"<input type=\"text\" name=\"wikisky\" id=\"wikisky\" value=\""+sanitize(this.chromo.phrasebook.wikisky)+"\" />");
+			html += this.row('Wikisky','Text that links to this view in Microsoft\'s WorldWideTelescope centred on the current cursor position.',"<input type=\"text\" name=\"wwt\" id=\"wwt\" value=\""+sanitize(this.chromo.phrasebook.wwt)+"\" />");
+			html += this.row('Nearby','A link which goes to an astronomical catalogue service and finds all objects within 10&prime;.',"<input type=\"text\" name=\"nearby\" id=\"nearby\" value=\""+sanitize(this.chromo.phrasebook.nearby)+"\" />");
+
 			html += "<h2>Other</h2>";
 			html += this.row('Version','Appears below the title with the version number e.g. version '+this.chromo.version+'',"<input type=\"text\" name=\"version\" id=\"version\" value=\""+sanitize(this.chromo.phrasebook.version)+"\" />");
 			html += this.row('Share with','This is the text that appears in the &quot;Share&quot; window.',"<input type=\"text\" name=\"sharewith\" id=\"sharewith\" value=\""+this.chromo.phrasebook.sharewith+"\" />");
@@ -172,14 +187,46 @@
 
 			html += "</form>";
 			$('#page').html(html);
-			$('#page input, #page textarea').attr('dir',(this.chromo.phrasebook.alignment=="right" ? "rtl" : "ltr")).unbind().bind('change',{me:this},function(e){
+			$('#page input, #page textarea, #page select').attr('dir',(this.chromo.phrasebook.alignment=="right" ? "rtl" : "ltr")).unbind().bind('change',{me:this},function(e){
 				e.data.me.getOutput();
+				e.data.me.percentComplete();
 			});
 			
 			this.getOutput();
-		};
+			this.percentComplete();
+		}
+		Translator.prototype.percentComplete = function(){
+			var percent = 100;
+			if(this.lang!="en"){
+				var total = 0;
+				var diff = 0;
+				for(var i = 0 in this.chromo.phrasebook){
+					if(i!="alignment" && i!="code" && i != "lang" && i!="helpmenu" && i!="gal" && i!="eq" && i!="version"){
+						total++;
+						var val = converter($("#"+i).val()).replace(/&amp;/g,"&");
+						if(this.q.debug) console.log(i,val,this.english[i])
+						if(val && val != this.english[i]){
+							diff++;
+							$("#fs_"+i).removeClass('same');
+						}else{
+							$("#fs_"+i).addClass('same');
+						}
+					}
+				}
+				percent = Math.floor(100*diff/total);
+			}
+			$("#complete").html(percent);
+		}
+
+		Translator.prototype.isEnglish = function(id){
+			return (this.chromo.phrasebook[id]==this.english[id]) ? (id=="alignment" ? false : true) : false
+		}
 		Translator.prototype.row = function(title,desc,field){
-			var html = "	<fieldset>";
+			id = field.indexOf("id=\"");
+			id = field.substr(id+4);
+			id = id.substr(0,id.indexOf("\""));
+
+			var html = "	<fieldset id=\"fs_"+id+"\">";
 			html += "		<legend>"+title+"</legend>";
 			html += "		<div class=\"twocol\">";
 			html += "			<p>"+desc+"</p>";
@@ -195,12 +242,13 @@
 			var output = "<h2>Output</h2><p>Here is the output. You should copy and paste this into an email and send it to Stuart.</p><pre>{\n";
 			output += "\"code\" : \""+this.lang+"\",\n";
 			for(var i = 0; i < arr.length; i++){
-				output += "\""+arr[i].name+"\" : \""+sanitize(converter(arr[i].value))+"\""+(i < arr.length - 1 ? "," : "")+"\n";
+				output += "\""+arr[i].name+"\" : \""+sanitize(converter(arr[i].value)).replace(/&quot;/g,"\\&quot;")+"\""+(i < arr.length - 1 ? "," : "")+"\n";
 			}
 			output += "}</pre>";
 			$('#output').html(output);
 		}
 		function converter(tstr) {
+			if(!tstr) return "";
 			var bstr = '';
 			for(var i=0; i<tstr.length; i++){
 				if(tstr.charCodeAt(i)>127) bstr += '&amp;#' + tstr.charCodeAt(i) + ';';
@@ -216,9 +264,7 @@
 		}
 
 		$(document).ready(function(){
-			trans = new Translator(['en','cy','de','dk','es','fr','ga','he','hi','it','pl','pt','sv','tr']);
-
-
+			trans = new Translator(['en','cy','de','dk','es','fa','fr','ga','he','hi','it','pl','pt','sv','tr','zh']);
 		});
 	</script>
 </head>
