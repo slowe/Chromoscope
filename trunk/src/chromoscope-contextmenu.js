@@ -2,6 +2,9 @@
  * Chromoscope context menu plugin
  * Written by Stuart Lowe to add a context-sensitive menu
  *
+ * Changes in version 1.2 (2012-05-10):
+ *   - Added support for right to left languages
+ *
  * Changes in version 1.1 (2011-10-23):
  *   - Removed need for global variable
  *   - Can attach functions to menu items
@@ -42,13 +45,13 @@
 				var offy = ($(chromo.container).length > 0) ? $(chromo.container).offset().top : 0;
 				var newtop = (e.clientY)-offy;
 				var newleft = (e.clientX)-offx;
-				var coords = chromo.getCoordinates(newleft,newtop,'G');//chromo.getCoords(newleft,newtop);
-				var radec = chromo.getCoordinates(newleft,newtop,'A');
+				var coords = chromo.getCoords(newleft,newtop);
+				var radec = Galactic2Equatorial(coords.l,coords.b);
 				if($(chromo.body+" .chromo_context").length == 0) $(chromo.body).append('<div class="chromo_context" style="color:black;background-color:#f3f3f3;position:absolute;padding:2px;z-index:1001;cursor:default;border-radius:4px;padding:4px 0px 4px 0px;box-shadow:2px 2px 8px #333;width:230px"></div>');
 
 				if(chromo.events['contextmenu']){
-					$(chromo.body+" .chromo_context").html('<ul style="margin:0px;padding:0px;list-style:none;display:block;font-family:Lucida Grande,Arial,san-serif;font-size:10pt;"></ul>').bind('mouseleave', {el:chromo,body:chromo.body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; });
-					var o = chromo.trigger("contextmenu",{chromo:chromo,l:coords[0],b:coords[1],z:chromo.zoom,ra:radec[0],dec:radec[1]});
+					$(chromo.body+" .chromo_context").html('<ul style="margin:0px;padding:0px;list-style:none;display:block;font-family:Lucida Grande,Arial,san-serif;font-size:10pt;"></ul>').bind('mouseleave', {el:chromo,body:chromo.body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; }).attr('dir',(chromo.phrasebook.alignment=="right" ? 'rtl' : 'ltr'));
+					var o = chromo.trigger("contextmenu",{chromo:chromo,l:coords.l,b:coords.b,z:chromo.zoom,ra:radec.ra,dec:radec.dec});
 					for(i = 0 ; i < o.length ; i++){
 						fn = "";
 						// Check if this context menu item has a function attached
@@ -61,9 +64,9 @@
 						if(fn) $(chromo.body+" .chromo_context ul li.contextmenu-"+i).bind('click',fn);
 					}
 
-					$(chromo.body+" .chromo_context li a").css({padding:'2px 2px 2px 20px',display:'block',textDecoration:'none',color:'black'});
+					$(chromo.body+" .chromo_context li a").css({padding:'2px '+(chromo.phrasebook.alignment=="right" ? '20' : '2')+'px 2px '+(chromo.phrasebook.alignment=="right" ? '2' : '20')+'px',display:'block',textDecoration:'none',color:'black'});
 					$(chromo.body+" .chromo_context li a").hover( function(){
-						$(this).css({'background-color':'#6666ff','background-image': 'linear-gradient(top, rgb(99,136,249) 41%, rgb(34,94,246) 71%)','color':'white'});
+						$(this).css({'background-color':'#225ff6','background-image': '-webkit-gradient(linear,left top,left bottom,color-stop(0.41, rgb(99,136,249)),color-stop(0.71, rgb(34,94,246)));','color':'white'});
 					},function(){
 						$(this).css({'background-color':'transparent','color':'black'});
 					});
