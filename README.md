@@ -34,7 +34,7 @@ Note that the Chrome browser has extra security when running locally which will 
 Multi-lingual
 -------------
 
-Thanks to the efforts of wonderful volunteers, Chromoscope's interface is available in a variety of languages including: [Cymraeg](http://www.chromoscope.net/?lang=cy), [Deutsch](http://www.chromoscope.net/?lang=de), [Espa&#241;ol](http://www.chromoscope.net/?lang=es), [Fran&#231;ais](http://chromoscope.net/?lang=fr), [Gaeilge](http://chromoscope.net/?lang=ga), [&#1506;&#1489;&#1512;&#1497;&#1514;](http://chromoscope.net/?lang=he), [&#2350;&#2366;&#2344;&#2325; &#2361;&#2367;&#2344;&#2381;&#2342;&#2368;](http://chromoscope.net/?lang=hi), [Italiano](http://chromoscope.net/?lang=it), [Polski](http://chromoscope.net/?lang=pl), [Portugu&#234;s](http://chromoscope.net/?lang=pt), [svenska](http://chromoscope.net/?lang=sv), and [T&#252;rk&#231;e](http://chromoscope.net/?lang=tr).
+Thanks to the efforts of wonderful volunteers, Chromoscope's interface is available in a variety of languages including: [Cymraeg](http://www.chromoscope.net/?lang=cy), [Dansk](http://www.chromoscope.net/?lang=cy), [Deutsch](http://www.chromoscope.net/?lang=de), [Espa&#241;ol](http://www.chromoscope.net/?lang=es), [Fran&#231;ais](http://chromoscope.net/?lang=fr), [Gaeilge](http://chromoscope.net/?lang=ga), [&#1506;&#1489;&#1512;&#1497;&#1514;](http://chromoscope.net/?lang=he), [&#2350;&#2366;&#2344;&#2325; &#2361;&#2367;&#2344;&#2381;&#2342;&#2368;](http://chromoscope.net/?lang=hi), [Italiano](http://chromoscope.net/?lang=it), [Polski](http://chromoscope.net/?lang=pl), [Portugu&#234;s](http://chromoscope.net/?lang=pt), [svenska](http://chromoscope.net/?lang=sv), and [T&#252;rk&#231;e](http://chromoscope.net/?lang=tr).
 
 Adapt it
 --------
