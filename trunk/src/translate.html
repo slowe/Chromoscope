@@ -128,7 +128,7 @@
 			html += "<br /><p style=\"font-size:1.2em;\"><strong>If you want your changes to be applied you'll have to copy/paste the output from the bottom into an email to Stuart. This form does not automatically save!</strong></p>";
 			html += "<form id=\"language\">";
 			html += "<h2>About the language</h2>";
-			html += this.row('Language Name','This is the name of the language in that language e.g. English, Fran&#231;ais, Espa&#241;ol., &#2350;&#2366;&#2344;&#2325; &#2361;&#2367;&#2344;&#2381;&#2342;&#2368; and &#1506;&#1489;&#1512;&#1497;&#1514;. It appears in the language menu.',"<input type=\"text\" name=\"name\" id=\"name\" value=\""+sanitize(this.chromo.phrasebook.name)+"\" />");
+			html += this.row('Language Name','This is the name of the language in that language e.g. English, Fran&#231;ais, Espa&#241;ol, and &#2350;&#2366;&#2344;&#2325; &#2361;&#2367;&#2344;&#2381;&#2342;&#2368;. It appears in the language menu.',"<input type=\"text\" name=\"name\" id=\"name\" value=\""+sanitize(this.chromo.phrasebook.name)+"\" />");
 			html += this.row('Language Direction','The direction that the language goes.',"<select name=\"alignment\" id=\"alignment\"><option value=\"left\""+(this.chromo.phrasebook.alignment=="left" || !this.chromo.phrasebook.alignment ? " selected" : "")+">left to right</option><option value=\"right\" "+(this.chromo.phrasebook.alignment=="right" ? " selected" : "")+">right to left</option></select>");
 			html += this.row('Translator','This is the name of the translator. It can contain a hyperlink. It will be displayed in the bottom of the help window.',"<input type=\"text\" name=\"translator\" id=\"translator\" value=\""+sanitize(this.chromo.phrasebook.translator)+"\" />");
 
@@ -264,7 +264,7 @@
 		}
 
 		$(document).ready(function(){
-			trans = new Translator(['en','cy','de','dk','es','fa','fr','ga','he','hi','it','pl','pt','sv','tr','zh']);
+			trans = new Translator(['en','ar','cy','de','dk','es','fa','fi','fr','ga','he','hi','it','pl','pt','ru','sv','tr','zh']);
 		});
 	</script>
 </head>
