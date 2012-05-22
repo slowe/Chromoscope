@@ -1,7 +1,7 @@
 { 
 "code" : "tr",
 "name" : "T&#252;rk&#231;e",
-"translator" : "Arif Solmaz",
+"translator" : "<a href=\"http://www.facebook.com/arif19\">Arif Solmaz</a>",
 "lang" : "Newid iaith:",
 "version" : "s&#252;r&#252;m",
 "help" : "Yard&#305;m",
