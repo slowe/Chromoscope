@@ -13,6 +13,7 @@
  *      chromo = $.chromoscope("body",{lang:'en',showintro:true});
  *   - Removed global variable
  *   - Can now display tilesets that are in Equatorial coordinates
+ *   - Added Hebrew
  *
  * Changes in version 1.3.3 (2011-07-25):
  *   - Added KML title to page title if not in a container
@@ -87,20 +88,23 @@ jQuery.query = function() {
 
 		// Language Settings
 		this.lang = (navigator.language) ? navigator.language : navigator.userLanguage;			// Set the user language
-		this.langshort = this.lang.substring(0,2);
+		this.langshort = (this.lang.indexOf('-') > 0 ? this.lang.substring(0,this.lang.indexOf('-')) : this.lang.substring(0,2));
 		this.langs = new Array();
 		// Country codes at http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 		this.langs[0] = {code:'en',name:'English'};
 		this.langs[1] = {code:'cy',name:'Cymraeg'};
 		this.langs[2] = {code:'de',name:'Deutsch'};
-		this.langs[3] = {code:'es',name:'Espa&#241;ol'};
-		this.langs[4] = {code:'fr',name:'Fran&#231;ais'};
-		this.langs[5] = {code:'ga',name:'Gaeilge'};
-		this.langs[6] = {code:'it',name:'Italiano'};
-		this.langs[7] = {code:'pl',name:'Polski'};
-		this.langs[8] = {code:'pt',name:'Portugu&#234s'};
-		this.langs[9] = {code:'sv',name:'Svenska'};
-		this.langs[10] = {code:'tr',name:'T&#252;rk&#231;e'};
+		this.langs[3] = {code:'dk',name:'Dansk'};
+		this.langs[4] = {code:'es',name:'Espa&#241;ol'};
+		this.langs[5] = {code:'fr',name:'Fran&#231;ais'};
+		this.langs[6] = {code:'ga',name:'Gaeilge'};
+		this.langs[7] = {code:'he',name:'&#1506;&#1489;&#1512;&#1497;&#1514;'};
+		this.langs[8] = {code:'it',name:'Italiano'};
+		this.langs[9] = {code:'ja',name:'&#26085;&#26412;&#35486;'};
+		this.langs[10] = {code:'pl',name:'Polski'};
+		this.langs[11] = {code:'pt',name:'Portugu&#234s'};
+		this.langs[12] = {code:'sv',name:'Svenska'};
+		this.langs[13] = {code:'tr',name:'T&#252;rk&#231;e'};
 		this.phrasebook = new Language({code:'en'});
 
 		// The map div control and properties
@@ -225,7 +229,7 @@ jQuery.query = function() {
 		this.version = (inp.version) ? inp.version :'version';
 		this.help = (inp.help) ? inp.help :'Help';
 		this.helpmenu = (inp.helpmenu) ? inp.helpmenu : inp.help;
-		this.helpdesc = (inp.helpdesc) ? inp.helpdesc : '<span class="keyboard">The keyboard controls are:<ul class="chromo_controlkeys"></ul></span><span class="nokeyboard"><ul class="chromo_controlbuttons"></ul></span> <span class="keyboard">Created by Stuart Lowe, Rob Simpson, and Chris North.</span>';	
+		this.helpdesc = (inp.helpdesc) ? inp.helpdesc : "The Milky Way is shown across the middle. The north pole of the Galaxy is towards the top. Use the mouse to drag the sky around. Want more info? <a href=\"#\" class=\"videolink\">Watch a quick tour</a> (opens in this window). <span class=\"keyboard\">The keyboard controls are:<ul class=\"chromo_controlkeys\"></ul></span><span class=\"nokeyboard\"><ul class=\"chromo_controlbuttons\"></ul></span> <span class=\"keyboard\">Created by <a href=\"http://www.strudel.org.uk/\">Stuart Lowe</a>, <a href=\"http://orbitingfrog.com/blog/\">Rob Simpson</a>, and <a href=\"http://www.astro.cardiff.ac.uk/contactsandpeople/?page=full&id=493\">Chris North</a>. You can also <a href=\"http://blog.chromoscope.net/download/\">download it</a> to run locally.</span>";
 		this.about = (inp.about) ? inp.about :'About';
 		this.share = (inp.share) ? inp.share :'Share';
 		this.sharewith = (inp.sharewith) ? inp.sharewith :'Share it with';
@@ -243,7 +247,7 @@ jQuery.query = function() {
 		this.nozoomin = (inp.nozoomin) ? inp.nozoomin : 'Can\'t zoom in any more'
 		this.nozoomout = (inp.nozoomout) ? inp.nozoomout : 'Can\'t zoom out any more'
 		this.url = (inp.url) ? inp.url : 'The URL for this view is:';
-		this.intro = (inp.intro) ? inp.intro : '<p>Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy and the distant Universe in <a href="http://blog.chromoscope.net/data/">a range of wavelengths</a> from X-rays to the longest radio waves.</p></p>';
+		this.intro = (inp.intro) ? inp.intro : "Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in <a href=\"http://blog.chromoscope.net/data/\">a range of wavelengths</a> from gamma-rays to the longest radio waves.<br /><br />Change the wavelength using the <em>slider</em> in the top right of the screen and explore space using your mouse. For more information we have <a href=\"#\" class=\"videolink\">a quick video tour</a> or you can read <a href=\"http://blog.chromoscope.net/about/\">more on our blog</a>. If you get stuck, click \"Help\" in the bottom left.<br /><br /><a href=\"http://www.astro.cardiff.ac.uk/research/instr/\"><img src=\"cardiffuni.png\" style=\"border:0px;margin: 0px 5px 5px 0px;float:left;\" /></a>Chromoscope is kindly funded by the Cardiff University <a href=\"http://www.astro.cardiff.ac.uk/research/egalactic/\">Astronomy</a> and <a href=\"http://www.astro.cardiff.ac.uk/research/instr/\">Astronomy Instrumentation</a> Groups.<br style=\"clear:both;\" />";
 		this.gal = (inp.gal) ? inp.gal : 'http://en.wikipedia.org/wiki/Galactic_coordinate_system';
 		this.galcoord = (inp.galcoord) ? inp.galcoord : 'Galactic Coordinates';
 		this.eq = (inp.eq) ? inp.eq : 'http://en.wikipedia.org/wiki/Equatorial_coordinate_system';

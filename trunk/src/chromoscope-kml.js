@@ -35,7 +35,7 @@
 			}
 			//console.log("Time to end trigger KML load:" + (new Date() - this.start) + "ms");
 		}).bind("getViewURL",function(){ 
-			return '&kml='+this.q.kml
+			return (typeof this.q.kml=="string" ? '&kml='+this.q.kml : "");
 		}).bind("processkml",function(){ this.findPin(this.q.pin); });
 
 		// Get a locally hosted KML file
