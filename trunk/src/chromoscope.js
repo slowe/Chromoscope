@@ -1,5 +1,5 @@
 /*
- * Chromoscope v1.4
+ * Chromoscope v1.4.1
  * Written by Stuart Lowe for the Planck/Herschel Royal Society
  * Summer Exhibition 2009. Developed as an educational resource.
  *
@@ -7,26 +7,19 @@
  * server. To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
+ * Changes in version 1.4.1 (2012-05-22):
+ *   - Right-to-left language support
+ *   - Added Hebrew, Japanese
+ *   - Completed Danish
+ *   - Bug fix for kml in share link
+ *
  * Changes in version 1.4 (2011-10-01):
  *   - Added core search form to search through KML placemarkers
  *   - Turned into a jQuery plugin. Requires a change to the setup line
  *      chromo = $.chromoscope("body",{lang:'en',showintro:true});
  *   - Removed global variable
  *   - Can now display tilesets that are in Equatorial coordinates
- *   - Added Hebrew
  *
- * Changes in version 1.3.3 (2011-07-25):
- *   - Added KML title to page title if not in a container
- *   - Added key binding
- *   - Added event binding
- *   - addWavelength() and addAnnotationLayer() are now chainable
- *   - Fixed <BalloonStyle> parsing from KML
- *   - Added ability to load from KML-like JSON file (.json extension)
- *   - moveMap() can animate again
- *   - Speeded up KML pin display by changing to IDs instead of classes
- *   - Pressing shift will show cursor coordinates
- *   - Fixed some bugs with keyboard input
- *   - Allow mouse interaction with info balloons (stop dragging)
  */
 
 // Get the URL query string and parse it
@@ -54,7 +47,7 @@ jQuery.query = function() {
 	// Declare the Chromoscope object
 	function Chromoscope(input){
 
-		this.version = "1.4";
+		this.version = "1.4.1";
 
 		this.q = $.query();
 		this.zoom = -1;
@@ -722,7 +715,7 @@ jQuery.query = function() {
 			if(this.showsearch) this.buildSearch();
 			if(this.langs.length > 1 && !this.compact && this.showlangs){
 				if(str) str += ' | ';
-				str += '<span class="chromo_langhint chromo_link">Language ('+this.langshort+')</span>';
+				str += '<span class="chromo_langhint chromo_link">'+(this.wide < 800 ? '' : 'Language (')+this.langshort+(this.wide < 800 ? '' : ')')+'</span>';
 			}
 			if(this.showcoord){
 				if(str) str += ' | '
