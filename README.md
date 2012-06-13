@@ -42,7 +42,7 @@ Adapt it
 Chromoscope does not need a web connection to operate (other than for the search function) and it can be downloaded to your computer for use elsewhere. You can download the basic code (pretty compact) and then select which wavelength collections you want. The entire package, including images for all wavelengths and zoom levels, currently stands at just over half a gigabyte. This makes Chromoscope suitable for running from a USB memory stick or for downloading from a server. It can easily be copied around and is an open-source project, meaning that none of the code is hidden and users are welcome to modify and adapt it for their purposes. Examples of Chromoscope being used elsewhere:
 * The [Online Showcase of Herschel Images](http://oshi.esa.int/)
 * [UK Herschel Outreach Website](http://herschel.cf.ac.uk/chromoscope/results)
-* The [H2O southern Galactic Plane Survey](http://www.ast.leeds.ac.uk/hops/chromoscope/)
+* The [H2O southern Galactic Plane Survey](http://www.ast.leeds.ac.uk/hops/public/index.php)
 
 Credits
 -------
