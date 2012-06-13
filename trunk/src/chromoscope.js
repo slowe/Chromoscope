@@ -7,11 +7,12 @@
  * server. To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
- * Changes in version 1.4.1 (2012-05-22):
+ * Changes in version 1.4.1 (2012-06-13):
  *   - Right-to-left language support
  *   - Added Hebrew, Japanese
  *   - Completed Danish
  *   - Bug fix for kml in share link
+ *   - Bug fix for show/hide search link
  *
  * Changes in version 1.4 (2011-10-01):
  *   - Added core search form to search through KML placemarkers
@@ -109,7 +110,7 @@ jQuery.query = function() {
 		this.showabout = true;		// Display the about link
 		this.showlangs = true;		// Display the languages link
 		this.showcoord = true;		// Display the coordinates
-		this.showsearch = false;	// Display the search link
+		this.showsearch = true;		// Display the search link
 		this.showversion = true;	// Display the version number
 		this.compact = false;		// Hide parts of the interface if small
 		this.loaded = false;		// Set to true once loaded
@@ -176,6 +177,7 @@ jQuery.query = function() {
 			if(typeof inp.performance=="boolean") this.performance = inp.performance;
 			if(typeof inp.ignorekeys=="boolean") this.ignorekeys = inp.ignorekeys;
 			if(typeof inp.showintro=="boolean") this.showintro = inp.showintro;
+			if(typeof inp.showsearch=="boolean") this.showsearch = inp.showsearch;
 			if(typeof inp.showshare=="boolean") this.showshare = inp.showshare;
 			if(typeof inp.showabout=="boolean") this.showabout = inp.showabout;
 			if(typeof inp.showlangs=="boolean") this.showlangs = inp.showlangs;
@@ -1816,8 +1818,6 @@ function doMove() {
 		}
 		if(!exists) this.search.push(args)
 
-		this.showsearch = true;
-
 		// If we have the ability to search we will register the key
 		if(!this.registeredKey('s')){
 			this.registerKey(['s','/'],function(e){
@@ -2277,7 +2277,10 @@ function doMove() {
 		}
 	}
 
-      	// Disable text selection thanks to http://chris-barr.com/entry/disable_text_selection_with_jquery/
+	Chromoscope.prototype.simulateKeyPress = function(key){
+		simulateKeyPress(key);
+	}
+	// Disable text selection thanks to http://chris-barr.com/entry/disable_text_selection_with_jquery/
 	$.extend($.fn.disableTextSelect = function() {
 		return this.each(function(){
 			if($.browser.mozilla) $(this).css('MozUserSelect','none'); //Firefox
