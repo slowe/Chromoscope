@@ -1,7 +1,7 @@
 Introduction
 ============
 
-[Chromoscope](http://www.chromoscope.net/) is an accessible, easy tool that anyone can use to explore and understand the sky at multiple wavelengths. It was originally written for the [Planck/Herschel Royal Society Summer Exhibition 2009](http://royalsociety.org/From-the-oldest-light-to-the-youngest-stars-the-Herschel-and-Planck-Missions/). Developed as an educational resource. This Javascript web-application will run locally or can be run on a web server. The only part that requires an internet connection is the search tool which makes use of [LookUP](http://www.strudel.org.uk/lookUP/).
+[Chromoscope](http://www.chromoscope.net/) is an easy tool that anyone can use to explore and understand the sky at multiple wavelengths. It was originally written for the [Planck/Herschel Royal Society Summer Exhibition 2009](http://royalsociety.org/From-the-oldest-light-to-the-youngest-stars-the-Herschel-and-Planck-Missions/). Developed as an educational resource. This Javascript web-application will run locally or can be run on a web server. The only part that requires an internet connection is the search tool which makes use of [LookUP](http://www.strudel.org.uk/lookUP/).
  
 View the Universe
 -----------------
