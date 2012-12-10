@@ -81,7 +81,7 @@ jQuery.query = function() {
 		this.clock = 0;			// Holds the time
 
 		// Language Settings
-		this.lang = (navigator.language) ? navigator.language : navigator.userLanguage;			// Set the user language
+		this.lang = (navigator.language||navigatior.userLanguage||browser.language);			// Set the user language
 		this.langshort = (this.lang.indexOf('-') > 0 ? this.lang.substring(0,this.lang.indexOf('-')) : this.lang.substring(0,2));
 		this.langs = new Array();
 		// Country codes at http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
