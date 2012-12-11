@@ -1,5 +1,5 @@
 /*
- * Chromoscope v1.4.1
+ * Chromoscope v1.4.2
  * Written by Stuart Lowe for the Planck/Herschel Royal Society
  * Summer Exhibition 2009. Developed as an educational resource.
  *
@@ -48,7 +48,7 @@ jQuery.query = function() {
 	// Declare the Chromoscope object
 	function Chromoscope(input){
 
-		this.version = "1.4.1";
+		this.version = "1.4.2";
 
 		this.q = $.query();
 		this.zoom = -1;
@@ -99,6 +99,7 @@ jQuery.query = function() {
 		this.langs[11] = {code:'pt',name:'Portugu&#234s'};
 		this.langs[12] = {code:'sv',name:'Svenska'};
 		this.langs[13] = {code:'tr',name:'T&#252;rk&#231;e'};
+		this.langs[14] = {code:'zh',name:'&#20013;&#25991;'};
 		this.phrasebook = new Language({code:'en'});
 
 		// The map div control and properties
@@ -981,13 +982,16 @@ jQuery.query = function() {
 		var margin_t = parseInt($(this.body+" .legend-"+this.spectrum[0].key).css('margin-top'));
 		var h_full = parseInt($(this.body+" .legend-"+this.spectrum[this.spectrum.length-1].key).position().top + $(this.body+" .legend-"+this.spectrum[this.spectrum.length-1].key).outerHeight());
 		var h = $(this.body+" .legend-"+this.spectrum[0].key).outerHeight();
-		var w = $(this.body+" .chromo_sliderbar").outerWidth() - parseInt($(this.body+" .chromo_sliderbar").css('margin-right'));
+		var y = h;
+
+		if('ontouchstart' in document.documentElement){
+			while(y < 25) y = parseInt(y*1.8);
+		}
 
 		// Add some padding for the wavelength slider
-		$(this.body+" .chromo_layerswitcher").css('padding-right',(h*2)+'px');
-		$(this.body+" .chromo_slider").css({height:h,width:h*1.2,"margin-left":"-"+(h*0.2)+"px"}).bind('mousedown',{state:true},jQuery.proxy( this, "draggable" ) ).bind('mouseup',{state:false},jQuery.proxy( this, "draggable" )).addTouch();
-		$(this.body+" .chromo_sliderbar").css({'margin-right':-(h)+'px',height:h_full,width:h*0.8,'margin-top':margin_t+'px'}).bind('mousemove',{h:h,margin_t:margin_t},jQuery.proxy( this, "dragIt" ) ).bind('mouseup',{state:false},jQuery.proxy( this, "draggable" )).addTouch();
-
+		$(this.body+" .chromo_layerswitcher").css('padding-right',(y*2)+'px');
+		$(this.body+" .chromo_slider").css({height:h,width:y*1.2,"margin-left":"-"+(y*0.2)+"px"}).bind('mousedown',{state:true},jQuery.proxy( this, "draggable" ) ).bind('mouseup',{state:false},jQuery.proxy( this, "draggable" )).addTouch();
+		$(this.body+" .chromo_sliderbar").css({'margin-right':-Math.round(y)+'px',height:h_full,width:y*0.8,'margin-top':margin_t+'px'}).bind('mousemove',{h:y,margin_t:margin_t},jQuery.proxy( this, "dragIt" ) ).bind('mouseup',{state:false},jQuery.proxy( this, "draggable" )).addTouch();
 		this.positionSlider();
 		if(this.zoomctrl) this.makeZoomControl();
 	}
@@ -1021,12 +1025,16 @@ jQuery.query = function() {
 
 	// Construct the wavelength slider and give it mouse events
 	Chromoscope.prototype.makeZoomControl = function(){
-		var h = $(this.body+" .legend-"+this.spectrum[0].key).outerHeight();
-		var zoomer = "<div style=\"float:right;margin-right:-"+(h*1.25)+"px;width:"+(h*1.2)+"px;\"><div class=\"chromo_zoom chromo_zoomin\" title=\""+this.phrasebook.zoomin+"\">+</div><div class=\"chromo_zoom chromo_zoomout\" title=\""+this.phrasebook.zoomout+"\">&minus;</div></div>";
+		var h = $(this.body+" .chromo_slider").width();
+		var fs = ('ontouchstart' in document.documentElement) ? 1.2 : 1;
+		var zoomer = "<div class=\"chromo_zoomer\"><div class=\"chromo_zoom chromo_zoomin\" title=\""+this.phrasebook.zoomin+"\">+</div><div class=\"chromo_zoom chromo_zoomout\" title=\""+this.phrasebook.zoomout+"\">&minus;</div></div>";
 		$(this.body+" .chromo_layerswitcher").append(zoomer);
-		$(this.body+" .chromo_zoom").css({cursor:"pointer",padding:"0px",width:h+"px",height:"1.2em","text-align":"center","margin-bottom":"5px"});
+		$(this.body+" .chromo_zoom").css({cursor:"pointer",padding:"0px",width:"100%",height:h+"px","line-height":h+"px","text-align":"center"});
 		$(this.body+" .chromo_zoomin").bind('click', jQuery.proxy( this, "zoomIn" ) );
 		$(this.body+" .chromo_zoomout").bind('click', jQuery.proxy( this, "zoomOut" ) );
+		var sb = $(this.body+" .chromo_sliderbar");
+		var w = sb.outerWidth();
+		$(this.body+" .chromo_zoomer").css({'float':'right','margin-right':Math.round(parseInt(sb.css('margin-right')) + ((w-h)/2))+"px",'width':parseInt(h)+"px",'font-size':fs+"em"});
 	}
 
 	// Process each wavelength and annotation. Build the wavelength slider and add key commands.
@@ -1636,11 +1644,18 @@ function doMove() {
 		var minZ = this.minZoom();
 		if(this.zoom < minZ){ 
 			this.zoom = minZ;
-			if(z >= 0) this.message(this.phrasebook.nozoomout,1000);
+			if(z >= 0){
+				$(this.body+" .chromo_message").css({'max-width':"250px"});
+				this.message('<p style=\"text-align:center\">'+this.phrasebook.nozoomout+'</p>',1000);
+			}
 		}
 		if(this.zoom > this.maxZoom){
 			this.zoom = this.maxZoom;
-			if(z >= 0) this.message(this.phrasebook.nozoomin,1000);
+			if(z >= 0){
+				$(this.body+" .chromo_message").css({'max-width':"250px"});
+				this.message('<p style=\"text-align:center\">'+this.phrasebook.nozoomin+'</p>',1000);
+			}
+				
 		}
 		var oldmapSize = this.mapSize;
 		this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
