@@ -86,20 +86,21 @@ jQuery.query = function() {
 		this.langs = new Array();
 		// Country codes at http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 		this.langs[0] = {code:'en',name:'English'};
-		this.langs[1] = {code:'cy',name:'Cymraeg'};
-		this.langs[2] = {code:'de',name:'Deutsch'};
-		this.langs[3] = {code:'dk',name:'Dansk'};
-		this.langs[4] = {code:'es',name:'Espa&#241;ol'};
-		this.langs[5] = {code:'fr',name:'Fran&#231;ais'};
-		this.langs[6] = {code:'ga',name:'Gaeilge'};
-		this.langs[7] = {code:'he',name:'&#1506;&#1489;&#1512;&#1497;&#1514;'};
-		this.langs[8] = {code:'it',name:'Italiano'};
-		this.langs[9] = {code:'ja',name:'&#26085;&#26412;&#35486;'};
-		this.langs[10] = {code:'pl',name:'Polski'};
-		this.langs[11] = {code:'pt',name:'Portugu&#234s'};
-		this.langs[12] = {code:'sv',name:'Svenska'};
-		this.langs[13] = {code:'tr',name:'T&#252;rk&#231;e'};
-		this.langs[14] = {code:'zh',name:'&#20013;&#25991;'};
+		this.langs[1] = {code:'af',name:'Afrikaans'};
+		this.langs[2] = {code:'cy',name:'Cymraeg'};
+		this.langs[3] = {code:'de',name:'Deutsch'};
+		this.langs[4] = {code:'dk',name:'Dansk'};
+		this.langs[5] = {code:'es',name:'Espa&#241;ol'};
+		this.langs[6] = {code:'fr',name:'Fran&#231;ais'};
+		this.langs[7] = {code:'ga',name:'Gaeilge'};
+		this.langs[8] = {code:'he',name:'&#1506;&#1489;&#1512;&#1497;&#1514;'};
+		this.langs[9] = {code:'it',name:'Italiano'};
+		this.langs[10] = {code:'ja',name:'&#26085;&#26412;&#35486;'};
+		this.langs[11] = {code:'pl',name:'Polski'};
+		this.langs[12] = {code:'pt',name:'Portugu&#234s'};
+		this.langs[13] = {code:'sv',name:'Svenska'};
+		this.langs[14] = {code:'tr',name:'T&#252;rk&#231;e'};
+		this.langs[15] = {code:'zh',name:'&#20013;&#25991;'};
 		this.phrasebook = new Language({code:'en'});
 
 		// The map div control and properties
@@ -413,8 +414,19 @@ jQuery.query = function() {
 		$(this.body+" .chromo_outerDiv").mousedown({me:this},function(ev){
 			var chromo = ev.data.me;
 			if(!chromo.active) chromo.activate()
+			this.startTouch = new Date().getTime();
+			clickTimer = function(ev,el){
+				var e = jQuery.Event("contextmenu");
+				e.clientX = ev.clientX;
+				e.clientY = ev.clientY;
+				$(el).trigger(e);
+				el.dragging = false;
+			}
+			chromo.clickTimeout = setTimeout(clickTimer,800,ev,this);
+
 			if(ev.button != 2 && chromo.mouseevents){
 				// Don't do anything for a right mouse button event
+				// We'll attach things to the dom element (this)
 				this.dragStartLeft = ev.clientX;
 				this.dragStartTop = ev.clientY;
 				this.y = $(chromo.container+" .chromo_innerDiv").position().top;
@@ -425,11 +437,12 @@ jQuery.query = function() {
 				$(chromo.container+" .chromo_innerDiv").css({cursor:'grabbing',cursor:'-moz-grabbing'});	
 				return false;
 			}
+
 		}).mousemove({me:this},function(ev){
 			var chromo = ev.data.me;
 			if(!chromo.active) return;
 			if(this.dragging){
-
+				if(chromo.clickTimeout) clearTimeout(chromo.clickTimeout);
 				newtop = this.y + (ev.clientY - this.dragStartTop);
 				newleft = this.x + (ev.clientX - this.dragStartLeft);
 				this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
@@ -459,6 +472,7 @@ jQuery.query = function() {
 		}).mouseup({me:this},function(ev){
 			var chromo = ev.data.me;
 			if(!chromo) return;
+			if(chromo.clickTimeout) clearTimeout(chromo.clickTimeout);
 			// Bind the double tap to double click
 			if('ontouchstart' in document.documentElement){
 				var delay = 500;
@@ -1599,15 +1613,6 @@ jQuery.query = function() {
 			}
 		}
 
-/*
-function doMove() {
-
-     foo.style.left = (foo.style.left+10)+'px'; // pseudo-property code: Move right by 10px
-
-     setTimeout(doMove,20); // call doMove() in 20 msec
-
-    }
-   */
 	}
 
 	// Show/hide the annotation layer by keyboard shortcut character

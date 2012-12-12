@@ -25,13 +25,13 @@
 		// 	args.z = zoom level
 		// 	args.ra = Right Ascension (decimal hours)
 		// 	args.dec = Declination (decimal degrees)
-		chromo.bind("contextmenu",function(args){ return { text:'<a href="#">'+(this.phrasebook.centre)+'</a>','fn':function(){ args.chromo.moveMap(args.l,args.b,args.z); } } })
-		chromo.bind("contextmenu",function(args){ return '<hr />'; })
-		chromo.bind("contextmenu",function(args){ return '<a href="http://server1.wikisky.org/v2?ra='+args.ra+'&de='+args.dec+'&zoom='+(args.z-2)+'&img_source=DSS2">'+this.phrasebook.wikisky+'</a>'; })
-		chromo.bind("contextmenu",function(args){ return '<a href="http://www.worldwidetelescope.org/wwtweb/goto.aspx?object=ViewShortcut&ra='+(args.ra)+'&dec='+args.dec+'&zoom='+(0.3*60*360/Math.pow(2,args.z))+'">'+this.phrasebook.wwt+'</a>'; })
-		chromo.bind("contextmenu",function(args){ return '<hr />'; })
-		chromo.bind("contextmenu",function(args){ return '<a href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord='+args.l.toFixed(4)+'+'+args.b.toFixed(4)+'&CooFrame=Gal&CooEpoch=2000&CooEqui=2000&Radius=10">'+this.phrasebook.nearby+' (Simbad)</a>'; })
-		chromo.bind("contextmenu",function(args){ return '<a href="http://nedwww.ipac.caltech.edu/cgi-bin/nph-objsearch?search_type=Near+Position+Search&in_csys=Galactic&in_equinox=J2000.0&lon='+args.l+'&lat='+args.b+'&radius=10&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=20&img_stamp=YES">'+this.phrasebook.nearby+' (NED)'; })
+		chromo.bind("contextmenu",function(args){ return { text:'<a href="#">'+(this.phrasebook.centre)+'</a>','fn':function(){ args.chromo.moveMap(args.l,args.b,args.z); } } });
+		chromo.bind("contextmenu",function(args){ return '<hr />'; });
+		chromo.bind("contextmenu",function(args){ return '<a href="http://server1.wikisky.org/v2?ra='+args.ra+'&de='+args.dec+'&zoom='+(args.z-2)+'&img_source=DSS2">'+this.phrasebook.wikisky+'</a>'; });
+		chromo.bind("contextmenu",function(args){ return '<a href="http://www.worldwidetelescope.org/wwtweb/goto.aspx?object=ViewShortcut&ra='+(args.ra)+'&dec='+args.dec+'&zoom='+(0.3*60*360/Math.pow(2,args.z))+'">'+this.phrasebook.wwt+'</a>'; });
+		chromo.bind("contextmenu",function(args){ return '<hr />'; });
+		chromo.bind("contextmenu",function(args){ return '<a href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord='+args.l.toFixed(4)+'+'+args.b.toFixed(4)+'&CooFrame=Gal&CooEpoch=2000&CooEqui=2000&Radius=10">'+this.phrasebook.nearby+' (Simbad)</a>'; });
+		chromo.bind("contextmenu",function(args){ return '<a href="http://nedwww.ipac.caltech.edu/cgi-bin/nph-objsearch?search_type=Near+Position+Search&in_csys=Galactic&in_equinox=J2000.0&lon='+args.l+'&lat='+args.b+'&radius=10&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=20&img_stamp=YES">'+this.phrasebook.nearby+' (NED)'; });
 		chromo.bind("load",function(){ buildContextMenu(this); });
 	}	
 
@@ -52,6 +52,7 @@
 				if(chromo.events['contextmenu']){
 					$(chromo.body+" .chromo_context").html('<ul style="margin:0px;padding:0px;list-style:none;display:block;font-family:Lucida Grande,Arial,san-serif;font-size:10pt;"></ul>').bind('mouseleave', {el:chromo,body:chromo.body}, function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; }).attr('dir',(chromo.phrasebook.alignment=="right" ? 'rtl' : 'ltr'));
 					var o = chromo.trigger("contextmenu",{chromo:chromo,l:coords.l,b:coords.b,z:chromo.zoom,ra:radec.ra,dec:radec.dec});
+					var li;
 					for(i = 0 ; i < o.length ; i++){
 						fn = "";
 						// Check if this context menu item has a function attached
@@ -60,8 +61,10 @@
 							o[i] = o[i].text;
 						}
 						$(chromo.body+" .chromo_context ul").append("<li class=\"contextmenu-"+i+"\">"+o[i]+"</li>");
+						li = $(chromo.body+" .chromo_context ul li.contextmenu-"+i);
 						// Execute any attached functions
-						if(fn) $(chromo.body+" .chromo_context ul li.contextmenu-"+i).bind('click',fn);
+						if(typeof fn==="function") li.bind('click',fn);
+						li.bind('click',{el:chromo,body:chromo.body},function(e){ $(e.data.body+' .chromo_context').hide(); e.data.el.dragging = false; });
 					}
 
 					$(chromo.body+" .chromo_context li a").css({padding:'2px '+(chromo.phrasebook.alignment=="right" ? '20' : '2')+'px 2px '+(chromo.phrasebook.alignment=="right" ? '2' : '20')+'px',display:'block',textDecoration:'none',color:'black'});
@@ -77,6 +80,7 @@
 					$(chromo.body+" .chromo_context").css({left:(newleft-offset)+'px',top:(newtop-offset)+'px'}).show();
 					$(chromo.body+" .chromo_context hr").css({'margin':'4px 0px 4px 0px','border':0,'background-color':'#ccc','height':'2px','border-bottom':'1px solid #fff'}).show();
 					chromo.dragging = false;
+					if(chromo.clickTimeout) clearTimeout(chromo.clickTimeout);
 					return false;
 				}
 			}
