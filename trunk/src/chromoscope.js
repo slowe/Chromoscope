@@ -7,6 +7,11 @@
  * server. To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
+ * Changes in version 1.4.2 (2013-01-11):
+ *   - Bug fix for share icons in different directory
+ *   - Bug fix for touch devices
+ *   - Now uses jQuery 1.7.1
+ *
  * Changes in version 1.4.1 (2012-06-13):
  *   - Right-to-left language support
  *   - Added Hebrew, Japanese
@@ -108,6 +113,7 @@ jQuery.query = function() {
 		this.zoomctrl = true;		// Display the zoom control
 		this.title = true;		// Display the title?
 		this.showintro = true;		// Display the introductory message
+		this.showhelp = true;		// Display the help
 		this.showshare = true;		// Display the share link
 		this.showabout = true;		// Display the about link
 		this.showlangs = true;		// Display the languages link
@@ -147,6 +153,7 @@ jQuery.query = function() {
 
 		this.events = {move:"",zoom:"",slide:"", wcsupdate:""};	// Let's add some default events
 		this.init(input);
+
 	}
 
 	// Set variables defined in the query string
@@ -179,6 +186,7 @@ jQuery.query = function() {
 			if(typeof inp.performance=="boolean") this.performance = inp.performance;
 			if(typeof inp.ignorekeys=="boolean") this.ignorekeys = inp.ignorekeys;
 			if(typeof inp.showintro=="boolean") this.showintro = inp.showintro;
+			if(typeof inp.showhelp=="boolean") this.showhelp = inp.showhelp;
 			if(typeof inp.showsearch=="boolean") this.showsearch = inp.showsearch;
 			if(typeof inp.showshare=="boolean") this.showshare = inp.showshare;
 			if(typeof inp.showabout=="boolean") this.showabout = inp.showabout;
@@ -476,7 +484,7 @@ jQuery.query = function() {
 			// Bind the double tap to double click
 			if('ontouchstart' in document.documentElement){
 				var delay = 500;
-				var now = new Date().getTime();
+				var now = (new Date()).getTime();
 				if(!this.lastTouch) this.lastTouch = now + 1;
 				var delta = now - this.lastTouch;
 				this.lastTouch = now;
@@ -722,12 +730,12 @@ jQuery.query = function() {
 
 		// Construct the Make a Link
 		var str = "";
-		if(!this.compact) str = '<span class="chromo_helphint chromo_link">'+this.phrasebook.help+'</span>';
+		if(!this.compact && this.showhelp) str = '<span class="chromo_helphint chromo_link">'+this.phrasebook.help+'</span>';
 		if(!this.compact && this.showabout) str+= ' | <a href="http://blog.chromoscope.net/about/" class="chromo_about">'+this.phrasebook.about+'</a>';
 		if(!($.browser.opera && $.browser.version == 9.3)){
-			if(!this.compact && this.showshare) str += ' | <span class="chromo_linkhint chromo_link">'+this.phrasebook.share+'</span>';
-			if(!this.compact && this.showsearch){
-				str += ' | <span class="chromo_searchhint chromo_link">'+this.phrasebook.search+'</span>';
+			if(!this.compact){
+				if(this.showshare) str += ' | <span class="chromo_linkhint chromo_link">'+this.phrasebook.share+'</span>';
+				if(this.showsearch) str += ' | <span class="chromo_searchhint chromo_link">'+this.phrasebook.search+'</span>';
 			}
 			if(this.showsearch) this.buildSearch();
 			if(this.langs.length > 1 && !this.compact && this.showlangs){
@@ -807,7 +815,7 @@ jQuery.query = function() {
 		// iPhones have wide but not very tall screens so we make the intro a bit wider if the screen height is small.
 		if(this.tall <= 640) w *= 1.2;
 		if(w > 0.8*this.wide) w = 0.8*this.wide;
-		$(this.body+" .chromo_message").css({width:w+"px"});
+		$(this.body+" .chromo_message").css({width:w+"px",'max-width':''});
 		if(this.showintro) this.message(this.createClose()+this.phrasebook.intro,false,'left')
 		$(this.body+" .videolink").bind('click',{me:this}, function(e){ e.preventDefault(); e.data.me.showVideoTour(); } );
 		$(this.body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
@@ -1853,7 +1861,7 @@ jQuery.query = function() {
 		var url = this.getViewURL();
 		var safeurl = url.replace('&','%26');
 		$(this.body+" .chromo_message").css({width:400});
-		var icons = '<a href="http://twitter.com/home/?status=Spotted+this+with+@chromoscope+'+safeurl+'"><img src="twitter.gif" title="Tweet this" /></a><a href="http://www.facebook.com/sharer.php?u='+safeurl+'"><img src="facebook.gif" title="Share with Facebook" /></a><a href="http://www.blogger.com/blog-this.g?t=&amp;n=Chromoscope&amp;u='+safeurl+'"><img src="blogger.gif" title="Add to Blogger" /></a><a href="http://del.icio.us/post?url='+safeurl+'"><img src="delicious.gif" title="Tag with del.icio.us" /></a><a href="http://slashdot.org/bookmark.pl?title=Chromoscope&amp;url='+safeurl+'"><img src="slashdot.gif" title="Slashdot this" /></a><a href="http://digg.com/submit?phase=2&url='+safeurl+'"><img src="digg.gif" title="Digg this" /></a><a href="http://www.mixx.com/submit?page_url='+safeurl+'"><img src="mixx.png" title="Add to Mixx" /></a>';
+		var icons = '<a href="http://twitter.com/home/?status=Spotted+this+with+@chromoscope+'+safeurl+'"><img src="'+this.dir+'twitter.gif" title="Tweet this" /></a><a href="http://www.facebook.com/sharer.php?u='+safeurl+'"><img src="'+this.dir+'facebook.gif" title="Share with Facebook" /></a><a href="http://www.blogger.com/blog-this.g?t=&amp;n=Chromoscope&amp;u='+safeurl+'"><img src="'+this.dir+'blogger.gif" title="Add to Blogger" /></a><a href="http://del.icio.us/post?url='+safeurl+'"><img src="'+this.dir+'delicious.gif" title="Tag with del.icio.us" /></a><a href="http://slashdot.org/bookmark.pl?title=Chromoscope&amp;url='+safeurl+'"><img src="'+this.dir+'slashdot.gif" title="Slashdot this" /></a><a href="http://digg.com/submit?phase=2&url='+safeurl+'"><img src="'+this.dir+'digg.gif" title="Digg this" /></a><a href="http://www.mixx.com/submit?page_url='+safeurl+'"><img src="'+this.dir+'mixx.png" title="Add to Mixx" /></a>';
 		var share = (this.phrasebook.sharewith.indexOf("__ICONS__") > 0) ? this.phrasebook.sharewith.replace("__ICONS__",icons) : this.phrasebook.sharewith+icons;
 		this.message(this.createClose()+"<div style=\"text-align:center\">"+this.phrasebook.url+'<input type="text" class="chromo_createdLink" value="'+url+'" style="width:100%;" /><br /><p class="social">'+share+' </p></div>')
 		$(this.body+" .chromo_message .chromo_close").bind('click',{id:'.chromo_message'}, jQuery.proxy( this, "hide" ) );
@@ -2061,9 +2069,7 @@ jQuery.query = function() {
 				this.yoff = (this.yunits=="pixels") ? this.y : this.h*this.y;
 				this.jquery.css({left:(parseInt(this.pos.x - this.xoff)),top:(parseInt(this.pos.y - this.yoff))});
 				this.placed = true;
-				this.jquery.bind('click',{p:this,el:el},function(e){
-					e.data.p.toggleBalloon();
-				});
+				this.jquery.unbind('mousedown').bind('mousedown',{p:this,el:el},function(e){ e.data.p.toggleBalloon(); });
 				this.bound = true;
 				this.jquery.show();
 			}
@@ -2122,7 +2128,7 @@ jQuery.query = function() {
 			}
 		}
 		if(!pin.bound){
-			pin.jquery.bind('click',{p:pin},function(e){ e.data.p.toggleBalloon(); });
+			pin.jquery.unbind('mousedown').bind('mousedown',{p:pin},function(e){ e.data.p.toggleBalloon(); });
 			pin.bound = true;
 		}
 	}
@@ -2199,11 +2205,12 @@ jQuery.query = function() {
 		this.info.visible = true;
 
 		// Attach event
-		$(id+" .chromo_close").bind('click',{me:this.el,id:id,pin:this},function(e){
+		$(id+" .chromo_close").bind('mousedown',{me:this.el,id:id,pin:this},function(e){
 			e.data.me.mouseevents = true;
 			$(e.data.id).remove();
 			e.data.pin.info.visible = false;
 			e.data.me.trigger("pinclose",{pin:e.data.pin});
+			return false;
 		});
 		el.bind('mouseover',{me:this.el},function(e){
 			e.data.me.mouseevents = false;
