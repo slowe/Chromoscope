@@ -1,5 +1,5 @@
 /*
- * Chromoscope v1.4.2
+ * Chromoscope v1.4.3
  * Written by Stuart Lowe for the Planck/Herschel Royal Society
  * Summer Exhibition 2009. Developed as an educational resource.
  *
@@ -7,6 +7,9 @@
  * server. To run locally you'll need to download the appropriate 
  * tile sets and code.
  *
+ * Changes in version 1.4.3 (2013-03-19):
+ *   - Allow tile sets for two coordinate systems
+ * 
  * Changes in version 1.4.2 (2013-01-11):
  *   - Bug fix for share icons in different directory
  *   - Bug fix for touch devices
@@ -53,7 +56,7 @@ jQuery.query = function() {
 	// Declare the Chromoscope object
 	function Chromoscope(input){
 
-		this.version = "1.4.2";
+		this.version = "1.4.3";
 
 		this.q = $.query();
 		this.zoom = -1;
