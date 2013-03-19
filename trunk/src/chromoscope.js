@@ -917,6 +917,7 @@ jQuery.query = function() {
 			this.attribution = (input.attribution) ? input.attribution : '';
 			this.key = (input.key) ? input.key : '';
 			this.tiles = (input.tiles) ? input.tiles : '';
+			this.tiles_eq = (input.tiles_eq) ? input.tiles_eq : '';
 			this.ext = (input.ext) ? input.ext : 'jpg';
 			this.range = {longitude:[-180,180],latitude:[-90,90],x:[0,0],y:[0,0]};
 			this.limitrange = false;
