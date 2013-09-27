@@ -19,6 +19,8 @@ There are currently eight included:
 * Microwave ([Planck](http://www.esa.int/planck)), 
 * Radio ([Haslam](http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm)).
 
+You can [download these tile-sets for offline use](http://blog.chromoscope.net/download/).
+
 Control the sky
 ---------------
 
@@ -27,7 +29,7 @@ To move the map around, simply 'grab' it with the cursor and drag around the scr
 No installation needed
 ----------------------
 
-A standard, modern, web browser is all that you need to use Chromoscope so there is no need to install any extra software, plugins or learn a new interface. Being platform independent means that whether you use Windows, Mac or Linux, it should still be accessible.
+A standard, modern, web browser is all that you need to use Chromoscope so there is no need to install any extra software, plugins or learn a new interface (you will have to [download the tiles to use it offline](http://blog.chromoscope.net/download/)). Being platform independent means that whether you use Windows, Mac or Linux, it should still be accessible.
 
 Note that the Chrome browser has extra security when running locally which will stop Chromoscope seeing KML and the language JS files even if they are in the same directory. If you want to use these features you should start Chrome with the option "--allow-file-access-from-files".
 
@@ -43,8 +45,9 @@ Chromoscope does not need a web connection to operate (other than for the search
 * The [Online Showcase of Herschel Images](http://oshi.esa.int/)
 * [UK Herschel Outreach Website](http://herschel.cf.ac.uk/chromoscope/results)
 * The [H2O southern Galactic Plane Survey](http://www.ast.leeds.ac.uk/hops/public/index.php)
+* [Planckoscope](http://planck.cf.ac.uk/planckoscope)
 
 Credits
 -------
 
-Chromoscope was created by Stuart Lowe ([LCOGT](http://lcogt.net/)), Chris North (Cardiff University) and Robert Simpson (Oxford University). [Translations](http://chromoscope.net/dev/translate.html) are provided by a variety of people; credits are in the translation files.
+Chromoscope was created by Stuart Lowe, Chris North (Cardiff University) and Robert Simpson (Oxford University). [Translations](http://chromoscope.net/dev/translate.html) are provided by a variety of people; credits are in the translation files.
