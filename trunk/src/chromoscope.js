@@ -88,8 +88,11 @@ jQuery.query = function() {
 		this.tidx = 0;			// Current index of the times array
 		this.clock = 0;			// Holds the time
 
+		this.iswii = (navigator && navigator.platform == "Nintendo Wii") ? true : false;
+		this.istouch = ('ontouchstart' in document.documentElement);
+
 		// Language Settings
-		this.lang = (navigator.language||navigatior.userLanguage||navigator.systemLanguage||browser.language);			// Set the user language
+		this.lang = (navigator) ? (navigator.userLanguage||navigator.systemLanguage||navigator.language||browser.language) : "";			// Set the user language
 		this.langshort = (this.lang.indexOf('-') > 0 ? this.lang.substring(0,this.lang.indexOf('-')) : this.lang.substring(0,2));
 		this.langs = new Array();
 		// Country codes at http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
@@ -485,7 +488,7 @@ jQuery.query = function() {
 			if(!chromo) return;
 			if(chromo.clickTimeout) clearTimeout(chromo.clickTimeout);
 			// Bind the double tap to double click
-			if('ontouchstart' in document.documentElement){
+			if(chromo.istouch){
 				var delay = 500;
 				var now = (new Date()).getTime();
 				if(!this.lastTouch) this.lastTouch = now + 1;
@@ -552,13 +555,13 @@ jQuery.query = function() {
 		//console.log("Time to end register keys:" + (new Date() - this.start) + "ms");
 
 		// If we have a touch screen browser, we should convert touch events into mouse events.
-		if('ontouchstart' in document.documentElement) $(this.body+" .chromo_outerDiv").addTouch();
+		if(this.istouch) $(this.body+" .chromo_outerDiv").addTouch();
 
 		this.setViewport();
 
 		// For a Wii make text bigger, hide annotation layer and keyboard shortcuts
-		if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall < 600))){ $(this.body+" .chromo_layerswitcher").css({'font-size':'0.9em'}); this.annotations = ""; $(".keyboard").css({'display':'none'}); $(".nokeyboard").css({'display':'show'}); this.wavelength_load_range = 0; this.spatial_preload = 1; }
-		if(navigator.platform == "Nintendo Wii") $(this.body+" .chromo_layerswitcher").css({'font-size':'1.5em'});
+		if(this.iswii || (this.istouch && (this.wide <= 800 || this.tall < 600))){ $(this.body+" .chromo_layerswitcher").css({'font-size':'0.9em'}); this.annotations = ""; $(".keyboard").css({'display':'none'}); $(".nokeyboard").css({'display':'show'}); this.wavelength_load_range = 0; this.spatial_preload = 1; }
+		if(this.iswii) $(this.body+" .chromo_layerswitcher").css({'font-size':'1.5em'});
 
 		//console.log("Time to start set mag:" + (new Date() - this.start) + "ms");
 
@@ -1010,7 +1013,7 @@ jQuery.query = function() {
 		var h = $(this.body+" .legend-"+this.spectrum[0].key).outerHeight();
 		var y = h;
 
-		if('ontouchstart' in document.documentElement){
+		if(this.istouch){
 			while(y < 25) y = parseInt(y*1.8);
 		}
 
@@ -1052,7 +1055,7 @@ jQuery.query = function() {
 	// Construct the wavelength slider and give it mouse events
 	Chromoscope.prototype.makeZoomControl = function(){
 		var h = $(this.body+" .chromo_slider").width();
-		var fs = ('ontouchstart' in document.documentElement) ? 1.2 : 1;
+		var fs = (this.istouch) ? 1.2 : 1;
 		var zoomer = "<div class=\"chromo_zoomer\"><div class=\"chromo_zoom chromo_zoomin\" title=\""+this.phrasebook.zoomin+"\">+</div><div class=\"chromo_zoom chromo_zoomout\" title=\""+this.phrasebook.zoomout+"\">&minus;</div></div>";
 		$(this.body+" .chromo_layerswitcher").append(zoomer);
 		$(this.body+" .chromo_zoom").css({cursor:"pointer",padding:"0px",width:"100%",height:h+"px","line-height":h+"px","text-align":"center"});
@@ -1892,7 +1895,7 @@ jQuery.query = function() {
 	Chromoscope.prototype.createClose = function(type){
 		var w = 28;
 		// In the case of the Wii or a small touch screen we should make the close control larger
-		if(navigator.platform == "Nintendo Wii" || ('ontouchstart' in document.documentElement && (this.wide <= 800 || this.tall <= 600))) w *= 2;
+		if(this.iswii || (this.istouch && (this.wide <= 800 || this.tall <= 600))) w *= 2;
 		return '<span class="chromo_close"><img src="'+this.dir+'close.png" style="width:'+w+'px;" title="'+this.phrasebook.closedesc+'" /></span>';
 	}
 
