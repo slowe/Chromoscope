@@ -1589,7 +1589,8 @@ jQuery.query = function() {
 					setOpacity($(this.body+" ."+this.spectrum[idx].name),0);
 				}
 				if(idx == low || idx == high){
-					newOpacity = (idx == low) ? (1-(this.lambda-low)).toFixed(2) : (1+(this.lambda-high)).toFixed(2);
+					//newOpacity = (idx == low) ? (1-(this.lambda-low)).toFixed(2) : (1+(this.lambda-high)).toFixed(2);
+					newOpacity = (idx == low) ? 1 : (1+(this.lambda-high)).toFixed(2);
 					newOpacity = Math.min(this.maxOpacity,Math.max(this.minOpacity, newOpacity));
 					this.spectrum[idx].opacity = newOpacity;
 					setOpacity($(this.body+" ."+this.spectrum[idx].name),newOpacity);
