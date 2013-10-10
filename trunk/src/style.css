@@ -14,6 +14,7 @@
 .chromo_title h1 a { text-decoration: none; color: white; }
 .chromo_title h2 { font-size: 0.6em; margin: 0px; margin-top:-3px; margin-left:5px; text-shadow: 0px 0px 8px #fff; }
 img.map { opacity: 1; }
+img.tile { opacity: inherit; }
 .chromo_controlkeys {
 	max-height: 200px;
 	overflow: auto;
@@ -252,8 +253,7 @@ img.map { opacity: 1; }
 	position:absolute;
 	padding:1em;
 	z-index:102;
-	display: none;
-	width: 250px;
+	width: 600px;
 	opacity: 0.95;
 }
 .chromo_message a { color: #6666ff; }
