@@ -90,6 +90,8 @@ jQuery.query = function() {
 
 		this.iswii = (navigator && navigator.platform == "Nintendo Wii") ? true : false;
 		this.istouch = ('ontouchstart' in document.documentElement);
+		this.isfilter = (typeof document.createElement("div").style.filter != 'undefined');
+   
 
 		// Language Settings
 		this.lang = (navigator) ? (navigator.userLanguage||navigator.systemLanguage||navigator.language||browser.language) : "";			// Set the user language
@@ -1344,7 +1346,7 @@ jQuery.query = function() {
 								var tiles = this.spectrum[idx].tiles;
 								tiles = (typeof tiles=="string") ? tiles : (typeof tiles["z"+this.zoom]=="string") ? tiles["z"+this.zoom] : tiles.z;
 								var img = (inrange) ? this.cdn+tiles+visibleTiles[v].src+'.'+this.spectrum[idx].ext : this.spectrum[idx].blank;
-								extrastyle = (jQuery.browser.msie) ? 'filter:alpha(opacity='+(this.spectrum[idx].opacity/100)+')' : '';
+								extrastyle = (this.isfilter) ? 'filter:alpha(opacity='+(this.spectrum[idx].opacity*100)+')' : '';
 								output += '<img src="'+img+'" id="'+tileName+'" class="tile" style="position:absolute;left:'+(visibleTiles[v].x * this.tileSize)+'px; top:'+(visibleTiles[v].y * this.tileSize) +'px; '+extrastyle+'" />\n';
 							} else {
 								if(this.annotations[-(idx+1)].limitrange){
@@ -1354,7 +1356,7 @@ jQuery.query = function() {
 								var tiles = this.annotations[-(idx+1)].tiles;
 								tiles = (typeof tiles=="string") ? tiles : (typeof tiles["z"+this.zoom]=="string") ? tiles["z"+this.zoom] : tiles.z;
 								var img = (inrange) ? this.cdn+tiles+visibleTiles[v].src+'.'+this.annotations[-(idx+1)].ext : this.spectrum[idx].blank;
-								extrastyle = (jQuery.browser.msie) ? 'filter:alpha(opacity='+(this.annotations[-(idx+1)].opacity/100)+')' : '';
+								extrastyle = (this.isfilter) ? 'filter:alpha(opacity='+(this.annotations[-(idx+1)].opacity*100)+')' : '';
 								output += '<img src="'+img+'" id="'+tileName+'" class="tile" style="position:absolute;left:'+(visibleTiles[v].x * this.tileSize)+'px; top:'+(visibleTiles[v].y * this.tileSize) +'px; '+extrastyle+'" />\n';
 							}
 						}
@@ -2388,7 +2390,7 @@ jQuery.query = function() {
 // Usage: getOpacity($("#chromo_message"))
 function getOpacity(el){
 	if(typeof el=="string") el = $(el);
-	if(jQuery.browser.msie) return (el.css("filter").replace(/[^0-9.]*/g,""))/100;
+	if(this.isfilter) return (el.css("filter").replace(/[^0-9.]*/g,""))/100;
 	else return parseFloat(el.css("opacity")).toFixed(3); // Only need 3dp precision - this stops floating point errors in Chrome
 }
 
@@ -2396,7 +2398,7 @@ function getOpacity(el){
 // Usage: setOpacity($("#chromo_message"),0.4)
 function setOpacity(el,opacity){
 	if(typeof el=="string") el = $(el);
-	if(jQuery.browser.msie){
+	if(this.isfilter){
 		el.css("filter","alpha(opacity="+Math.floor(opacity*100)+")");
 		el.children().css("filter","alpha(opacity="+Math.floor(opacity*100)+")");
 	}else el.css("opacity",opacity);
