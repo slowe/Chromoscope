@@ -301,6 +301,7 @@ jQuery.query = function() {
 		this.buildLinks();
 		this.buildLang();
 		if(this.showintro) this.buildIntro();
+
 		this.makeWavelengthSlider();
 		if(this.showversion) $(this.body+" .chromo_version").html(this.phrasebook.version+" "+this.version);
 		if($.browser.opera && $.browser.version == 9.3){ $(".keyboard").hide(); $(".nokeyboard").show(); }
@@ -574,6 +575,7 @@ jQuery.query = function() {
 		this.buildLinks();
 		this.buildLang();
 		if(this.showintro) this.buildIntro();
+		else $(this.body+" .chromo_message").hide();
 
 		//console.log("Time to end intro:" + (new Date() - this.start) + "ms");
 		//console.log("Time to end context:" + (new Date() - this.start) + "ms");
