@@ -20,7 +20,7 @@
 		$(document).ready(function(){
 
 			// Set up the Chromoscope
-			chromo = $.chromoscope({showintro:true});
+			chromo = $.chromoscope({showshare:false,showabout:false});
 
 			// The spectral bands should be in order
 			chromo.addWavelength({key:'g',useasdefault:false,name:'gamma',tiles:'fermi-tiles/',ext:'jpg',title:'gamma',attribution:'<a href="http://fermi.gsfc.nasa.gov/">Fermi<\/a>'})
@@ -63,7 +63,9 @@
 		<h2 class="chromo_version"></h2>
 	</div>
 
-	<div class="chromo_message">Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in <a href="http://blog.chromoscope.net/data/">a range of wavelengths</a> from X-rays to the longest radio waves.<br /><br />Change the wavelength using the <em>slider</em> in the top right of the screen and explore space using your mouse. For more information we have <a href="#" onClick="javascript:showVideoTour();">a quick video tour</a> or you can read <a href="http://blog.chromoscope.net/about/">more on our blog</a>. If you get stuck, click &quot;Help&quot; in the bottom left.<br /><br /><a href="http://www.astro.cardiff.ac.uk/research/instr/"><img src="cardiffuni.png" style="border:0px;margin: 0px 5px 5px 0px;float:left;" /></a>Chromoscope is kindly funded by the Cardiff University <a href="http://www.astro.cardiff.ac.uk/research/egalactic/">Astronomy</a> and <a href="http://www.astro.cardiff.ac.uk/research/instr/">Astronomy Instrumentation</a> Groups.</div>
+	<div class="chromo_message">
+		<p>Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in <a href="http://blog.chromoscope.net/data/">a range of wavelengths</a> from X-rays to the longest radio waves.<br /><br />Change the wavelength using the <em>slider</em> in the top right of the screen and explore space using your mouse. For more information we have <a href="#" onClick="javascript:showVideoTour();">a quick video tour</a> or you can read <a href="http://blog.chromoscope.net/about/">more on our blog</a>. If you get stuck, click &quot;Help&quot; in the bottom left.<br /><br /><a href="http://www.astro.cardiff.ac.uk/research/instr/"><img src="cardiffuni.png" style="border:0px;margin: 0px 5px 5px 0px;float:left;" /></a>Chromoscope is kindly funded by the Cardiff University <a href="http://www.astro.cardiff.ac.uk/research/egalactic/">Astronomy</a> and <a href="http://www.astro.cardiff.ac.uk/research/instr/">Astronomy Instrumentation</a> Groups.</p>
+	</div>
 
 </body>
 </html>

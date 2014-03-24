@@ -1,11 +1,14 @@
 /*
- * Chromoscope v1.4.3
+ * Chromoscope v1.4.4
  * Written by Stuart Lowe for the Planck/Herschel Royal Society
  * Summer Exhibition 2009. Developed as an educational resource.
  *
  * This application will run locally or can be run on a web
  * server. To run locally you'll need to download the appropriate 
  * tile sets and code.
+ *
+ * Changes in version 1.4.4 (2014-03-22):
+ *   - Bug fix for showintro
  *
  * Changes in version 1.4.3 (2013-03-19):
  *   - Allow tile sets for two coordinate systems
@@ -172,7 +175,7 @@ jQuery.query = function() {
 	// that case the intro message can be confusing to the person following the link.
 	Chromoscope.prototype.init = function(inp){
 		//console.log("Time to start init:" + (new Date() - this.start) + "ms");
-		if(this.q.showintro) this.showintro = (this.q.showintro == "true") ? true : false;
+		if(this.q.showintro) this.showintro = (this.q.showintro == "true") ? true : (this.q.showintro == "false") ? false : this.showintro;
 		else{
 			if(this.q.length > 0) this.showintro = false;
 		}
