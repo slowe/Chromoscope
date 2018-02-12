@@ -9,7 +9,7 @@
 "halpha" : "Hydrogen &#945;",
 "nearir" : "Isgoch Agos",
 "farir" : "Isgoch Pell",
-"hi" : "Niwtral Hydrogen",
+"hi" : "Hydrogen Niwtral",
 "microwave" : "Microdon",
 "radio" : "Radio",
 "labels" : "Labeli",
