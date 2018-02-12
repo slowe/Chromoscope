@@ -8,7 +8,7 @@ View the Universe
 
 Chromoscope has been created using public-domain datasets from a number of all-sky astronomy projects. It lets you easily move around the sky and fade between wavelengths using a simple user-interface to illustrate the similarities and differences between what is visible at each wavelength.
 
-There are currently eight included:
+There are currently nine included:
 
 * Gamma ray ([Fermi](http://fermi.gsfc.nasa.gov/)),
 * X-ray ([ROSAT](http://www.mpe.mpg.de/xray/wave/rosat/mission/rosat/index.php)),
@@ -17,9 +17,10 @@ There are currently eight included:
 * Near Infrared ([WISE](http://wise.ssl.berkely.edu/IRASdocs/iras.html)),
 * Far Infrared ([IRAS](http://irsa.ipac.caltech.edu/IRASdocs/iras.html)),
 * Microwave ([Planck](http://www.esa.int/planck)), 
+* Neutral hydrogen ([HI4PI](www.aanda.org/10.1051/0004-6361/201629178))
 * Radio ([Haslam](http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm)).
 
-You can [download these tile-sets for offline use](http://blog.chromoscope.net/download/).
+You can [download these tile-sets for offline use](http://blogs.cardiff.ac.uk/chromoscope/download/).
 
 Control the sky
 ---------------
@@ -29,7 +30,7 @@ To move the map around, simply 'grab' it with the cursor and drag around the scr
 No installation needed
 ----------------------
 
-A standard, modern, web browser is all that you need to use Chromoscope so there is no need to install any extra software, plugins or learn a new interface (you will have to [download the tiles to use it offline](http://blog.chromoscope.net/download/)). Being platform independent means that whether you use Windows, Mac or Linux, it should still be accessible.
+A standard, modern, web browser is all that you need to use Chromoscope so there is no need to install any extra software, plugins or learn a new interface (you will have to [download the tiles to use it offline](http://blogs.cardiff.ac.uk/chromoscope/download/)). Being platform independent means that whether you use Windows, Mac or Linux, it should still be accessible.
 
 Note that the Chrome browser has extra security when running locally which will stop Chromoscope seeing KML and the language JS files even if they are in the same directory. If you want to use these features you should start Chrome with the option "--allow-file-access-from-files".
 

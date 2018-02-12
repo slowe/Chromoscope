@@ -11,6 +11,7 @@
 "farir" : "Isgoch Pell",
 "hi" : "Hydrogen Niwtral",
 "microwave" : "Microdon",
+"hi" : "Hydrogen Niwtral",
 "radio" : "Radio",
 "labels" : "Labeli",
 "intro" : "Erioed wedi bod eisiau sbectol pelydr-x neu olwg uwch-ddynol? Gadawa Chromoscope i chi grwydro ein Galaeth (y Llwybr Llaethog) a'r Bydysawd pell mewn <a href=\"http://blog.chromoscope.net/data/\">amrediad o donfeddi</a> o belydrau-x i'r tonnau radio hiraf.<br /><br />Newidiwch y donfedd drwy symud y <em>llithrydd</em> yn nhop de'r sgr&#238;n a chrwydro gan ddefnyddio eich llygoden. Am fwy o wybodaeth mae <a href=\"#\" class=\"videolink\">tywysiad fideo byr</a> neu medrwch ddarllen <a href=\"http://blog.chromoscope.net/about/\">mwy ar ein blog</a>. Os oes trafferth, cliciwch \"Cymorth\" yng ngwaelod chwith y sgr&#238;n.<br /><br /><a href=\"http://www.astro.cardiff.ac.uk/research/instr/\"><img src=\"cardiffuni.png\" style=\"border:0px;margin: 0px 5px 5px 0px;float:left;\" /></a>Caiff Chromoscope ei ariannu'n garedig gan Grwpiau <a href=\"http://www.astro.cardiff.ac.uk/research/egalactic/\">Seryddiaeth</a> ac <a href=\"http://www.astro.cardiff.ac.uk/research/instr/\">Offeryniaeth Seryddiaeth</a> Prifysgol Caerdydd.<br style=\"clear:both;\" />",

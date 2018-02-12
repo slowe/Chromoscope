@@ -32,6 +32,7 @@
 "nearir" : "Infrarosso vicino",
 "farir" : "Infrarossa lunga",
 "microwave" : "Microonde",
+"hi" : "Idrogeno Neutro",
 "radio" : "Radio"
 }
 	

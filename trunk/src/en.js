@@ -35,6 +35,7 @@
 "farir" : "Far-Infrared",
 "nearir" : "Near-Infrared",
 "microwave" : "Microwave",
+"hi" : "Neutral hydrogen",
 "radio" : "Radio",
 "labels" : "Labels"
 }

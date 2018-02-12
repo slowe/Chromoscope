@@ -1,5 +1,5 @@
 /*
- * Chromoscope v1.4.4
+ * Chromoscope v1.4.6
  * Written by Stuart Lowe for the Planck/Herschel Royal Society
  * Summer Exhibition 2009. Developed as an educational resource.
  *
@@ -7,6 +7,12 @@
  * server. To run locally you'll need to download the appropriate
  * tile sets and code.
  *
+ * Changes in version 1.4.6 (2018-02-12):
+ *   - Update help function
+ * 
+ * Changes in version 1.4.5 (2016-06-26):
+ *   - Update help function
+ * 
  * Changes in version 1.4.4 (2014-03-22):
  *   - Bug fix for showintro
  *
@@ -59,7 +65,7 @@ jQuery.query = function() {
 	// Declare the Chromoscope object
 	function Chromoscope(input){
 
-		this.version = "1.4.3";
+		this.version = "1.4.6";
 
 		this.q = $.query();
 		this.zoom = -1;
@@ -275,6 +281,7 @@ jQuery.query = function() {
 		this.nearir = (inp.nearir) ? inp.nearir : 'Near-Infrared';
 		this.farir = (inp.farir) ? inp.farir : 'Far-Infrared';
 		this.microwave = (inp.microwave) ? inp.microwave : 'Microwave';
+		this.hi = (inp.hi) ? inp.hi : 'Neutral Hydrogen';
 		this.radio = (inp.radio) ? inp.radio : 'Radio';
 		this.labels = (inp.labels) ? inp.labels : 'Labels';
 		this.centre = (inp.centre) ? inp.centre : 'Centre map at this point';
@@ -713,7 +720,16 @@ jQuery.query = function() {
 		}
 		for(var i=0 ; i < this.annotations.length ; i++){
 			if(this.annotations[i].key){
-				var s = this.phrasebook.switchannotation.replace("__ANNOTATION__",this.phrasebook[this.annotations[i].title])
+				//NEW: Do the same with annotations as with wavelengths
+				if(typeof this.annotations[i].title=="object"){
+					var l = (!this.annotations[i].title[this.langshort]) ? 'en' : this.langshort;
+					var t = this.annotations[i].title[l]
+				}else{
+					if(this.phrasebook[this.annotations[i].title]) var t = this.phrasebook[this.annotations[i].title];
+					else var t = this.annotations[i].title;
+				}
+				var s = this.phrasebook.switchannotation.replace("__ANNOTATION__",t)
+				//END
 				keys += this.buildKeyItem(this.annotations[i].key,s);
 			}
 		}

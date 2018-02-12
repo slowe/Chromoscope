@@ -10,6 +10,7 @@
 "nearir" : "Nahinfrarotstrahlung",
 "farir" : "Ferninfrarotstrahlung",
 "microwave" : "Mikrowellenstrahlung",
+"hi" : "neutraler Wasserstoff",
 "radio" : "Radiostrahlung",
 "labels" : "Bezeichnungen",
 "intro" : "Wollten Sie immer schon mal eine R&#246;ntgenbrille oder &#252;bernat&#252;rliche Sehkr&#228;fte haben? Chromoscope erm&#246;glicht Ihnen, unsere Galaxie (die Milchstra&#223;e) und das ferne Universum in <a href=\"http://blog.chromoscope.net/data/\">verschiedenen Wellenl&#228;ngen</a> vom R&#246;ntgenbereich bis zu den l&#228;ngsten Radiowellenl&#228;ngen zu entdecken.<br /><br />Sie k&#246;nnen die Wellenl&#228;nge &#228;ndern, indem Sie im Fenster oben rechts den <em>Balken</em> auf und ab bewegen.Benutzen Sie Ihre Maus, um den Weltraum zu erforschen. F&#252;r weitere Informationen bieten wir eine <a href=\"#\" class=\"videolink\">kurze Videotour</a> an oder Sie k&#246;nnen <a href=\"http://blog.chromoscope.net/about/\">mehr in unserem Blog</a> lesen. Wenn Sie irgendwelche Probleme haben, dr&#252;cken Sie \"Hilfe\" unten links.",
