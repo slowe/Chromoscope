@@ -3,7 +3,7 @@
 .chromo_link { color: #ddddff; text-decoration:underline; cursor: pointer; }
 .chromo_helplink a, .chromo_attribution a { color: #ddddff; }
 .chromo_helplink a:hover { color:#fff; }
-.chromo_title { position: absolute; z-index: 10; left:7px; top: 7px; padding: 0px; margin: 0px; }
+.chromo_title { position: absolute; z-index: 20; left:7px; top: 7px; padding: 0px; margin: 0px; }
 /* These are pixel-positioned as using relative sizes broke across browsers :-( */
 .chromo_title h1, .chromo_title h2 {
 	font-family: 'Trebuchet MS',Tahoma,Helvetica,Verdana,sans-serif;
@@ -26,7 +26,7 @@ img.tile { opacity: inherit; }
 	text-align: right;
 	right: 0px;
 	top: 7px;
-	z-index: 10;
+	z-index: 20;
 	overflow:hidden;
 	color: white;
 	line-height: 120%;
@@ -105,7 +105,7 @@ img.tile { opacity: inherit; }
 	right: 0px;
 	bottom: 30px!important;
 	width:200px;
-	z-index: 10;
+	z-index: 20;
 	overflow:hidden;
 	padding:0.5em;
 	color: white;
@@ -123,7 +123,7 @@ img.tile { opacity: inherit; }
 	right: 0px;
 	bottom: 0em!important;
 	margin:0px;
-	z-index: 10;
+	z-index: 20;
 	overflow:hidden;
 	padding:0.3em;
 	color: white;
@@ -136,7 +136,7 @@ img.tile { opacity: inherit; }
 	left: 0px;
 	bottom: 0em!important;
 	margin:0px;
-	z-index: 10;
+	z-index: 20;
 	padding:0.3em;
 	color: white;
 	font-size: 0.8em;
@@ -148,7 +148,7 @@ img.tile { opacity: inherit; }
 	left: 0px;
 	bottom: 1.5em!important;
 	margin:0px;
-	z-index: 10;
+	z-index: 20;
 	padding:0.3em;
 	color: white;
 	font-size: 0.8em;
@@ -273,7 +273,7 @@ img.tile { opacity: inherit; }
 }
 .pin {
 	cursor: pointer;
-	z-index:10;
+	z-index:20;
 }
 .balloon {
 	border: 0px;
@@ -282,7 +282,7 @@ img.tile { opacity: inherit; }
 	cursor: default;
 	font-size:0.8em;
 	background-color: white;
-	z-index:15;
+	z-index:25;
 	max-width: 800px;
 }
 .balloon h3 {
