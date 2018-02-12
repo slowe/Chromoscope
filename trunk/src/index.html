@@ -46,7 +46,7 @@
 */
 
 			// Annotation layers will be shown at all wavelengths
-			chromo.addAnnotationLayer({opacity:0.4,key:'l',name:'labels',tiles:'labelsnew/',ext:'jpg',title:'Labels',attribution:'some Labels from Chris'});
+			chromo.addAnnotationLayer({opacity:0.7,key:'l',name:'labels',tiles:{z:'http://astrog80.astro.cf.ac.uk/Chromoscope/labels_const_zoom5_black-tiles_trans/',z3:'http://s3.amazonaws.com/gravoscope/labels_const2_gal_trans/',z4:'http://s3.amazonaws.com/gravoscope/labels_const2_gal_trans/'},ext:'png',title:'Labels',attribution:'some Labels from Chris'});
 
 			// Load the map
 			chromo.load();
