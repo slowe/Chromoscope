@@ -33,8 +33,8 @@
 		chromo.bind("contextmenu",function(args){ return '<a href="http://server1.wikisky.org/v2?ra='+args.ra+'&de='+args.dec+'&zoom='+(args.z-2)+'&img_source=DSS2">'+this.phrasebook.wikisky+'</a>'; });
 		chromo.bind("contextmenu",function(args){ return '<a href="http://www.worldwidetelescope.org/wwtweb/goto.aspx?object=ViewShortcut&ra='+(args.ra)+'&dec='+args.dec+'&zoom='+(0.3*60*360/Math.pow(2,args.z))+'">'+this.phrasebook.wwt+'</a>'; });
 		chromo.bind("contextmenu",function(args){
-			var esasky = (chromo.phrasebook.esasky) ? chromo.phrasebook.esasky : 'View in ESASky';
-			var w = chromo.spectrum[Math.floor(chromo.lambda)].name;
+			var esasky = (this.phrasebook.esasky || 'View in ESASky');
+			var w = this.spectrum[Math.floor(this.lambda)].name;
 			var wlookup = {'optical':'DSS2%20color','gamma':'Fermi%20color','halpha':'Finkbeiner%20Ha','farir':'IRIS%20color','microwave':'Planck%20HFI%20143%20GHz','radio':'Haslam%20408%20MHz'}
 			return '<a href="http://sky.esa.int/?action=goto&target='+(args.ra*15)+'%20'+args.dec+'&hips='+(wlookup[w] || wlookup['optical'])+'&fov=30&cooframe=J2000">'+esasky+(wlookup[w] ? ' ('+this.phrasebook[w]+')' : '')+'</a>'; });
 		chromo.bind("contextmenu",function(args){ return '<hr />'; });
