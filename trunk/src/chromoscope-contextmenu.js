@@ -2,6 +2,9 @@
  * Chromoscope context menu plugin
  * Written by Stuart Lowe to add a context-sensitive menu
  *
+ * Changes in version 1.3 (2018-03-02):
+ *   - Add ESASky to context menu
+ *
  * Changes in version 1.2 (2012-05-10):
  *   - Added support for right to left languages
  *
@@ -10,8 +13,6 @@
  *   - Can attach functions to menu items
  *   - Improved context menu styling
  *
- * Changes in version 1.1 (2018-03):
- *   - Add ESASky to context menu
  * Changes in version 1.0 (2011-09-25):
  *   - Now a separate plugin
  */
