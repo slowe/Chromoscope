@@ -36,6 +36,7 @@
 "centre" : "Karte hier zentrieren",
 "wikisky" : "In Wikisky ansehen",
 "wwt" : "In WorldWideTelescope ansehen",
+"esasky" : "In ESASky ansehen (__WAVELENGTH__)",
 "nearby" : "Objekte mit einem Abstand von weniger als 10&#8242;",
 "version" : "Version",
 "sharewith" : "Empfehlen Sie dieses Programm",

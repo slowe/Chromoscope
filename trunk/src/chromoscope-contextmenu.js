@@ -33,10 +33,9 @@
 		chromo.bind("contextmenu",function(args){ return '<a href="http://server1.wikisky.org/v2?ra='+args.ra+'&de='+args.dec+'&zoom='+(args.z-2)+'&img_source=DSS2">'+this.phrasebook.wikisky+'</a>'; });
 		chromo.bind("contextmenu",function(args){ return '<a href="http://www.worldwidetelescope.org/wwtweb/goto.aspx?object=ViewShortcut&ra='+(args.ra)+'&dec='+args.dec+'&zoom='+(0.3*60*360/Math.pow(2,args.z))+'">'+this.phrasebook.wwt+'</a>'; });
 		chromo.bind("contextmenu",function(args){
-			var esasky = (this.phrasebook.esasky || 'View in ESASky');
 			var w = this.spectrum[Math.floor(this.lambda)].name;
 			var wlookup = {'optical':'DSS2%20color','gamma':'Fermi%20color','halpha':'Finkbeiner%20Ha','farir':'IRIS%20color','microwave':'Planck%20HFI%20143%20GHz','radio':'Haslam%20408%20MHz'}
-			return '<a href="http://sky.esa.int/?action=goto&target='+(args.ra*15)+'%20'+args.dec+'&hips='+(wlookup[w] || wlookup['optical'])+'&fov=30&cooframe=J2000">'+esasky+(wlookup[w] ? ' ('+this.phrasebook[w]+')' : '')+'</a>'; });
+			return '<a href="http://sky.esa.int/?action=goto&target='+(args.ra*15)+'%20'+args.dec+'&hips='+(wlookup[w] || wlookup['optical'])+'&fov=30&cooframe=J2000">'+this.phrasebook.esasky.replace("__WAVELENGTH__",(wlookup[w] ? this.phrasebook[w] : this.phrasebook['optical']))+'</a>'; });
 		chromo.bind("contextmenu",function(args){ return '<hr />'; });
 		chromo.bind("contextmenu",function(args){ return '<a href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord='+args.l.toFixed(4)+'+'+args.b.toFixed(4)+'&CooFrame=Gal&CooEpoch=2000&CooEqui=2000&Radius=10">'+this.phrasebook.nearby+' (Simbad)</a>'; });
 		chromo.bind("contextmenu",function(args){ return '<a href="http://nedwww.ipac.caltech.edu/cgi-bin/nph-objsearch?search_type=Near+Position+Search&in_csys=Galactic&in_equinox=J2000.0&lon='+args.l+'&lat='+args.b+'&radius=10&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=20&img_stamp=YES">'+this.phrasebook.nearby+' (NED)'; });

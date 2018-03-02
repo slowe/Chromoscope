@@ -36,6 +36,7 @@
 "centre" : "Canoli'r map ar y pwynt hwn",
 "wikisky" : "Gweld yn Wikisky",
 "wwt" : "Gweld yn WorldWideTelescope",
+"esasky" : "Gweld yn ESASky (__WAVELENGTH__)",
 "nearby" : "Gwrthrychau o fewn 10&#8242;",
 "version" : "fersiwn",
 "sharewith" : "Rhannu efo",
