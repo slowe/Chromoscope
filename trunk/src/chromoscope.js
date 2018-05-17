@@ -4,7 +4,7 @@
  * Summer Exhibition 2009. Developed as an educational resource.
  *
  * This application will run locally or can be run on a web
- * server. To run locally you'll need to download the appropriate 
+ * server. To run locally you'll need to download the appropriate
  * tile sets and code.
  *
  * Changes in version 1.4.6 (2018-02-12):
@@ -18,7 +18,7 @@
  *
  * Changes in version 1.4.3 (2013-03-19):
  *   - Allow tile sets for two coordinate systems
- * 
+ *
  * Changes in version 1.4.2 (2013-01-11):
  *   - Bug fix for share icons in different directory
  *   - Bug fix for touch devices
@@ -100,7 +100,7 @@ jQuery.query = function() {
 		this.iswii = (navigator && navigator.platform == "Nintendo Wii") ? true : false;
 		this.istouch = ('ontouchstart' in document.documentElement);
 		this.isfilter = (typeof document.createElement("div").style.filter != 'undefined');
-   
+
 
 		// Language Settings
 		this.lang = (navigator) ? (navigator.userLanguage||navigator.systemLanguage||navigator.language||browser.language) : "";			// Set the user language
@@ -287,7 +287,7 @@ jQuery.query = function() {
 		this.centre = (inp.centre) ? inp.centre : 'Centre map at this point';
 		this.wikisky = (inp.wikisky) ? inp.wikisky : 'View in Wikisky';
 		this.wwt = (inp.wwt) ? inp.wwt : 'View in WorldWideTelescope';
-		this.esasky = (inp.esasky) ? inp.esasky : 'View in ESASky (__WAVELENGTH__)';
+    this.esasky = (inp.esasky) ? inp.esasky : 'View in ESASky (__WAVELENGTH__)';
 		this.nearby = (inp.nearby) ? inp.nearby : 'Objects within 10&#8242;';
 		this.alignment = (inp.alignment) ? inp.alignment : 'left';
 	}
@@ -462,7 +462,7 @@ jQuery.query = function() {
 				this.dragging = true;
 				this.moved = true;
 				this.clock = new Date();
-				$(chromo.container+" .chromo_innerDiv").css({cursor:'grabbing',cursor:'-moz-grabbing'});	
+				$(chromo.container+" .chromo_innerDiv").css({cursor:'grabbing',cursor:'-moz-grabbing'});
 				return false;
 			}
 
@@ -654,7 +654,7 @@ jQuery.query = function() {
 
 		// Make it sortable (if we have the jQuery/UI options available)
 		if(typeof $().sortable=="function"){
-			var cur = ($.browser.mozilla) ? 'move' : 'grabbing'; 
+			var cur = ($.browser.mozilla) ? 'move' : 'grabbing';
 			$(this.body+" .chromo_keys").sortable({containment:'parent',forcePlaceHolderSize:true,placeholder:'chromo_key_highlight',cursor:cur});
 			$(this.body+" .chromo_keys").bind('sortupdate',{el:this},function (event,ui){ event.data.el.orderWavelengths($(this).sortable('toArray')); });
 		}
@@ -897,7 +897,7 @@ jQuery.query = function() {
 				this.keys[i].fn.call(this,{event:event});
 				break;
 			}
-		}	
+		}
 	}
 
 	// Define the size and position of the main viewport
@@ -919,7 +919,7 @@ jQuery.query = function() {
 	//	key (string) = A keyboard shortcut to go to this wavelength
 	//	name (string) = An internal ID for this wavelength. Should be unique.
 	//	tiles (string) = The path to the directory containing the tiles. Can be remote.
-	//	ext (string) = The file extension. Likely to be jpg if using the Google Maps Image Cutter 
+	//	ext (string) = The file extension. Likely to be jpg if using the Google Maps Image Cutter
 	//	title (string) = The text that will appear in the wavelength slider
 	//	attribution (string) = The text that contains the credit line. Can contain HTML links.
 	function Wavelength(input){
@@ -932,14 +932,14 @@ jQuery.query = function() {
 	//	key (string) = A keyboard shortcut to toggle this annotation
 	//	name (string) = An internal ID for this annotation. Should be unique.
 	//	tiles (string) = The path to the directory containing the tiles. Can be remote.
-	//	ext (string) = The file extension. Likely to be jpg if using the Google Maps Image Cutter 
+	//	ext (string) = The file extension. Likely to be jpg if using the Google Maps Image Cutter
 	function AnnotationLayer(input){
 		return new ChromoscopeLayer(input);
 	}
 
 	function ChromoscopeLayer(input){
 		if(input){
-			this.useasdefault = (input.useasdefault) ? true : false;	
+			this.useasdefault = (input.useasdefault) ? true : false;
 			this.layer = (input.layer) ? input.layer : null;
 			this.opacity = (input.opacity) ? input.opacity : 0.0;
 			this.title = (input.title) ? input.title : '';
@@ -987,7 +987,7 @@ jQuery.query = function() {
 	}
 
 	// Rearrange the order of the wavelengths.
-	// This input array can either be the keys or the 
+	// This input array can either be the keys or the
 	// IDs for the wavelengths in the slider.
 	Chromoscope.prototype.orderWavelengths = function(order){
 		var tempspec = new Array();
@@ -1174,7 +1174,7 @@ jQuery.query = function() {
 		return {left:left,top:top}
 	}
 
-	// Position the map at a specific set of Galactic coordinates 
+	// Position the map at a specific set of Galactic coordinates
 	// (l,b), zoom level and with a certain duration
 	// Usage: moveMap(l,b,z,[duration])
 	//	l (number) = Galactic longitude (degrees)
@@ -1266,7 +1266,7 @@ jQuery.query = function() {
 		this.checkTiles();
 	}
 
-	// Centre a <div>, or other element, by name 
+	// Centre a <div>, or other element, by name
 	// within the current container
 	// Usage: this.centreDiv(".chromo_help")
 	Chromoscope.prototype.centreDiv = function(el){
@@ -1284,7 +1284,7 @@ jQuery.query = function() {
 		// Has the range changed?
 		if(changeXY || changeW || changeZ || changeForced){
 
-			// If the zoom level has changed, we should 
+			// If the zoom level has changed, we should
 			// remove all tiles instantly
 			if(changeZ) $(this.body+' .tile').remove();
 
@@ -1327,7 +1327,7 @@ jQuery.query = function() {
 
 			// Work out the x,y pixel values for the user-defined range
 			var pixels = Math.pow(2, this.zoom)
-			
+
 			// Loop over all the layers we've pre-selected
 			for(var l = 0 ; l < layers.length ; l++){
 				output = "";
@@ -1429,7 +1429,7 @@ jQuery.query = function() {
 
 		}
 		// If we've added any pins we need to position them and their
-		// balloons here. It wouldn't be necessary but because their 
+		// balloons here. It wouldn't be necessary but because their
 		// content might take a little while to load, we can't trust
 		// their initial positions.
 		if((changeXY && this.pins.length > 0 && !changeZ) || changeForced) this.wrapPins();
@@ -1580,7 +1580,7 @@ jQuery.query = function() {
 				y = ylow + (yhigh-ylow)*(this.lambda-low);
 			}
 			$(this.body+" .chromo_slider").css('margin-top',y);
-		}	
+		}
 	}
 
 	animateWavelength = function(chromo,target,velocity){
@@ -1687,7 +1687,7 @@ jQuery.query = function() {
 //console.log('zoom ',z,this.zoom,' ',this.l,this.b)
 		this.zoom = Math.round(z*100)/100;
 		var minZ = this.minZoom();
-		if(this.zoom < minZ){ 
+		if(this.zoom < minZ){
 			this.zoom = minZ;
 			if(z >= 0){
 				$(this.body+" .chromo_message").css({'max-width':"250px"});
@@ -1700,7 +1700,7 @@ jQuery.query = function() {
 				$(this.body+" .chromo_message").css({'max-width':"250px"});
 				this.message('<p style=\"text-align:center\">'+this.phrasebook.nozoomin+'</p>',1000);
 			}
-				
+
 		}
 		var oldmapSize = this.mapSize;
 		this.mapSize = Math.pow(2, this.zoom)*this.tileSize;
@@ -1856,7 +1856,7 @@ jQuery.query = function() {
 	Chromoscope.prototype.launchSearch = function(){
 
 		// Disable the intro just in case the user is really quick
-		this.showintro = false;	
+		this.showintro = false;
 
 		// Hide message boxes
 		$(this.body+" .chromo_help").hide();
@@ -1905,7 +1905,7 @@ jQuery.query = function() {
 	Chromoscope.prototype.getViewURL = function(){
 		var w = "";
 		for(i = 0; i < this.spectrum.length; i++){
-			w += this.spectrum[i].key; 
+			w += this.spectrum[i].key;
 			w += (i == this.spectrum.length-1) ? '' : ',';
 		}
 		var url = window.location.protocol + "//" + window.location.host + "" + window.location.pathname+'?l='+this.l.toFixed(4)+'&b='+this.b.toFixed(4)+'&w='+this.lambda.toFixed(2)+'&o='+w+'&z='+this.zoom;
@@ -1944,7 +1944,7 @@ jQuery.query = function() {
 		else this.events[ev] = [fn];
 		return this;
 	}
-	// Trigger a defined event with arguments. This is meant for internal use to be 
+	// Trigger a defined event with arguments. This is meant for internal use to be
 	// sure to include the correct arguments for a particular event
 	// chromo.trigger("zoom",args)
 	Chromoscope.prototype.trigger = function(ev,args){
@@ -2318,7 +2318,7 @@ jQuery.query = function() {
 		return false;
 	}
 
-	// If we zoom the map, we don't have to recalculate everything, 
+	// If we zoom the map, we don't have to recalculate everything,
 	// just scale the positions by the zoom factor
 	Chromoscope.prototype.zoomPins = function(scale){
 		if(scale != 1){
@@ -2365,7 +2365,7 @@ jQuery.query = function() {
 					break;
 				case 'touchmove':
 					type = 'mousemove';
-					break;        
+					break;
 				case 'touchend':
 					type = 'mouseup';
 					break;
@@ -2382,8 +2382,8 @@ jQuery.query = function() {
 		};
 	});
 
-	// A fake key press. Allows us to use the 
-	// functionality of the key press commands 
+	// A fake key press. Allows us to use the
+	// functionality of the key press commands
 	// without the user pressing anything.
 	function simulateKeyPress(character) {
 		evtype = (character == '+' || character == '-') ? "keydown" : "keypress";
@@ -2406,7 +2406,7 @@ jQuery.query = function() {
 
 
 // ===================================
-// Generic functions that are independent 
+// Generic functions that are independent
 // of the chromo container
 
 // A cross browser way to get the opacity of an element
