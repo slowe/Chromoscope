@@ -287,7 +287,7 @@ jQuery.query = function() {
 		this.centre = (inp.centre) ? inp.centre : 'Centre map at this point';
 		this.wikisky = (inp.wikisky) ? inp.wikisky : 'View in Wikisky';
 		this.wwt = (inp.wwt) ? inp.wwt : 'View in WorldWideTelescope';
-        this.esasky = (inp.esasky) ? inp.esasky : 'View in ESASky';
+    this.esasky = (inp.esasky) ? inp.esasky : 'View in ESASky (__WAVELENGTH__)';
 		this.nearby = (inp.nearby) ? inp.nearby : 'Objects within 10&#8242;';
 		this.alignment = (inp.alignment) ? inp.alignment : 'left';
 	}
