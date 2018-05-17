@@ -2,6 +2,9 @@
  * Chromoscope context menu plugin
  * Written by Stuart Lowe to add a context-sensitive menu
  *
+ * Changes in version 1.3.1 (2018-03-06):
+ *   - Change ESASky link to use Galactic coordinates
+ *
  * Changes in version 1.3 (2018-03-02):
  *   - Add ESASky to context menu
  *
@@ -35,7 +38,7 @@
 		chromo.bind("contextmenu",function(args){
 			var w = this.spectrum[Math.floor(this.lambda)].name;
 			var wlookup = {'optical':'DSS2%20color','gamma':'Fermi%20color','halpha':'Finkbeiner%20Ha','farir':'IRIS%20color','microwave':'Planck%20HFI%20143%20GHz','radio':'Haslam%20408%20MHz'}
-			return '<a href="http://sky.esa.int/?action=goto&target='+(args.ra*15)+'%20'+args.dec+'&hips='+(wlookup[w] || wlookup['optical'])+'&fov=30&cooframe=J2000">'+this.phrasebook.esasky.replace("__WAVELENGTH__",(wlookup[w] ? this.phrasebook[w] : this.phrasebook['optical']))+'</a>'; });
+			return '<a href="http://sky.esa.int/?action=goto&target='+(args.l < 0 ? args.l+360 : args.l).toFixed(4)+'%20'+args.b.toFixed(4)+'&hips='+(wlookup[w] || wlookup['optical'])+'&fov=30&cooframe=GALACTIC">'+this.phrasebook.esasky.replace("__WAVELENGTH__",(wlookup[w] ? this.phrasebook[w] : this.phrasebook['optical']))+'</a>'; });
 		chromo.bind("contextmenu",function(args){ return '<hr />'; });
 		chromo.bind("contextmenu",function(args){ return '<a href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord='+args.l.toFixed(4)+'+'+args.b.toFixed(4)+'&CooFrame=Gal&CooEpoch=2000&CooEqui=2000&Radius=10">'+this.phrasebook.nearby+' (Simbad)</a>'; });
 		chromo.bind("contextmenu",function(args){ return '<a href="http://nedwww.ipac.caltech.edu/cgi-bin/nph-objsearch?search_type=Near+Position+Search&in_csys=Galactic&in_equinox=J2000.0&lon='+args.l+'&lat='+args.b+'&radius=10&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=20&img_stamp=YES">'+this.phrasebook.nearby+' (NED)'; });
@@ -100,4 +103,5 @@
 		version: '1.1'
 	});
 })(jQuery);
+
 
