@@ -68,7 +68,7 @@ jQuery.query = function() {
 	// Declare the Chromoscope object
 	function Chromoscope(input){
 
-		this.version = "1.4.6";
+		this.version = "1.4.7";
 
 		this.q = $.query();
 		this.zoom = -1;
