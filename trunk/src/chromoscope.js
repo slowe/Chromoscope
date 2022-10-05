@@ -1,5 +1,5 @@
 /*
- * Chromoscope v1.4.6
+ * Chromoscope v1.4.7
  * Written by Stuart Lowe for the Planck/Herschel Royal Society
  * Summer Exhibition 2009. Developed as an educational resource.
  *
@@ -7,6 +7,9 @@
  * server. To run locally you'll need to download the appropriate
  * tile sets and code.
  *
+ * Changes in version 1.4.6 (2022-10-05):
+ *   - Change about link
+ * 
  * Changes in version 1.4.6 (2018-02-12):
  *   - Update help function
  * 
@@ -251,7 +254,7 @@ jQuery.query = function() {
 		this.version = (inp.version) ? inp.version :'version';
 		this.help = (inp.help) ? inp.help :'Help';
 		this.helpmenu = (inp.helpmenu) ? inp.helpmenu : inp.help;
-		this.helpdesc = (inp.helpdesc) ? inp.helpdesc : "The Milky Way is shown across the middle. The north pole of the Galaxy is towards the top. Use the mouse to drag the sky around. Want more info? <a href=\"#\" class=\"videolink\">Watch a quick tour</a> (opens in this window). <span class=\"keyboard\">The keyboard controls are:<ul class=\"chromo_controlkeys\"></ul></span><span class=\"nokeyboard\"><ul class=\"chromo_controlbuttons\"></ul></span> <span class=\"keyboard\">Created by <a href=\"http://www.strudel.org.uk/\">Stuart Lowe</a>, <a href=\"http://orbitingfrog.com/blog/\">Rob Simpson</a>, and <a href=\"http://www.astro.cardiff.ac.uk/contactsandpeople/?page=full&id=493\">Chris North</a>. You can also <a href=\"http://blog.chromoscope.net/download/\">download it</a> to run locally.</span>";
+		this.helpdesc = (inp.helpdesc) ? inp.helpdesc : "The Milky Way is shown across the middle. The north pole of the Galaxy is towards the top. Use the mouse to drag the sky around. Want more info? <a href=\"#\" class=\"videolink\">Watch a quick tour</a> (opens in this window). <span class=\"keyboard\">The keyboard controls are:<ul class=\"chromo_controlkeys\"></ul></span><span class=\"nokeyboard\"><ul class=\"chromo_controlbuttons\"></ul></span> <span class=\"keyboard\">Created by <a href=\"http://www.strudel.org.uk/\">Stuart Lowe</a>, <a href=\"http://orbitingfrog.com/blog/\">Rob Simpson</a>, and <a href=\"http://www.astro.cardiff.ac.uk/contactsandpeople/?page=full&id=493\">Chris North</a>. You can also <a href=\"https://blogs.cardiff.ac.uk/chromoscope/download/\">download it</a> to run locally.</span>";
 		this.about = (inp.about) ? inp.about :'About';
 		this.share = (inp.share) ? inp.share :'Share';
 		this.sharewith = (inp.sharewith) ? inp.sharewith :'Share it with';
@@ -269,7 +272,7 @@ jQuery.query = function() {
 		this.nozoomin = (inp.nozoomin) ? inp.nozoomin : 'Can\'t zoom in any more'
 		this.nozoomout = (inp.nozoomout) ? inp.nozoomout : 'Can\'t zoom out any more'
 		this.url = (inp.url) ? inp.url : 'The URL for this view is:';
-		this.intro = (inp.intro) ? inp.intro : "Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in <a href=\"http://blog.chromoscope.net/data/\">a range of wavelengths</a> from gamma-rays to the longest radio waves.<br /><br />Change the wavelength using the <em>slider</em> in the top right of the screen and explore space using your mouse. For more information we have <a href=\"#\" class=\"videolink\">a quick video tour</a> or you can read <a href=\"http://blog.chromoscope.net/about/\">more on our blog</a>. If you get stuck, click \"Help\" in the bottom left.<br /><br /><a href=\"http://www.astro.cardiff.ac.uk/research/instr/\"><img src=\"cardiffuni.png\" style=\"border:0px;margin: 0px 5px 5px 0px;float:left;\" /></a>Chromoscope is kindly funded by the Cardiff University <a href=\"http://www.astro.cardiff.ac.uk/research/egalactic/\">Astronomy</a> and <a href=\"http://www.astro.cardiff.ac.uk/research/instr/\">Astronomy Instrumentation</a> Groups.<br style=\"clear:both;\" />";
+		this.intro = (inp.intro) ? inp.intro : "Ever wanted X-ray specs or super-human vision? Chromoscope lets you explore our Galaxy (the Milky Way) and the distant Universe in <a href=\"https://blogs.cardiff.ac.uk/chromoscope/download/\">a range of wavelengths</a> from gamma-rays to the longest radio waves.<br /><br />Change the wavelength using the <em>slider</em> in the top right of the screen and explore space using your mouse. For more information we have <a href=\"#\" class=\"videolink\">a quick video tour</a> or you can read <a href=\"http://blog.chromoscope.net/\">more on our blog</a>. If you get stuck, click \"Help\" in the bottom left.<br /><br /><a href=\"http://www.astro.cardiff.ac.uk/research/instr/\"><img src=\"cardiffuni.png\" style=\"border:0px;margin: 0px 5px 5px 0px;float:left;\" /></a>Chromoscope is kindly funded by the Cardiff University <a href=\"http://www.astro.cardiff.ac.uk/research/egalactic/\">Astronomy</a> and <a href=\"http://www.astro.cardiff.ac.uk/research/instr/\">Astronomy Instrumentation</a> Groups.<br style=\"clear:both;\" />";
 		this.gal = (inp.gal) ? inp.gal : 'http://en.wikipedia.org/wiki/Galactic_coordinate_system';
 		this.galcoord = (inp.galcoord) ? inp.galcoord : 'Galactic Coordinates';
 		this.eq = (inp.eq) ? inp.eq : 'http://en.wikipedia.org/wiki/Equatorial_coordinate_system';
@@ -761,7 +764,7 @@ jQuery.query = function() {
 		// Construct the Make a Link
 		var str = "";
 		if(!this.compact && this.showhelp) str = '<span class="chromo_helphint chromo_link">'+this.phrasebook.help+'</span>';
-		if(!this.compact && this.showabout) str+= ' | <a href="http://blog.chromoscope.net/about/" class="chromo_about">'+this.phrasebook.about+'</a>';
+		if(!this.compact && this.showabout) str+= ' | <a href="http://blog.chromoscope.net/" class="chromo_about">'+this.phrasebook.about+'</a>';
 		if(!($.browser.opera && $.browser.version == 9.3)){
 			if(!this.compact){
 				if(this.showshare) str += ' | <span class="chromo_linkhint chromo_link">'+this.phrasebook.share+'</span>';
