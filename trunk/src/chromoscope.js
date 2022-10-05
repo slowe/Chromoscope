@@ -7,7 +7,7 @@
  * server. To run locally you'll need to download the appropriate
  * tile sets and code.
  *
- * Changes in version 1.4.6 (2022-10-05):
+ * Changes in version 1.4.7 (2022-10-05):
  *   - Change about link
  * 
  * Changes in version 1.4.6 (2018-02-12):
