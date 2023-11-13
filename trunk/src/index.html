@@ -33,7 +33,7 @@
 			chromo.addWavelength({key:'n',useasdefault:false,name:'nearir',tiles:'https://s3.amazonaws.com/Chromoscope/WISE-tiles/',ext:'jpg',title:'nearir',attribution:'<a href="http://wise.ssl.berkeley.edu/">WISE<\/a>/NASA/JPL-Caltech/UCLA'});
 			chromo.addWavelength({key:'f',useasdefault:false,name:'farir',tiles:'https://s3.amazonaws.com/Chromoscope/IRAS-tiles/',ext:'jpg',title:'farir',attribution:'<a href="http://irsa.ipac.caltech.edu/IRASdocs/iras.html">IRAS<\/a>/NASA'});
 			chromo.addWavelength({key:'m',useasdefault:false,name:'microwave',tiles:'https://s3.amazonaws.com/Chromoscope/Planck-tiles/',ext:'jpg',title:'microwave',attribution:'<a href="http://www.esa.int/esaCP/SEMF2FRZ5BG_index_0.html">ESA Planck<\/a> LFI and HFI Consortia (2010)'});
-			chromo.addWavelength({key:'y',useasdefault:false,name:'hi',tiles:'http://astrog80.astro.cf.ac.uk/Chromoscope/HI-tiles2/',ext:'jpg',title:'Neutral Hydrogen',attribution:'<a href="http://www.aanda.org/10.1051/0004-6361/201629178">HI4PI Collaboration</a>'});
+			chromo.addWavelength({key:'y',useasdefault:false,name:'hi',tiles:'https://astrog80.astro.cf.ac.uk/Chromoscope/HI-tiles2/',ext:'jpg',title:'Neutral Hydrogen',attribution:'<a href="http://www.aanda.org/10.1051/0004-6361/201629178">HI4PI Collaboration</a>'});
 			chromo.addWavelength({key:'r',useasdefault:false,name:'radio',tiles:'https://s3.amazonaws.com/Chromoscope/Radio-tiles/',ext:'jpg',title:'radio',attribution:'<a href="http://lambda.gsfc.nasa.gov/product/foreground/haslam_408.cfm">Haslam et al.<\/a>'});
 /*
 			chromo.addWavelength({key:'g',useasdefault:false,name:'gamma',tiles:'fermi-tiles/',ext:'jpg',title:'gamma',attribution:'<a href="http://fermi.gsfc.nasa.gov/">Fermi<\/a>'})
@@ -46,7 +46,7 @@
 */
 
 			// Annotation layers will be shown at all wavelengths
-			chromo.addAnnotationLayer({opacity:0.7,key:'l',name:'labels',tiles:{z:'http://astrog80.astro.cf.ac.uk/Chromoscope/labels_const_zoom5_black-tiles_trans/',z3:'http://s3.amazonaws.com/gravoscope/labels_const2_gal_trans/',z4:'http://s3.amazonaws.com/gravoscope/labels_const2_gal_trans/'},ext:'png',title:'Labels',attribution:'some Labels from Chris'});
+			chromo.addAnnotationLayer({opacity:0.7,key:'l',name:'labels',tiles:{z:'https://astrog80.astro.cf.ac.uk/Chromoscope/labels_const_zoom5_black-tiles_trans/',z3:'http://s3.amazonaws.com/gravoscope/labels_const2_gal_trans/',z4:'http://s3.amazonaws.com/gravoscope/labels_const2_gal_trans/'},ext:'png',title:'Labels',attribution:'some Labels from Chris'});
 
 			// Load the map
 			chromo.load();
